@@ -104,12 +104,24 @@ def send_sms_notifylk(to_phone, message, config):
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
                 resp_body = resp.read().decode("utf-8")
+                try:
+                    res_json = json.loads(resp_body)
+                    if res_json.get("status") == "error":
+                        return False, res_json.get("errors") or resp_body
+                except Exception:
+                    pass
                 return True, resp_body
         except urllib.error.HTTPError as e:
             err_body = e.read().decode("utf-8")
             # If custom sender ID is unapproved, fallback to NotifyDEMO
             if "Sender ID is not registered" in err_body and sender != "NotifyDEMO":
                 return do_request("NotifyDEMO")
+            try:
+                err_json = json.loads(err_body)
+                if "Account balance is not enough" in str(err_json.get("errors", "")):
+                    logger.warning("[SMS Gateway] Notify.lk account balance is 0. Please recharge SMS credits on notify.lk.")
+            except Exception:
+                pass
             return False, err_body
         except Exception as e:
             return False, str(e)
@@ -141,8 +153,12 @@ def send_sms(phone_number, message, event_type="notification", recipient_user=No
     if (gateway in ["notifylk", "srilanka"] or config["notifylk_user"]) and config["notifylk_key"]:
         gateway = "notifylk"
         success, response_data = send_sms_notifylk(normalized, message, config)
+        if not success and "Account balance is not enough" in str(response_data):
+            print(f"\n[IoT HIVE SMS NOTICE] Notify.lk balance is 0. Simulated SMS fallback:")
+            print(f"To: {normalized} | Event: {event_type.upper()} | Msg: {message}\n")
     # Check if Twilio is active
     elif (gateway == "twilio") and config["twilio_sid"] and "ACXXXXXX" not in config["twilio_sid"]:
+        gateway = "twilio"
         success, response_data = send_sms_twilio(normalized, message, config)
     else:
         # Fallback to Console Mock Driver
@@ -158,7 +174,7 @@ def send_sms(phone_number, message, event_type="notification", recipient_user=No
         print(f"Message: {message}")
         print(f"=================================================================\n")
 
-    status = "sent" if (success and gateway != "console") else ("mock_delivered" if success else "failed")
+    status = "sent" if (success and gateway != "console") else ("mock_delivered" if (success and gateway == "console") else "failed")
 
     log_entry = NotificationLog.objects.create(
         recipient=recipient_user,
