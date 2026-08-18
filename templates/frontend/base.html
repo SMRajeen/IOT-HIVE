@@ -65,35 +65,35 @@
         <div class="header-divider"></div>
 
         <!-- Dynamic Auth Slot -->
-        <div data-auth-nav class="flex items-center gap-3">
+        <div data-auth-nav class="flex items-center gap-2" style="flex-shrink: 0; flex-wrap: nowrap;">
           {% if user.is_authenticated %}
             {% if user.is_staff or user.is_superuser %}
               <a href="/admin-panel/" class="btn-auth-admin">
-                <span class="material-symbols-outlined" style="font-size: 16px;">admin_panel_settings</span>
+                <span class="material-symbols-outlined" style="font-size: 15px;">admin_panel_settings</span>
                 Admin
               </a>
             {% endif %}
-            <a href="/profile/" class="user-nav-badge">
+            <a href="/profile/" class="user-nav-badge" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               {% if user.profile.avatar %}
                 <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="user-nav-avatar-img">
               {% else %}
                 <div class="user-nav-avatar-fallback">
-                  <span class="material-symbols-outlined" style="font-size: 16px;">person</span>
+                  <span class="material-symbols-outlined" style="font-size: 15px;">person</span>
                 </div>
               {% endif %}
-              <span>{{ user.first_name|default:user.username }}</span>
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ user.first_name|default:user.username }}</span>
             </a>
             <button onclick="handleLogout()" class="btn-auth-logout">
-              <span class="material-symbols-outlined" style="font-size: 16px;">logout</span>
+              <span class="material-symbols-outlined" style="font-size: 15px;">logout</span>
               Sign Out
             </button>
           {% else %}
             <a href="/login/" class="btn-auth-login">
-              <span class="material-symbols-outlined" style="font-size: 16px;">login</span>
+              <span class="material-symbols-outlined" style="font-size: 15px;">login</span>
               Sign In
             </a>
             <a href="/register/" class="btn-auth-register">
-              <span class="material-symbols-outlined" style="font-size: 16px;">person_add</span>
+              <span class="material-symbols-outlined" style="font-size: 15px;">person_add</span>
               Get Started
             </a>
           {% endif %}

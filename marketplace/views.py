@@ -24,6 +24,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 
+from accounts.models import UserProfile
 from accounts.serializers import UserSerializer
 from .models import (
     Category,
@@ -71,6 +72,14 @@ class CategoryViewSet(viewsets.ModelViewSet):
         if self.action in ["list", "retrieve"]:
             return [permissions.AllowAny()]
         return [permissions.IsAdminUser()]
+
+    def get_object(self):
+        lookup = self.kwargs.get(self.lookup_field)
+        if lookup and str(lookup).isdigit():
+            obj = Category.objects.filter(id=int(lookup)).first()
+            if obj:
+                return obj
+        return super().get_object()
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -713,7 +722,7 @@ def admin_stats_view(request):
     })
 
 
-@api_view(["GET", "PATCH", "DELETE"])
+@api_view(["GET", "POST", "PATCH", "DELETE"])
 @permission_classes([permissions.IsAuthenticated])
 def admin_users_view(request, pk=None):
     if not is_admin_user(request.user):
@@ -722,6 +731,52 @@ def admin_users_view(request, pk=None):
     if request.method == "GET":
         users = User.objects.all().select_related("profile").order_by("-date_joined")
         return Response(UserSerializer(users, many=True).data)
+
+    elif request.method == "POST":
+        username = request.data.get("username", "").strip()
+        email = request.data.get("email", "").strip()
+        password = request.data.get("password", "").strip()
+        first_name = request.data.get("first_name", "").strip()
+        last_name = request.data.get("last_name", "").strip()
+        role = request.data.get("role", "both").lower()
+        is_staff = bool(request.data.get("is_staff", False))
+        is_superuser = bool(request.data.get("is_superuser", False))
+        phone_number = request.data.get("phone_number", "").strip()
+
+        if not username:
+            return Response({"detail": "Username is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not email:
+            return Response({"detail": "Email address is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not password:
+            return Response({"detail": "Password is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if len(password) < 6:
+            return Response({"detail": "Password must be at least 6 characters long."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username__iexact=username).exists():
+            return Response({"detail": f"Username '{username}' is already taken."}, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email__iexact=email).exists():
+            return Response({"detail": f"An account with email '{email}' already exists."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            is_staff=is_staff,
+            is_superuser=is_superuser
+        )
+
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile.role = role if role in ["buyer", "seller", "both"] else "both"
+        if phone_number:
+            profile.phone_number = normalize_phone_number(phone_number)
+        profile.save()
+
+        return Response({
+            "message": f"User '{username}' created successfully.",
+            "user": UserSerializer(user).data
+        }, status=status.HTTP_201_CREATED)
 
     elif request.method == "PATCH":
         user = User.objects.filter(id=pk).first()

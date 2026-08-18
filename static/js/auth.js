@@ -122,33 +122,33 @@ async function loadAuthNav() {
     const isAdmin = user.is_staff || user.is_superuser || user.role === 'admin';
     const role = (user.role || 'both').toLowerCase();
 
-    // Role badge
+    // Role badge (compact for sleek header fit)
     let roleBadgeHtml = '';
     if (role === 'seller') {
-      roleBadgeHtml = `<span class="badge-role badge-role-seller">Seller</span>`;
+      roleBadgeHtml = `<span class="badge-role badge-role-seller" style="font-size: 0.68rem; padding: 1px 6px;">Seller</span>`;
     } else if (role === 'buyer') {
-      roleBadgeHtml = `<span class="badge-role badge-role-buyer">Buyer</span>`;
+      roleBadgeHtml = `<span class="badge-role badge-role-buyer" style="font-size: 0.68rem; padding: 1px 6px;">Buyer</span>`;
     } else {
-      roleBadgeHtml = `<span class="badge-role badge-role-both">Buyer &amp; Seller</span>`;
+      roleBadgeHtml = `<span class="badge-role badge-role-both" style="font-size: 0.68rem; padding: 1px 6px;">Both</span>`;
     }
 
     const adminBtnHtml = isAdmin
-      ? `<a href="/admin-panel/" class="btn-auth-admin" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(0, 255, 136, 0.12); border: 1px solid rgba(0, 255, 136, 0.35); color: #00ff88; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.85rem;">
-           <span class="material-symbols-outlined" style="font-size: 16px;">admin_panel_settings</span>
+      ? `<a href="/admin-panel/" class="btn-auth-admin" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px; background: rgba(0, 255, 136, 0.12); border: 1px solid rgba(0, 255, 136, 0.35); color: #00ff88; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.78rem; flex-shrink: 0; white-space: nowrap;">
+           <span class="material-symbols-outlined" style="font-size: 15px;">admin_panel_settings</span>
            Admin
          </a>`
       : '';
 
     const loggedInHtml = `
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2" style="flex-shrink: 0; flex-wrap: nowrap;">
         ${adminBtnHtml}
-        <a href="/profile/" class="user-nav-badge" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-primary); font-weight: 600;">
+        <a href="/profile/" class="user-nav-badge" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text-primary); font-weight: 600; max-width: 160px; padding: 3px 8px 3px 3px; font-size: 0.82rem; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
           ${avatarHtml}
-          <span>${escapeHtml(displayName)}</span>
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80px;">${escapeHtml(displayName)}</span>
           ${roleBadgeHtml}
         </a>
-        <button type="button" onclick="handleLogout()" class="btn-auth-logout" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: var(--bg-surface-high); border: 1px solid var(--border-medium); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
-          <span class="material-symbols-outlined" style="font-size: 16px;">logout</span>
+        <button type="button" onclick="handleLogout()" class="btn-auth-logout" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px; background: var(--bg-surface-high); border: 1px solid var(--border-medium); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.78rem; flex-shrink: 0; white-space: nowrap;">
+          <span class="material-symbols-outlined" style="font-size: 15px;">logout</span>
           Sign Out
         </button>
       </div>

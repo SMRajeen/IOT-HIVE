@@ -143,6 +143,13 @@ class ApiClient {
   categories = {
     list: () => this.request('categories/'),
     get: (slug) => this.request(`categories/${slug}/`),
+    create: (data) => this.request('categories/', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    delete: (slugOrId) => this.request(`categories/${slugOrId}/`, {
+      method: 'DELETE'
+    }),
   };
 
   // --- Projects Endpoints ---
@@ -282,6 +289,10 @@ class ApiClient {
   admin = {
     stats: () => this.request('admin/stats/'),
     users: () => this.request('admin/users/'),
+    createUser: (userData) => this.request('admin/users/', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    }),
     updateUser: (id, data) => this.request(`admin/users/${id}/`, {
       method: 'PATCH',
       body: JSON.stringify(data)

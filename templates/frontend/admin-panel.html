@@ -5,7 +5,7 @@
 {% block page_id %}admin{% endblock %}
 
 {% block content %}
-<div class="app-container" style="padding-top: var(--space-8); max-width: 1200px;">
+<div class="app-container" style="padding-top: var(--space-8); max-width: 1240px;">
   
   <!-- Top Admin Header -->
   <div class="card-cyber" style="padding: 28px 32px; margin-bottom: var(--space-6); background: var(--bg-surface-container); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
@@ -16,7 +16,7 @@
       </div>
       <h1 style="font-size: 1.85rem; margin: 0;">Administration Panel</h1>
       <p style="color: var(--text-muted); margin-top: 4px; font-size: 0.92rem;">
-        Manage makers, projects, categories, transactions, and platform health.
+        Manage makers, projects, categories, user permissions, transactions, and platform health.
       </p>
     </div>
 
@@ -90,7 +90,7 @@
           <span style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Total Sales</span>
           <span class="material-symbols-outlined" style="color: #00ff88; font-size: 22px;">payments</span>
         </div>
-        <div id="stat-total-revenue" class="kpi-value" style="color: #00ff88;">$0.00</div>
+        <div id="stat-total-revenue" class="kpi-value" style="color: #00ff88;">Rs. 0.00</div>
         <div class="kpi-change positive"><span id="stat-total-orders">0</span> paid transactions</div>
       </div>
     </div>
@@ -99,7 +99,13 @@
   <!-- 2. Projects Management Tab -->
   <div id="tab-projects" class="admin-tab-content" style="display: none;">
     <div class="card-cyber" style="padding: 24px; background: var(--bg-surface-container);">
-      <h3 style="margin: 0 0 16px 0; font-size: 1.25rem;">All Platform Projects</h3>
+      <div class="flex items-center justify-between" style="margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+        <h3 style="margin: 0; font-size: 1.25rem;">All Platform Hardware Projects</h3>
+        <a href="/create-project/" class="btn btn-primary btn-sm">
+          <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+          Publish Project
+        </a>
+      </div>
       <div id="admin-projects-table-container" style="overflow-x: auto;">
         <p style="color: var(--text-muted); text-align: center; padding: 24px;">Loading projects...</p>
       </div>
@@ -109,7 +115,16 @@
   <!-- 3. Users Management Tab -->
   <div id="tab-users" class="admin-tab-content" style="display: none;">
     <div class="card-cyber" style="padding: 24px; background: var(--bg-surface-container);">
-      <h3 style="margin: 0 0 16px 0; font-size: 1.25rem;">Registered Users</h3>
+      <div class="flex items-center justify-between" style="margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h3 style="margin: 0; font-size: 1.25rem;">Registered Users &amp; Makers</h3>
+          <p style="margin: 4px 0 0; color: var(--text-muted); font-size: 0.85rem;">Create new accounts, manage roles, and grant administrator staff privileges.</p>
+        </div>
+        <button type="button" onclick="window.openCreateUserModal()" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">person_add</span>
+          Create New User
+        </button>
+      </div>
       <div id="admin-users-table-container" style="overflow-x: auto;">
         <p style="color: var(--text-muted); text-align: center; padding: 24px;">Loading users...</p>
       </div>
@@ -119,7 +134,16 @@
   <!-- 4. Categories Management Tab -->
   <div id="tab-categories" class="admin-tab-content" style="display: none;">
     <div class="card-cyber" style="padding: 24px; background: var(--bg-surface-container);">
-      <h3 style="margin: 0 0 16px 0; font-size: 1.25rem;">Platform Categories</h3>
+      <div class="flex items-center justify-between" style="margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h3 style="margin: 0; font-size: 1.25rem;">Hardware Categories</h3>
+          <p style="margin: 4px 0 0; color: var(--text-muted); font-size: 0.85rem;">Organize hardware blueprints and components into discoverable sections.</p>
+        </div>
+        <button type="button" onclick="window.openCreateCategoryModal()" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">add_circle</span>
+          Create New Category
+        </button>
+      </div>
       <div id="admin-categories-table-container" style="overflow-x: auto;">
         <p style="color: var(--text-muted); text-align: center; padding: 24px;">Loading categories...</p>
       </div>
@@ -137,8 +161,140 @@
   </div>
 
 </div>
+
+<!-- ============================================================
+     ADMIN MODAL: CREATE USER
+     ============================================================ -->
+<div id="create-user-modal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.88); backdrop-filter: blur(10px); align-items: center; justify-content: center; padding: 20px;">
+  <div class="card-cyber" style="max-width: 540px; width: 100%; padding: 32px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: 14px; box-shadow: 0 24px 60px rgba(0,0,0,0.9); max-height: 90vh; overflow-y: auto;">
+    
+    <div class="flex items-center justify-between" style="margin-bottom: 20px;">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined" style="color: var(--primary); font-size: 24px;">person_add</span>
+        <h3 style="margin: 0; font-size: 1.3rem;">Create New User Account</h3>
+      </div>
+      <button type="button" class="btn-icon" onclick="window.closeCreateUserModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <form id="admin-create-user-form" onsubmit="window.handleCreateUserSubmit(event)">
+      <div id="create-user-alert" style="display: none; margin-bottom: 16px;"></div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div class="input-group">
+          <label class="input-label">Username *</label>
+          <input type="text" id="new-user-username" class="input-cyber" placeholder="e.g. colombo_maker" required autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Email Address *</label>
+          <input type="email" id="new-user-email" class="input-cyber" placeholder="maker@example.com" required autocomplete="off">
+        </div>
+      </div>
+
+      <div class="input-group" style="margin-bottom: 14px;">
+        <label class="input-label">Password * (Min. 6 chars)</label>
+        <input type="password" id="new-user-password" class="input-cyber" placeholder="Enter secure password" required minlength="6" autocomplete="new-password">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div class="input-group">
+          <label class="input-label">First Name</label>
+          <input type="text" id="new-user-first-name" class="input-cyber" placeholder="e.g. Kasun">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Last Name</label>
+          <input type="text" id="new-user-last-name" class="input-cyber" placeholder="e.g. Perera">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+        <div class="input-group">
+          <label class="input-label">Account Role</label>
+          <select id="new-user-role" class="input-cyber" style="background: var(--bg-surface-high);">
+            <option value="both">Both (Buyer &amp; Seller)</option>
+            <option value="seller">Seller (Maker / Creator)</option>
+            <option value="buyer">Buyer Only</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Mobile Phone (NotifyLK)</label>
+          <input type="tel" id="new-user-phone" class="input-cyber" placeholder="07xxxxxxxx">
+        </div>
+      </div>
+
+      <div style="margin-bottom: 24px; padding: 12px; background: var(--bg-surface-low); border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; color: var(--text-primary);">
+          <input type="checkbox" id="new-user-is-staff" style="width: 18px; height: 18px; accent-color: #00ff88;">
+          <span><strong>Grant Administrator Access</strong> (Staff / Admin Panel privileges)</span>
+        </label>
+      </div>
+
+      <div class="flex items-center justify-between gap-3">
+        <button type="button" onclick="window.closeCreateUserModal()" class="btn btn-ghost">Cancel</button>
+        <button type="submit" id="create-user-submit-btn" class="btn btn-primary">
+          <span class="material-symbols-outlined">person_add</span>
+          Create User
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- ============================================================
+     ADMIN MODAL: CREATE CATEGORY
+     ============================================================ -->
+<div id="create-category-modal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.88); backdrop-filter: blur(10px); align-items: center; justify-content: center; padding: 20px;">
+  <div class="card-cyber" style="max-width: 520px; width: 100%; padding: 32px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: 14px; box-shadow: 0 24px 60px rgba(0,0,0,0.9);">
+    
+    <div class="flex items-center justify-between" style="margin-bottom: 20px;">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined" style="color: var(--primary); font-size: 24px;">add_circle</span>
+        <h3 style="margin: 0; font-size: 1.3rem;">Create New Category</h3>
+      </div>
+      <button type="button" class="btn-icon" onclick="window.closeCreateCategoryModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <form id="admin-create-category-form" onsubmit="window.handleCreateCategorySubmit(event)">
+      <div id="create-category-alert" style="display: none; margin-bottom: 16px;"></div>
+
+      <div class="input-group" style="margin-bottom: 14px;">
+        <label class="input-label">Category Name *</label>
+        <input type="text" id="new-cat-name" class="input-cyber" placeholder="e.g. Robotics &amp; Drones, Biomedical IoT" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div class="input-group">
+          <label class="input-label">URL Slug (Optional)</label>
+          <input type="text" id="new-cat-slug" class="input-cyber" placeholder="Auto-generated if empty">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Material Icon Name</label>
+          <input type="text" id="new-cat-icon" class="input-cyber" placeholder="e.g. precision_manufacturing" value="memory">
+        </div>
+      </div>
+
+      <div class="input-group" style="margin-bottom: 24px;">
+        <label class="input-label">Description *</label>
+        <textarea id="new-cat-desc" class="input-cyber" rows="3" placeholder="Brief summary of hardware projects in this category..." required style="resize: vertical;"></textarea>
+      </div>
+
+      <div class="flex items-center justify-between gap-3">
+        <button type="button" onclick="window.closeCreateCategoryModal()" class="btn btn-ghost">Cancel</button>
+        <button type="submit" id="create-cat-submit-btn" class="btn btn-primary">
+          <span class="material-symbols-outlined">save</span>
+          Save Category
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/admin-panel.js' %}"></script>
+<script src="{% static 'js/admin-panel.js' %}?v=2.5"></script>
 {% endblock %}
