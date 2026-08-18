@@ -134,10 +134,11 @@ def login_view(request):
         )
 
     username_to_auth = identifier
-    if "@" in identifier:
-        user_obj = User.objects.filter(email__iexact=identifier).first()
-        if user_obj:
-            username_to_auth = user_obj.username
+    user_obj = User.objects.filter(
+        Q(email__iexact=identifier) | Q(username__iexact=identifier)
+    ).first()
+    if user_obj:
+        username_to_auth = user_obj.username
 
     user = authenticate(
         request,
@@ -157,6 +158,12 @@ def login_view(request):
             {"detail": "Incorrect username/email or password."},
             status=status.HTTP_401_UNAUTHORIZED
         )
+
+    # Ensure profile exists for users created via CLI / createsuperuser
+    UserProfile.objects.get_or_create(
+        user=user,
+        defaults={"role": "admin" if (user.is_staff or user.is_superuser) else "both"}
+    )
 
     login(request, user)
 
