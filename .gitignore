@@ -93,3 +93,5 @@ django_backend_extracted/
 seed_project.py
 scratch/
 temp/
+/js/
+/css/
