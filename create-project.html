@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IoT HIVE | Initialize Deployment &amp; Publish Project</title>
+  <meta name="description" content="Deploy your hardware schematics, firmware, and CAD assets to the IoT Hive marketplace.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Site Navigation Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="flex items-center gap-6">
+        <a href="index.html" class="brand-logo">
+          <div class="brand-icon-box">
+            <span class="material-symbols-outlined">hive</span>
+          </div>
+          <span class="brand-text">IoT <span>HIVE</span></span>
+        </a>
+
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="marketplace.html" class="nav-link">Marketplace</a>
+          <a href="categories.html" class="nav-link">Categories</a>
+          <a href="project-details.html" class="nav-link">Projects</a>
+          <a href="about.html" class="nav-link">How It Works</a>
+          <a href="dashboard.html" class="nav-link">Dashboard</a>
+          <a href="create-project.html" class="nav-link active">Create Project</a>
+        </nav>
+      </div>
+
+      <div class="header-actions">
+        <button onclick="openSearchModal()" class="btn-icon" title="Quick Search (Cmd+K)">
+          <span class="material-symbols-outlined">search</span>
+        </button>
+
+        <button onclick="openCartDrawer()" class="btn-icon" style="position: relative;" title="Deployment Cart">
+          <span class="material-symbols-outlined">shopping_cart</span>
+          <span class="cart-badge-count" style="position: absolute; top: 4px; right: 4px; width: 18px; height: 18px; background: var(--primary); color: #fff; font-size: 10px; font-family: var(--font-mono); font-weight: 700; border-radius: 50%; display: none; align-items: center; justify-content: center;">0</span>
+        </button>
+
+        <a href="favorites.html" class="btn-icon" title="Bookmarked Nodes">
+          <span class="material-symbols-outlined">bookmark</span>
+        </a>
+
+        <div class="header-divider"></div>
+
+        <a href="profile.html" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAd6L_NEdo6xZii2HU-mZTAvGsF0kb2eIC-TEXAeX0jmjivQ_j6l_ocGROilPAiiPjRPrN3cDtqvgSZ164HpXEgVb-m98MP0Bnen18LjcAAtC00MPRiCY7oBXPMSMWmn-oyJEQ-xQHi32M6KF7QsG8ACdnnyXOM_tLGDoVLe7gUwCTETYabqIWKQOVtTNWd3n-G24BJAEjTBPKf1Qmb-bB6x83csw0xOWPy_WfXWo8T5KETAoHi4wh" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--primary-container);" alt="Alex">
+          <span style="font-family: var(--font-mono); font-size: 0.8rem; color: #fff;">alex_chen</span>
+        </a>
+
+        <button onclick="toggleMobileMenu()" class="btn-icon mobile-menu-btn" title="Toggle Menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer -->
+  <div id="mobile-drawer" class="mobile-drawer">
+    <a href="index.html" class="mobile-nav-link">Home <span class="material-symbols-outlined">chevron_right</span></a>
+    <a href="marketplace.html" class="mobile-nav-link">Marketplace <span class="material-symbols-outlined">chevron_right</span></a>
+    <a href="dashboard.html" class="mobile-nav-link">Dashboard <span class="material-symbols-outlined">chevron_right</span></a>
+    <a href="create-project.html" class="mobile-nav-link active">Create Project <span class="material-symbols-outlined">chevron_right</span></a>
+  </div>
+
+  <main class="main-content">
+    <div class="app-container" style="padding-top: var(--space-8); max-width: 1100px;">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between" style="margin-bottom: var(--space-8); flex-wrap: wrap; gap: 16px;">
+        <div>
+          <div class="flex items-center gap-2" style="margin-bottom: var(--space-2);">
+            <span class="badge-status online">DEPLOYMENT WIZARD</span>
+            <span class="tag-mono">SCHEMA v2.4</span>
+          </div>
+          <h1>Initialize Deployment</h1>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="openPreviewModal()" class="btn btn-secondary">
+            <span class="material-symbols-outlined">visibility</span>
+            Preview Schema
+          </button>
+          <a href="dashboard.html" class="btn btn-ghost">Cancel</a>
+        </div>
+      </div>
+
+      <!-- Step Navigation Bar -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: var(--space-8);">
+        
+        <button type="button" onclick="showStep(1)" class="wizard-step-indicator card-cyber" data-step="1" style="padding: 14px 18px; text-align: left; cursor: pointer; border-color: var(--border-accent);">
+          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--primary-container); margin-bottom: 4px;">STEP 01</div>
+          <div style="font-weight: 700; color: #fff; font-size: 0.9rem;">Basic Identity</div>
+        </button>
+
+        <button type="button" onclick="showStep(2)" class="wizard-step-indicator card-cyber" data-step="2" style="padding: 14px 18px; text-align: left; cursor: pointer;">
+          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">STEP 02</div>
+          <div style="font-weight: 700; color: var(--text-secondary); font-size: 0.9rem;">Visual Assets</div>
+        </button>
+
+        <button type="button" onclick="showStep(3)" class="wizard-step-indicator card-cyber" data-step="3" style="padding: 14px 18px; text-align: left; cursor: pointer;">
+          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">STEP 03</div>
+          <div style="font-weight: 700; color: var(--text-secondary); font-size: 0.9rem;">Specs &amp; Protocols</div>
+        </button>
+
+        <button type="button" onclick="showStep(4)" class="wizard-step-indicator card-cyber" data-step="4" style="padding: 14px 18px; text-align: left; cursor: pointer;">
+          <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">STEP 04</div>
+          <div style="font-weight: 700; color: var(--text-secondary); font-size: 0.9rem;">Licensing &amp; Mint</div>
+        </button>
+
+      </div>
+
+      <!-- Multi-step Form Content -->
+      <form id="create-project-form" onsubmit="submitDeployment(event)" class="card-cyber" style="padding: 36px; background: var(--bg-surface-container);">
+        <div id="create-project-alert" style="display: none; margin-bottom: 20px;"></div>
+        
+        <!-- STEP 1: Basic Identity -->
+        <div class="wizard-step-panel" data-step-panel="1">
+          <h3 style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="color: var(--primary-container);">data_object</span>
+            Basic Hardware Identity
+          </h3>
+          <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem;">
+            Provide the public metadata and classification for your hardware module.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="input-group">
+              <label class="input-label">Project Title *</label>
+              <input type="text" id="field-title" name="title" class="input-cyber" placeholder="e.g. Smart Plant Watering System with Wi-Fi" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+              <div class="input-group">
+                <label class="input-label">Category *</label>
+                <select id="field-category" name="category" class="input-cyber" style="background: var(--bg-surface-low);" required>
+                  <option value="">Loading categories...</option>
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label class="input-label">Price ($ USD)</label>
+                <input type="number" id="field-price" name="price" class="input-cyber" placeholder="0.00" step="0.01" min="0" value="0.00">
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">Short Summary (1-2 sentences) *</label>
+              <input type="text" id="field-short-desc" name="short_description" class="input-cyber" placeholder="Quick summary of what this project does and components used" required maxlength="300">
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">Detailed Description &amp; Build Instructions *</label>
+              <textarea id="field-desc" name="description" class="input-cyber" rows="5" placeholder="Explain pinouts, power tolerances, setup steps, and any tips..." required style="resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+              <button type="button" onclick="nextStep()" class="btn btn-primary">
+                Next: Cover Photo &amp; Media
+                <span class="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: Visual Assets -->
+        <div class="wizard-step-panel" data-step-panel="2" style="display: none;">
+          <h3 style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="color: var(--primary-container);">view_in_ar</span>
+            Cover Photo &amp; Visual Assets
+          </h3>
+          <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem;">
+            Upload project photos, circuit diagrams, or 3D renderings to showcase your build.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="border: 2px dashed var(--border-medium); border-radius: var(--radius-xl); padding: 36px 24px; text-align: center; background: var(--bg-surface-low); cursor: pointer; position: relative;">
+              <input type="file" id="field-image-file" name="image" accept="image/*" style="position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;">
+              
+              <div id="image-upload-placeholder">
+                <span class="material-symbols-outlined" style="font-size: 48px; color: var(--primary); margin-bottom: 12px;">cloud_upload</span>
+                <h4 style="margin-bottom: 4px;">Click or Drag &amp; Drop a Project Cover Photo</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Supported formats: PNG, JPG, WebP, GIF (Max 10MB)</p>
+              </div>
+
+              <div id="image-preview-box" style="display: none; max-width: 360px; margin: 0 auto;">
+                <img id="image-preview-img" style="width: 100%; height: 190px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-medium);">
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">Click to change photo</div>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">Demo Video / YouTube URL (Optional)</label>
+              <input type="url" id="field-video-url" name="video_url" class="input-cyber" placeholder="https://youtube.com/watch?v=... or demo video link">
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 12px;">
+              <button type="button" onclick="prevStep()" class="btn btn-secondary">Back</button>
+              <button type="button" onclick="nextStep()" class="btn btn-primary">
+                Next: Deployment Specs
+                <span class="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Specs & Protocols -->
+        <div class="wizard-step-panel" data-step-panel="3" style="display: none;">
+          <h3 style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="color: var(--primary-container);">settings_ethernet</span>
+            Hardware Parameters &amp; Protocols
+          </h3>
+          <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem;">
+            Specify processor architecture, memory constraints, and communication interfaces.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+              <div class="input-group">
+                <label class="input-label">Core Architecture / Controller</label>
+                <select class="input-cyber" style="background: var(--bg-surface-low);">
+                  <option>ESP32 / ESP8266 (Wi-Fi &amp; BLE)</option>
+                  <option>Arduino / ATmega328P</option>
+                  <option>Raspberry Pi / Linux SBC</option>
+                  <option>ARM Cortex-M4 / STM32</option>
+                  <option>RISC-V 32/64-bit</option>
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label class="input-label">Primary MCU / Board</label>
+                <input type="text" class="input-cyber" placeholder="e.g. ESP32-WROOM-32D or Arduino Uno">
+              </div>
+            </div>
+
+            <!-- Interactive Protocol Tag Adder -->
+            <div class="input-group">
+              <label class="input-label">Supported Communication Protocols</label>
+              <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <input type="text" id="protocol-input" class="input-cyber" placeholder="Type protocol (e.g. MQTT, Wi-Fi, Bluetooth, Zigbee) and click Add" style="flex: 1;">
+                <button type="button" onclick="addProtocol()" class="btn btn-secondary">
+                  <span class="material-symbols-outlined">add</span> Add
+                </button>
+              </div>
+              <div id="protocols-tag-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 12px;">
+              <button type="button" onclick="prevStep()" class="btn btn-secondary">Back</button>
+              <button type="button" onclick="nextStep()" class="btn btn-primary">
+                Next: Pricing &amp; Publish
+                <span class="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Licensing & Mint -->
+        <div class="wizard-step-panel" data-step-panel="4" style="display: none;">
+          <h3 style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="color: var(--primary-container);">verified_user</span>
+            Pricing &amp; Publishing Options
+          </h3>
+          <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem;">
+            Choose whether to share your project for free or set a price for commercial licenses.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <label class="card-cyber" style="padding: 20px; cursor: pointer; border-color: var(--border-accent);">
+                <div class="flex items-center gap-3" style="margin-bottom: 8px;">
+                  <input type="radio" name="license-type" checked style="accent-color: var(--primary);">
+                  <h4 style="color: #fff; margin: 0;">Community Open Hardware</h4>
+                </div>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Open-source DIY build with optional tips and support.</p>
+              </label>
+
+              <label class="card-cyber" style="padding: 20px; cursor: pointer;">
+                <div class="flex items-center gap-3" style="margin-bottom: 8px;">
+                  <input type="radio" name="license-type" style="accent-color: var(--primary);">
+                  <h4 style="color: #fff; margin: 0;">Commercial Blueprint License</h4>
+                </div>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Buyers purchase schematics and full CAD design files.</p>
+              </label>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">Publishing Status</label>
+              <select name="status" class="input-cyber" style="background: var(--bg-surface-low);">
+                <option value="published">Publish to Marketplace immediately</option>
+                <option value="draft">Save as Draft (only visible to you)</option>
+              </select>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 12px;">
+              <button type="button" onclick="prevStep()" class="btn btn-secondary">Back</button>
+              <div style="display: flex; gap: 12px;">
+                <button type="button" onclick="openPreviewModal()" class="btn btn-ghost">Preview</button>
+                <button type="submit" id="create-project-submit-btn" class="btn btn-primary btn-lg">
+                  <span class="material-symbols-outlined">rocket_launch</span>
+                  Publish Project
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </form>
+
+    </div>
+  </main>
+
+  <!-- Schema Preview Modal -->
+  <div id="preview-modal" class="modal-backdrop" onclick="if(event.target === this) closePreviewModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary" style="color: var(--primary-container);">visibility</span>
+          <h3>Project Preview</h3>
+        </div>
+        <button onclick="closePreviewModal()" class="btn-icon">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body" id="preview-modal-content">
+        <!-- Injected by create-project.js -->
+      </div>
+      <div class="modal-footer">
+        <button onclick="closePreviewModal()" class="btn btn-secondary">Edit Parameters</button>
+        <button onclick="submitDeployment(event)" class="btn btn-primary">
+          <span class="material-symbols-outlined">rocket_launch</span>
+          Publish Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Footer -->
+  <footer class="site-footer">
+    <div class="app-container">
+      <div class="footer-bottom" style="border-top: none; padding-top: 0;">
+        <span>&copy; 2026 IoT Hive Collective Inc. All Rights Reserved.</span>
+        <div class="flex items-center gap-6">
+          <a href="#" style="color: var(--text-muted);">Privacy Protocol</a>
+          <a href="#" style="color: var(--text-muted);">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/create-project.js"></script>
+</body>
+</html>

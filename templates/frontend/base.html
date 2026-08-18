@@ -1,0 +1,214 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}IoT HIVE | Smart Hardware &amp; Electronics Projects{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Discover, buy, and share smart hardware, robotics, DIY electronics, and smart home projects.{% endblock %}">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  
+  <!-- Prism Syntax Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <!-- Master Stylesheet -->
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body data-page="{% block page_id %}home{% endblock %}">
+
+  <!-- Site Navigation Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="flex items-center gap-6">
+        <a href="/" class="brand-logo">
+          <div class="brand-icon-box">
+            <span class="material-symbols-outlined">hive</span>
+          </div>
+          <span class="brand-text">IoT <span>HIVE</span></span>
+        </a>
+
+        <nav class="nav-links" data-main-nav>
+          <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Home</a>
+          <a href="/marketplace/" class="nav-link {% if '/marketplace' in request.path %}active{% endif %}">Marketplace</a>
+          <a href="/categories/" class="nav-link {% if '/categories' in request.path %}active{% endif %}">Categories</a>
+          <a href="/bounties/" class="nav-link {% if '/bounties' in request.path %}active{% endif %}">Bounties</a>
+          <a href="/about/" class="nav-link {% if '/about' in request.path or '/how-it-works' in request.path %}active{% endif %}">How It Works</a>
+          <a href="/dashboard/" class="nav-link {% if '/dashboard' in request.path %}active{% endif %}">Dashboard</a>
+          {% if user.is_staff or user.is_superuser %}
+            <a href="/admin-panel/" class="nav-link {% if '/admin-panel' in request.path %}active{% endif %}" style="color: #00ff88;">Admin Panel</a>
+          {% endif %}
+        </nav>
+      </div>
+
+      <div class="header-actions">
+        <!-- Quick Search -->
+        <a href="/marketplace/" class="btn-icon" title="Search Projects">
+          <span class="material-symbols-outlined">search</span>
+        </a>
+
+        <!-- Saved / Favorites -->
+        <a href="/favorites/" class="btn-icon" id="header-favorites-btn" title="Saved Projects">
+          <span class="material-symbols-outlined">bookmark</span>
+        </a>
+
+        <!-- Live Maker Chat -->
+        <button type="button" onclick="if(window.CyberChat) window.CyberChat.toggleChat();" class="btn-icon header-chat-btn" title="Live Maker Messenger" style="position: relative;">
+          <span class="material-symbols-outlined">forum</span>
+          <span class="header-chat-unread-badge" style="display: none; position: absolute; top: -2px; right: -2px; background: #ff0055; color: #fff; font-size: 10px; font-weight: 700; border-radius: 10px; min-width: 16px; height: 16px; align-items: center; justify-content: center; padding: 0 4px; box-shadow: 0 0 10px rgba(255, 0, 85, 0.8);">0</span>
+        </button>
+
+        <div class="header-divider"></div>
+
+        <!-- Dynamic Auth Slot -->
+        <div data-auth-nav class="flex items-center gap-3">
+          {% if user.is_authenticated %}
+            {% if user.is_staff or user.is_superuser %}
+              <a href="/admin-panel/" class="btn-auth-admin">
+                <span class="material-symbols-outlined" style="font-size: 16px;">admin_panel_settings</span>
+                Admin
+              </a>
+            {% endif %}
+            <a href="/profile/" class="user-nav-badge">
+              {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="user-nav-avatar-img">
+              {% else %}
+                <div class="user-nav-avatar-fallback">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">person</span>
+                </div>
+              {% endif %}
+              <span>{{ user.first_name|default:user.username }}</span>
+            </a>
+            <button onclick="handleLogout()" class="btn-auth-logout">
+              <span class="material-symbols-outlined" style="font-size: 16px;">logout</span>
+              Sign Out
+            </button>
+          {% else %}
+            <a href="/login/" class="btn-auth-login">
+              <span class="material-symbols-outlined" style="font-size: 16px;">login</span>
+              Sign In
+            </a>
+            <a href="/register/" class="btn-auth-register">
+              <span class="material-symbols-outlined" style="font-size: 16px;">person_add</span>
+              Get Started
+            </a>
+          {% endif %}
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button onclick="window.toggleMobileDrawer()" class="btn-icon mobile-menu-btn" title="Toggle Menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer -->
+  <div id="mobile-drawer" class="mobile-drawer">
+    <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+      <span class="brand-text" style="font-size: 1.1rem;">IoT <span>HIVE</span></span>
+      <button onclick="window.toggleMobileDrawer()" class="btn-icon">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div data-mobile-nav-links style="padding: 12px 0;">
+      <a href="/" class="mobile-nav-link">Home <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/marketplace/" class="mobile-nav-link">Marketplace <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/categories/" class="mobile-nav-link">Categories <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/bounties/" class="mobile-nav-link">Bounties &amp; Commissions <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/about/" class="mobile-nav-link">How It Works <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/dashboard/" class="mobile-nav-link">Dashboard <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/favorites/" class="mobile-nav-link">Saved Projects <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/requests/" class="mobile-nav-link">Inquiries &amp; Orders <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/profile/" class="mobile-nav-link">Profile <span class="material-symbols-outlined">chevron_right</span></a>
+      {% if user.is_staff or user.is_superuser %}
+        <a href="/admin-panel/" class="mobile-nav-link" style="color: #00ff88;">Admin Panel <span class="material-symbols-outlined">chevron_right</span></a>
+      {% endif %}
+    </div>
+    <div data-mobile-auth style="padding: 16px 20px;"></div>
+  </div>
+
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Clean, Simple Footer -->
+  <footer class="site-footer" style="background: var(--bg-surface-lowest); border-top: 1px solid var(--border-subtle); padding: 48px 0 24px; margin-top: 80px;">
+    <div class="app-container">
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; margin-bottom: 40px;" class="footer-grid">
+        <div>
+          <div class="brand-logo" style="margin-bottom: 12px;">
+            <div class="brand-icon-box" style="width: 28px; height: 28px;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">hive</span>
+            </div>
+            <span class="brand-text" style="font-size: 1.2rem;">IoT <span>HIVE</span></span>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 320px; line-height: 1.6;">
+            The friendly community and marketplace for smart hardware, robotics, DIY electronics, and connected gadgets.
+          </p>
+        </div>
+
+        <div>
+          <h4 style="color: var(--text-primary); font-size: 0.95rem; margin-bottom: 14px;">Explore</h4>
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem;">
+            <a href="/marketplace/" class="text-link">All Projects</a>
+            <a href="/categories/" class="text-link">Categories</a>
+            <a href="/bounties/" class="text-link">Bounties &amp; Commissions</a>
+            <a href="/marketplace/?featured=true" class="text-link">Featured Builds</a>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="color: var(--text-primary); font-size: 0.95rem; margin-bottom: 14px;">Makers</h4>
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem;">
+            <a href="/create-project/" class="text-link">Share a Project</a>
+            <a href="/dashboard/" class="text-link">Creator Dashboard</a>
+            <a href="/about/" class="text-link">How It Works</a>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="color: var(--text-primary); font-size: 0.95rem; margin-bottom: 14px;">Account</h4>
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem;">
+            <a href="/profile/" class="text-link">My Profile</a>
+            <a href="/favorites/" class="text-link">Saved Projects</a>
+            <a href="/requests/" class="text-link">Inquiries &amp; Orders</a>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid var(--border-subtle); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 0.82rem; color: var(--text-muted);">
+        <div>&copy; 2026 IoT Hive. All rights reserved.</div>
+        <div style="display: flex; gap: 16px;">
+          <span>Smart Hardware Made Simple</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Base JS Scripts -->
+  <script src="{% static 'js/api.js' %}?v=2.1"></script>
+  <script src="{% static 'js/auth.js' %}?v=2.1"></script>
+  <script src="{% static 'js/chat.js' %}?v=2.1"></script>
+  <script>
+    window.toggleMobileDrawer = function() {
+      const drawer = document.getElementById('mobile-drawer');
+      if (drawer) drawer.classList.toggle('open');
+    };
+  </script>
+    <!-- Prism Code Highlighting Engines -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rust.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

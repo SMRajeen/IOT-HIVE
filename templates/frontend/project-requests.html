@@ -1,0 +1,35 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE | Inquiries &amp; Orders{% endblock %}
+{% block page_id %}requests{% endblock %}
+
+{% block content %}
+<div class="app-container" style="padding-top: var(--space-8); max-width: 880px;">
+  
+  <div class="card-cyber" style="padding: 28px 24px; margin-bottom: var(--space-8); background: var(--bg-surface-container);">
+    <div class="badge-hud" style="margin-bottom: 6px;">
+      <span class="dot"></span>
+      <span class="label">COMMUNICATIONS &amp; ORDERS</span>
+    </div>
+    <h1 style="font-size: 1.85rem; margin: 0;">Project Inquiries &amp; Orders</h1>
+    <p style="color: var(--text-muted); margin-top: 4px; font-size: 0.95rem;">
+      View messages received from interested buyers or purchase blueprints and hardware from makers.
+    </p>
+  </div>
+
+  <!-- Requests List -->
+  <div id="requests-list-container">
+    <div style="padding: 48px; text-align: center; color: var(--text-muted);">
+      <span class="material-symbols-outlined spin" style="font-size: 32px; color: var(--primary);">sync</span>
+      <p style="margin-top: 8px;">Loading inquiries and orders...</p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/payment.js' %}"></script>
+<script src="{% static 'js/project-requests.js' %}"></script>
+{% endblock %}

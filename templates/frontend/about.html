@@ -1,0 +1,89 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE | How It Works &amp; About Us{% endblock %}
+{% block page_id %}about{% endblock %}
+
+{% block content %}
+<div class="app-container" style="padding-top: var(--space-8);">
+  
+  <!-- Hero Banner -->
+  <div class="card-cyber" style="padding: 48px 36px; margin-bottom: var(--space-12); background: radial-gradient(circle at 10% 20%, rgba(255,0,51,0.12), var(--bg-surface-container) 80%);">
+    <div class="badge-hud" style="margin-bottom: 12px;">
+      <span class="dot"></span>
+      <span class="label">ABOUT IOT HIVE</span>
+    </div>
+    <h1 style="font-size: 2.4rem; max-width: 760px; margin-bottom: 16px; line-height: 1.2;">
+      Making Smart Hardware &amp; Electronics Accessible to Everyone
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 1.05rem; max-width: 680px; line-height: 1.6;">
+      IoT Hive is an open community and marketplace where makers, hobbyists, students, and engineers come together to share, discover, and build smart gadgets and connected devices.
+    </p>
+  </div>
+
+  <!-- How It Works Section -->
+  <div style="margin-bottom: var(--space-12);">
+    <h2 style="margin-bottom: var(--space-6); text-align: center; font-size: 1.85rem;">How IoT Hive Works</h2>
+    
+    <div class="grid-cols-3">
+      <!-- Step 1 -->
+      <div class="card-cyber" style="padding: 32px; position: relative;">
+        <div style="font-size: 2rem; font-family: var(--font-mono); font-weight: 800; color: var(--primary); margin-bottom: 12px;">01</div>
+        <h3 style="margin-bottom: 8px; font-size: 1.2rem;">Find Projects &amp; Guides</h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6;">
+          Browse through hundreds of working electronics projects with clear instructions, part lists, and circuit diagrams.
+        </p>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="card-cyber" style="padding: 32px; position: relative;">
+        <div style="font-size: 2rem; font-family: var(--font-mono); font-weight: 800; color: var(--primary); margin-bottom: 12px;">02</div>
+        <h3 style="margin-bottom: 8px; font-size: 1.2rem;">Build, Learn or Inquire</h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6;">
+          Use the shared guides to build your own gadgets, or message creators directly with questions or custom requests.
+        </p>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="card-cyber" style="padding: 32px; position: relative;">
+        <div style="font-size: 2rem; font-family: var(--font-mono); font-weight: 800; color: var(--primary); margin-bottom: 12px;">03</div>
+        <h3 style="margin-bottom: 8px; font-size: 1.2rem;">Share Your Own Builds</h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6;">
+          Post your own inventions to help other hobbyists. Set a price or share for free to build your portfolio and grow.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Why Choose IoT Hive -->
+  <div class="card-cyber" style="padding: 40px; margin-bottom: var(--space-12);">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;">
+      <div>
+        <div class="badge-hud" style="margin-bottom: 12px;">
+          <span class="dot"></span>
+          <span class="label">COMMUNITY FIRST</span>
+        </div>
+        <h2 style="margin-bottom: 16px; font-size: 1.8rem;">Designed for Everyday Makers</h2>
+        <p style="color: var(--text-secondary); line-height: 1.7; margin-bottom: 24px; font-size: 0.98rem;">
+          You do not need a degree in advanced robotics or complex terminology to build something amazing. We make it easy to discover blueprints, understand the parts required, and get help directly from creator communities.
+        </p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <a href="/marketplace/" class="btn btn-primary">Browse Marketplace</a>
+          <a href="/create-project/" class="btn btn-secondary">Share Your Project</a>
+        </div>
+      </div>
+
+      <div style="background: var(--bg-surface-low); padding: 28px; border-radius: 8px; border: 1px solid var(--border-medium);">
+        <h4 style="margin-bottom: 16px; color: var(--text-primary);">Why Makers Love IoT Hive:</h4>
+        <ul style="display: flex; flex-direction: column; gap: 12px; color: var(--text-secondary); font-size: 0.92rem; padding-left: 20px;">
+          <li>Simple, friendly interface with no confusing jargon.</li>
+          <li>Direct messaging between buyers, hobbyists, and creators.</li>
+          <li>Support for free open-source builds and custom paid hardware.</li>
+          <li>Clean categories spanning Smart Home, Robotics, Garden, and Tools.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE | Platform Administration Panel{% endblock %}
+{% block page_id %}admin{% endblock %}
+
+{% block content %}
+<div class="app-container" style="padding-top: var(--space-8); max-width: 1200px;">
+  
+  <!-- Top Admin Header -->
+  <div class="card-cyber" style="padding: 28px 32px; margin-bottom: var(--space-6); background: var(--bg-surface-container); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <div class="badge-hud" style="margin-bottom: 6px;">
+        <span class="dot" style="background: #00ff88; box-shadow: 0 0 10px #00ff88;"></span>
+        <span class="label" style="color: #00ff88;">PLATFORM CONTROL CENTER</span>
+      </div>
+      <h1 style="font-size: 1.85rem; margin: 0;">Administration Panel</h1>
+      <p style="color: var(--text-muted); margin-top: 4px; font-size: 0.92rem;">
+        Manage makers, projects, categories, transactions, and platform health.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="/admin/" target="_blank" class="btn btn-secondary btn-sm">
+        <span class="material-symbols-outlined" style="font-size: 16px;">terminal</span>
+        Django Admin &nearr;
+      </a>
+      <a href="/dashboard/" class="btn btn-ghost btn-sm">Creator Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="admin-nav-tabs">
+    <button class="admin-tab-btn active" data-tab="overview">
+      <span class="material-symbols-outlined" style="font-size: 18px;">analytics</span>
+      Overview &amp; Metrics
+    </button>
+    <button class="admin-tab-btn" data-tab="projects">
+      <span class="material-symbols-outlined" style="font-size: 18px;">inventory_2</span>
+      Manage Projects
+    </button>
+    <button class="admin-tab-btn" data-tab="users">
+      <span class="material-symbols-outlined" style="font-size: 18px;">group</span>
+      Manage Users
+    </button>
+    <button class="admin-tab-btn" data-tab="categories">
+      <span class="material-symbols-outlined" style="font-size: 18px;">category</span>
+      Categories
+    </button>
+    <button class="admin-tab-btn" data-tab="orders">
+      <span class="material-symbols-outlined" style="font-size: 18px;">payments</span>
+      Transactions &amp; Orders
+    </button>
+  </div>
+
+  <!-- Tab Contents -->
+  
+  <!-- 1. Overview Tab -->
+  <div id="tab-overview" class="admin-tab-content">
+    <div class="grid-cols-4" style="gap: 20px; margin-bottom: 28px;">
+      <div class="card-cyber kpi-card" style="padding: 24px; background: var(--bg-surface-container);">
+        <div class="flex items-center justify-between">
+          <span style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Total Users</span>
+          <span class="material-symbols-outlined" style="color: var(--primary); font-size: 22px;">group</span>
+        </div>
+        <div id="stat-total-users" class="kpi-value">0</div>
+        <div class="kpi-change positive">Registered makers &amp; buyers</div>
+      </div>
+
+      <div class="card-cyber kpi-card" style="padding: 24px; background: var(--bg-surface-container);">
+        <div class="flex items-center justify-between">
+          <span style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Total Projects</span>
+          <span class="material-symbols-outlined" style="color: var(--primary); font-size: 22px;">memory</span>
+        </div>
+        <div id="stat-total-projects" class="kpi-value">0</div>
+        <div class="kpi-change">Across all categories</div>
+      </div>
+
+      <div class="card-cyber kpi-card" style="padding: 24px; background: var(--bg-surface-container);">
+        <div class="flex items-center justify-between">
+          <span style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Inquiries Sent</span>
+          <span class="material-symbols-outlined" style="color: var(--primary); font-size: 22px;">chat</span>
+        </div>
+        <div id="stat-total-inquiries" class="kpi-value">0</div>
+        <div class="kpi-change">Buyer to maker requests</div>
+      </div>
+
+      <div class="card-cyber kpi-card" style="padding: 24px; background: var(--bg-surface-container);">
+        <div class="flex items-center justify-between">
+          <span style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Total Sales</span>
+          <span class="material-symbols-outlined" style="color: #00ff88; font-size: 22px;">payments</span>
+        </div>
+        <div id="stat-total-revenue" class="kpi-value" style="color: #00ff88;">$0.00</div>
+        <div class="kpi-change positive"><span id="stat-total-orders">0</span> paid transactions</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Projects Management Tab -->
+  <div id="tab-projects" class="admin-tab-content" style="display: none;">
+    <div class="card-cyber" style="padding: 24px; background: var(--bg-surface-container);">
+      <h3 style="margin: 0 0 16px 0; font-size: 1.25rem;">All Platform Projects</h3>
+      <div id="admin-projects-table-container" style="overflow-x: auto;">
+        <p style="color: var(--text-muted); text-align: center; padding: 24px;">Loading projects...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Users Management Tab -->
+  <div id="tab-users" class="admin-tab-content" style="display: none;">
+    <div class="card-cyber" style="padding: 24px; background: var(--bg-surface-container);">
+      <h3 style="margin: 0 0 16px 0; font-size: 1.25rem;">Registered Users</h3>
+      <div id="admin-users-table-container" style="overflow-x: auto;">
+        <p style="color: var(--text-muted); text-align: center; padding: 24px;">Loading users...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Categories Management Tab -->
+  <div id="tab-categories" class="admin-tab-content" style="display: none;">
+    <div class="card-cyber" style="padding: 24px; background: var(--bg-surface-container);">
+      <h3 style="margin: 0 0 16px 0; font-size: 1.25rem;">Platform Categories</h3>
+      <div id="admin-categories-table-container" style="overflow-x: auto;">
+        <p style="color: var(--text-muted); text-align: center; padding: 24px;">Loading categories...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Orders & Transactions Tab -->
+  <div id="tab-orders" class="admin-tab-content" style="display: none;">
+    <div class="card-cyber" style="padding: 24px; background: var(--bg-surface-container);">
+      <h3 style="margin: 0 0 16px 0; font-size: 1.25rem;">Completed Orders &amp; Payment Gateway Logs</h3>
+      <div id="admin-orders-table-container" style="overflow-x: auto;">
+        <p style="color: var(--text-muted); text-align: center; padding: 24px;">Loading transactions...</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/admin-panel.js' %}"></script>
+{% endblock %}

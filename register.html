@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IoT HIVE | Initialize Collective Profile</title>
+  <meta name="description" content="Register as an attested hardware engineer or creator on the IoT Hive decentralized marketplace.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: radial-gradient(circle at 50% 30%, rgba(255,0,51,0.12), var(--bg-surface-lowest) 70%); padding: 40px 20px;">
+
+  <div class="app-container" style="max-width: 520px; width: 100%;">
+    
+    <div class="card-cyber" style="padding: 40px 32px; background: var(--bg-surface-container); box-shadow: 0 24px 60px rgba(0,0,0,0.8), 0 0 35px rgba(255,83,87,0.15);">
+      
+      <!-- Top Brand -->
+      <div style="text-align: center; margin-bottom: 24px;">
+        <a href="index.html" class="brand-logo" style="justify-content: center; margin-bottom: 12px;">
+          <div class="brand-icon-box" style="width: 44px; height: 44px;">
+            <span class="material-symbols-outlined" style="font-size: 24px;">hive</span>
+          </div>
+        </a>
+        <h1 style="font-size: 1.75rem; letter-spacing: -0.02em; margin-bottom: 4px;">Initialize Profile</h1>
+        <p style="font-size: 0.88rem; color: var(--text-muted);">Join the decentralized collective of hardware engineers and edge creators.</p>
+      </div>
+
+      <!-- Registration Form -->
+      <form onsubmit="handleRegister(event)" style="display: flex; flex-direction: column; gap: 16px;">
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="input-group">
+            <label class="input-label">Legal / Alias Name *</label>
+            <input type="text" class="input-cyber" placeholder="e.g. Alexander Chen" required>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Node Handle *</label>
+            <input type="text" class="input-cyber" placeholder="@alex_chen" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Mesh Email / Contact Endpoint *</label>
+          <input type="email" class="input-cyber" placeholder="alex@engineering.io" required>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Collective Role</label>
+          <select class="input-cyber" style="background: var(--bg-surface-low);">
+            <option>Hardware Architect &amp; PCB Designer</option>
+            <option>Firmware &amp; Embedded Rust Engineer</option>
+            <option>Enterprise OEM Hardware Buyer</option>
+            <option>Academic / Lab Researcher</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Master Security Key (Password) *</label>
+          <input type="password" id="reg-pass" class="input-cyber" placeholder="Minimum 8 characters" required oninput="updatePassStrength(this.value)">
+          <div style="width: 100%; height: 4px; background: var(--bg-surface-lowest); border-radius: 2px; margin-top: 6px; overflow: hidden;">
+            <div id="pass-strength-bar" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s, background 0.3s;"></div>
+          </div>
+        </div>
+
+        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px;">
+          <input type="checkbox" required style="margin-top: 3px; accent-color: var(--primary);">
+          <span>I agree to the <a href="about.html" style="color: var(--primary-container);">Zero-Trust Silicon Protocol</a> and decentralized licensing escrow terms.</span>
+        </label>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 8px;">
+          <span class="material-symbols-outlined">rocket_launch</span>
+          Establish Connection &amp; Join
+        </button>
+
+      </form>
+
+      <div style="text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-subtle); font-size: 0.85rem; color: var(--text-muted);">
+        Already have node credentials? <a href="login.html" style="color: var(--primary-container); font-weight: 600;">Sign In</a>
+      </div>
+
+    </div>
+
+    <div style="text-align: center; margin-top: 16px;">
+      <a href="index.html" style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;">
+        <span class="material-symbols-outlined" style="font-size: 16px;">arrow_back</span>
+        Return to Portal Homepage
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/app.js"></script>
+  <script>
+    function updatePassStrength(val) {
+      const bar = document.getElementById('pass-strength-bar');
+      if (!val) {
+        bar.style.width = '0%';
+        return;
+      }
+      if (val.length < 6) {
+        bar.style.width = '25%';
+        bar.style.background = 'var(--status-error)';
+      } else if (val.length < 10) {
+        bar.style.width = '60%';
+        bar.style.background = 'var(--status-warning)';
+      } else {
+        bar.style.width = '100%';
+        bar.style.background = 'var(--status-online)';
+      }
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      showToast('Profile minted on collective ledger! Redirecting to command center...', 'success');
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 1200);
+    }
+  </script>
+</body>
+</html>

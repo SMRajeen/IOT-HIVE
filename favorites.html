@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IoT HIVE | Bookmarked Nodes</title>
+  <meta name="description" content="Manage your saved IoT hardware modules, bookmarked schematics, and favored node blueprints.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Site Navigation Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="flex items-center gap-6">
+        <a href="index.html" class="brand-logo">
+          <div class="brand-icon-box">
+            <span class="material-symbols-outlined">hive</span>
+          </div>
+          <span class="brand-text">IoT <span>HIVE</span></span>
+        </a>
+
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="marketplace.html" class="nav-link">Marketplace</a>
+          <a href="categories.html" class="nav-link">Categories</a>
+          <a href="project-details.html" class="nav-link">Projects</a>
+          <a href="about.html" class="nav-link">How It Works</a>
+          <a href="dashboard.html" class="nav-link">Dashboard</a>
+          <a href="favorites.html" class="nav-link active">Bookmarks</a>
+        </nav>
+      </div>
+
+      <div class="header-actions">
+        <button onclick="openSearchModal()" class="btn-icon" title="Quick Search (Cmd+K)">
+          <span class="material-symbols-outlined">search</span>
+        </button>
+
+        <button onclick="openCartDrawer()" class="btn-icon" style="position: relative;" title="Deployment Cart">
+          <span class="material-symbols-outlined">shopping_cart</span>
+          <span class="cart-badge-count" style="position: absolute; top: 4px; right: 4px; width: 18px; height: 18px; background: var(--primary); color: #fff; font-size: 10px; font-family: var(--font-mono); font-weight: 700; border-radius: 50%; display: none; align-items: center; justify-content: center;">0</span>
+        </button>
+
+        <a href="favorites.html" class="btn-icon active" title="Bookmarked Nodes">
+          <span class="material-symbols-outlined">bookmark</span>
+        </a>
+
+        <div class="header-divider"></div>
+
+        <div class="flex items-center gap-3">
+          <a href="login.html" class="nav-link" style="padding: 8px 12px;">Login</a>
+          <a href="register.html" class="btn btn-primary btn-sm">Sign Up</a>
+        </div>
+
+        <button onclick="toggleMobileMenu()" class="btn-icon mobile-menu-btn" title="Toggle Menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer -->
+  <div id="mobile-drawer" class="mobile-drawer">
+    <a href="index.html" class="mobile-nav-link">Home <span class="material-symbols-outlined">chevron_right</span></a>
+    <a href="marketplace.html" class="mobile-nav-link">Marketplace <span class="material-symbols-outlined">chevron_right</span></a>
+    <a href="dashboard.html" class="mobile-nav-link">Dashboard <span class="material-symbols-outlined">chevron_right</span></a>
+    <a href="favorites.html" class="mobile-nav-link active">Bookmarks <span class="material-symbols-outlined">chevron_right</span></a>
+  </div>
+
+  <main class="main-content">
+    <div class="app-container" style="padding-top: var(--space-8);">
+      
+      <!-- Top Header -->
+      <div class="flex items-center justify-between" style="margin-bottom: var(--space-8); flex-wrap: wrap; gap: 16px;">
+        <div>
+          <div class="flex items-center gap-2" style="margin-bottom: var(--space-2);">
+            <span style="width: 24px; height: 2px; background: var(--primary);"></span>
+            <span class="stat-label" style="color: var(--primary-container);">Curated Collection</span>
+          </div>
+          <h1>Bookmarked_Nodes</h1>
+          <p style="font-size: 1.05rem; color: var(--text-secondary); max-width: 600px; margin-top: 8px;">
+            Quickly deploy or review specifications for hardware blueprints saved to your local hive.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <a href="marketplace.html" class="btn btn-secondary">
+            <span class="material-symbols-outlined">explore</span>
+            Discover More Nodes
+          </a>
+        </div>
+      </div>
+
+      <!-- Bookmarked Items Grid -->
+      <div id="favorites-container" class="grid-cols-3" style="gap: 24px;">
+        <!-- Injected or fallback populated below -->
+        
+        <article class="node-card">
+          <div class="node-card-image-box">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuATxvP9UfYgnYXE1gUiDPylXqmp7jf_0Tz-RK-7sfbNkHWisA2H8b2SJncwmh25ZrMKzncAVO_anlwl22LmhXFiofQQLitTWaTlL2KRbwDC4w7fuF8e4SSsxlqAHnxppwxJQPBPT6oNYJMNvgBLLzF3OP2rMDhli70fQZj7j0voK07pnlnCcGPi8oXsxQgSNc9DytkRhTT_sGBDfTbjIOLMQ3lk6HKuYxh3cNwZBQZNlGVfp278cMel" class="node-card-image" alt="Quantum-X">
+            <span class="badge-status featured" style="position: absolute; top: 12px; left: 12px;">Sensors</span>
+            <button class="btn-icon" onclick="AppState.toggleFavorite('Quantum-X Environmental Array v2'); this.closest('article').remove();" style="position: absolute; top: 12px; right: 12px; background: rgba(12,14,16,0.7); backdrop-filter: blur(8px);" title="Remove Bookmark">
+              <span class="material-symbols-outlined" style="color: var(--primary-container); font-variation-settings: 'FILL' 1;">favorite</span>
+            </button>
+          </div>
+          <div class="node-card-body">
+            <h3 style="font-size: 1.15rem;"><a href="project-details.html">Quantum-X Environmental Array v2</a></h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">High-precision atmospheric monitoring node with integrated AI edge processing.</p>
+            <div class="node-card-footer">
+              <div class="node-price">1,450 <span>HVT</span></div>
+              <button onclick="AppState.addToCart({ id: 'node-quantum-x', title: 'Quantum-X Environmental Array v2', price: 1450, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuATxvP9UfYgnYXE1gUiDPylXqmp7jf_0Tz-RK-7sfbNkHWisA2H8b2SJncwmh25ZrMKzncAVO_anlwl22LmhXFiofQQLitTWaTlL2KRbwDC4w7fuF8e4SSsxlqAHnxppwxJQPBPT6oNYJMNvgBLLzF3OP2rMDhli70fQZj7j0voK07pnlnCcGPi8oXsxQgSNc9DytkRhTT_sGBDfTbjIOLMQ3lk6HKuYxh3cNwZBQZNlGVfp278cMel' })" class="btn btn-primary btn-sm">
+                Deploy
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <article class="node-card">
+          <div class="node-card-image-box">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvLOplFLPZ-PnF2Gp75tGc3YueVcS6YURGmD5U9DQR3NDzSdHdPlLgwI8BtFuiMysO98ekjfhE9ktpvgzwJ5vjXYmTpKZgphF6qMPJRTA1D4SGu6KMVUHaJ1Z33U9T-XxN5XdLFp3Vupd6tQMmVo7PYJqAps0gDECHMtKGzw1cdGXEW-11wLqb-dgdkmeSdDtgKenSfsy8MwcH6tmOEznjLfdUZKOQJdfXdmTfT1ATY9DgSMf4aJBf" class="node-card-image" alt="Surveillance Rover">
+            <span class="badge-status online" style="position: absolute; top: 12px; left: 12px;">Robotics</span>
+            <button class="btn-icon" onclick="AppState.toggleFavorite('Autonomous Surveillance Rover'); this.closest('article').remove();" style="position: absolute; top: 12px; right: 12px; background: rgba(12,14,16,0.7); backdrop-filter: blur(8px);" title="Remove Bookmark">
+              <span class="material-symbols-outlined" style="color: var(--primary-container); font-variation-settings: 'FILL' 1;">favorite</span>
+            </button>
+          </div>
+          <div class="node-card-body">
+            <h3 style="font-size: 1.15rem;"><a href="project-details.html">Autonomous Surveillance Rover</a></h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">Rugged all-terrain autonomous rover platform powered by Jetson Nano &amp; LiDAR.</p>
+            <div class="node-card-footer">
+              <div class="node-price">4,900 <span>HVT</span></div>
+              <button onclick="AppState.addToCart({ id: 'node-rover-chassis', title: 'Autonomous Surveillance Rover', price: 4900, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCvLOplFLPZ-PnF2Gp75tGc3YueVcS6YURGmD5U9DQR3NDzSdHdPlLgwI8BtFuiMysO98ekjfhE9ktpvgzwJ5vjXYmTpKZgphF6qMPJRTA1D4SGu6KMVUHaJ1Z33U9T-XxN5XdLFp3Vupd6tQMmVo7PYJqAps0gDECHMtKGzw1cdGXEW-11wLqb-dgdkmeSdDtgKenSfsy8MwcH6tmOEznjLfdUZKOQJdfXdmTfT1ATY9DgSMf4aJBf' })" class="btn btn-primary btn-sm">
+                Deploy
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <article class="node-card">
+          <div class="node-card-image-box">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGwlWlJBEa92nXYO7VtNbPTpG5VAlioiZx2yERAzrFwB7tn1SKtiHIFiKF72WX9IjYzNx68JbssWXSrrsO36lf5WMtDEwBdTsG1RU7QmBx1Sukwz3qZJY3AjAtR1_A3QYup7iFuAixM7NUIVUbLjb9yjym6fjghhp5nXz0q7-VU3Z8u0lTNllzQ4O1b5qvajr7PlBXKV-qnpiLrSE9kHn6V1rpRHGCP-ateGIjJmqbbz5j8ZY_S2ak" class="node-card-image" alt="Nexus Router">
+            <span class="badge-status online" style="position: absolute; top: 12px; left: 12px;">Edge Compute</span>
+            <button class="btn-icon" onclick="AppState.toggleFavorite('Nexus Protocol Router AX-7'); this.closest('article').remove();" style="position: absolute; top: 12px; right: 12px; background: rgba(12,14,16,0.7); backdrop-filter: blur(8px);" title="Remove Bookmark">
+              <span class="material-symbols-outlined" style="color: var(--primary-container); font-variation-settings: 'FILL' 1;">favorite</span>
+            </button>
+          </div>
+          <div class="node-card-body">
+            <h3 style="font-size: 1.15rem;"><a href="project-details.html">Nexus Protocol Router AX-7</a></h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">Industrial quad-band gateway routing 10,000 concurrent sensor uplinks.</p>
+            <div class="node-card-footer">
+              <div class="node-price">2,800 <span>HVT</span></div>
+              <button onclick="AppState.addToCart({ id: 'node-nexus-router', title: 'Nexus Protocol Router AX-7', price: 2800, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCGwlWlJBEa92nXYO7VtNbPTpG5VAlioiZx2yERAzrFwB7tn1SKtiHIFiKF72WX9IjYzNx68JbssWXSrrsO36lf5WMtDEwBdTsG1RU7QmBx1Sukwz3qZJY3AjAtR1_A3QYup7iFuAixM7NUIVUbLjb9yjym6fjghhp5nXz0q7-VU3Z8u0lTNllzQ4O1b5qvajr7PlBXKV-qnpiLrSE9kHn6V1rpRHGCP-ateGIjJmqbbz5j8ZY_S2ak' })" class="btn btn-primary btn-sm">
+                Deploy
+              </button>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="site-footer">
+    <div class="app-container">
+      <div class="footer-bottom" style="border-top: none; padding-top: 0;">
+        <span>&copy; 2026 IoT Hive Collective Inc. All Rights Reserved.</span>
+        <div class="flex items-center gap-6">
+          <a href="#" style="color: var(--text-muted);">Privacy Protocol</a>
+          <a href="#" style="color: var(--text-muted);">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/app.js"></script>
+</body>
+</html>

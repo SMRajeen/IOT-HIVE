@@ -1,0 +1,283 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE | Publish Hardware Project &amp; Tiers{% endblock %}
+{% block page_id %}create-project{% endblock %}
+
+{% block content %}
+<div class="app-container" style="padding-top: var(--space-8); max-width: 900px;">
+  
+  <div class="card-cyber" style="padding: 36px 32px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl);">
+    
+    <!-- Top Header -->
+    <div style="margin-bottom: 28px;">
+      <div class="badge-hud" style="margin-bottom: 6px;">
+        <span class="dot" style="background: #00ff88;"></span>
+        <span class="label" style="color: #00ff88;">CREATOR STUDIO &bull; SRI LANKA</span>
+      </div>
+      <h1 style="font-size: 2rem; margin: 0 0 6px;">Publish Hardware Project &amp; Hardware Tiers</h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
+        Share schematics, interactive Bill of Materials, firmware code, and commercial DIY Kits or Assembled Units.
+      </p>
+    </div>
+
+    <!-- Alert Box -->
+    <div id="create-project-alert" style="display: none; margin-bottom: 24px;"></div>
+
+    <form id="create-project-form" onsubmit="window.handleCreateProject(event)" enctype="multipart/form-data">
+      
+      <!-- Section 1: Basic Information -->
+      <div style="margin-bottom: 28px;">
+        <h3 style="font-size: 1.15rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--primary);">
+          <span class="material-symbols-outlined">info</span>
+          1. Basic Project Information
+        </h3>
+
+        <!-- Project Title -->
+        <div class="input-group" style="margin-bottom: 20px;">
+          <label class="input-label">Project Title *</label>
+          <input type="text" name="title" class="input-cyber" placeholder="e.g. ESP32 Autonomous Indoor Smart Garden System" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+          <!-- Category -->
+          <div class="input-group">
+            <label class="input-label">Primary Category *</label>
+            <select id="project-category" name="category" class="input-cyber" style="background: var(--bg-surface-low);" required>
+              <option value="">Loading categories...</option>
+            </select>
+          </div>
+
+          <!-- Digital Blueprint Price -->
+          <div class="input-group">
+            <label class="input-label">Digital Blueprint Price (LKR / Rs.) *</label>
+            <input type="number" id="project-price" name="price" class="input-cyber" placeholder="3500.00" step="10" min="0" value="3500.00">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 20px; padding: 12px 16px; background: var(--bg-surface-low); border-radius: 8px; border: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 10px;">
+          <input type="checkbox" id="project-is-free" name="is_free" value="true" style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
+          <label for="project-is-free" style="font-size: 0.92rem; cursor: pointer; color: var(--text-primary);">
+            Make this project <strong>100% Free &amp; Open-Source</strong>
+          </label>
+        </div>
+
+        <!-- Short Summary -->
+        <div class="input-group" style="margin-bottom: 20px;">
+          <label class="input-label">Short Summary (1-2 sentences) *</label>
+          <input type="text" name="short_description" class="input-cyber" placeholder="Brief summary of what this hardware achieves..." required maxlength="300">
+        </div>
+
+        <!-- Full Description -->
+        <div class="input-group" style="margin-bottom: 20px;">
+          <label class="input-label">Build Guide &amp; Technical Documentation *</label>
+          <textarea name="description" class="input-cyber" rows="6" placeholder="Explain the operating principle, circuit wiring, firmware installation, and testing procedures..." required style="resize: vertical;"></textarea>
+        </div>
+      </div>
+
+      <!-- Section 2: Multi-Tier Commercial Offerings -->
+      <div style="margin-bottom: 28px; border-top: 1px solid var(--border-subtle); padding-top: 24px;">
+        <h3 style="font-size: 1.15rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: var(--primary);">
+          <span class="material-symbols-outlined">payments</span>
+          2. Multi-Tier Commercial Offerings (Optional)
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 16px;">
+          Offer physical hardware kits or fully assembled devices shipped to buyers in Sri Lanka.
+        </p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
+          <!-- Tier 2: DIY Kit -->
+          <div style="padding: 16px; background: var(--bg-surface-low); border-radius: 10px; border: 1px solid var(--border-subtle);">
+            <div style="font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; color: var(--text-primary);">
+              <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">inventory_2</span>
+              Tier 2: DIY Parts Kit (Optional)
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.78rem; margin-bottom: 10px;">Unassembled components + PCB shipped in Sri Lanka.</p>
+            <div class="input-group" style="margin-bottom: 8px;">
+              <label class="input-label" style="font-size: 0.78rem;">Kit Price (LKR / Rs.)</label>
+              <input type="number" id="tier-kit-price" class="input-cyber" placeholder="12500.00" step="100" min="0" style="padding: 6px 10px; font-size: 0.88rem;">
+            </div>
+            <input type="text" id="tier-kit-desc" class="input-cyber" placeholder="Description e.g. Includes ESP32, sensors & PCB" style="padding: 6px 10px; font-size: 0.82rem;">
+          </div>
+
+          <!-- Tier 3: Assembled Device -->
+          <div style="padding: 16px; background: var(--bg-surface-low); border-radius: 10px; border: 1px solid var(--border-subtle);">
+            <div style="font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; color: var(--text-primary);">
+              <span class="material-symbols-outlined" style="font-size: 18px; color: var(--status-success);">precision_manufacturing</span>
+              Tier 3: Assembled &amp; Tested Unit (Optional)
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.78rem; margin-bottom: 10px;">Ready-to-run device with enclosure and pre-flashed code.</p>
+            <div class="input-group" style="margin-bottom: 8px;">
+              <label class="input-label" style="font-size: 0.78rem;">Assembled Price (LKR / Rs.)</label>
+              <input type="number" id="tier-assembled-price" class="input-cyber" placeholder="24000.00" step="100" min="0" style="padding: 6px 10px; font-size: 0.88rem;">
+            </div>
+            <input type="text" id="tier-assembled-desc" class="input-cyber" placeholder="Description e.g. Fully tested, soldered with 3D case" style="padding: 6px 10px; font-size: 0.82rem;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Hardware Specifications -->
+      <div style="margin-bottom: 28px; border-top: 1px solid var(--border-subtle); padding-top: 24px;">
+        <h3 style="font-size: 1.15rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--primary);">
+          <span class="material-symbols-outlined">developer_board</span>
+          3. Hardware &amp; Connectivity Specs
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+          <!-- Microcontroller -->
+          <div class="input-group">
+            <label class="input-label">Microcontroller / Core Board *</label>
+            <input type="text" name="microcontroller" class="input-cyber" placeholder="e.g. ESP32-WROOM-32D, RP2040, STM32F4, Raspberry Pi 4" required>
+          </div>
+
+          <!-- Connectivity -->
+          <div class="input-group">
+            <label class="input-label">Wireless &amp; Bus Protocols</label>
+            <input type="text" name="connectivity" class="input-cyber" placeholder="e.g. Wi-Fi, Bluetooth BLE, LoRa, I2C, SPI">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <!-- Difficulty -->
+          <div class="input-group">
+            <label class="input-label">Difficulty Level</label>
+            <select name="difficulty" class="input-cyber" style="background: var(--bg-surface-low);">
+              <option value="beginner">Beginner (Breadboard / Simple Coding)</option>
+              <option value="intermediate" selected>Intermediate (Custom PCB / Soldering)</option>
+              <option value="advanced">Advanced (SMD Soldering / Embedded Linux / RTOS)</option>
+              <option value="expert">Expert (Multi-layer High-Frequency RF / Robotics)</option>
+            </select>
+          </div>
+
+          <!-- Build Time -->
+          <div class="input-group">
+            <label class="input-label">Estimated Build Time</label>
+            <input type="text" name="estimated_build_time" class="input-cyber" placeholder="e.g. 2-3 Hours, 1 Weekend" value="1-2 Hours">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Interactive Bill of Materials (BOM) Builder -->
+      <div style="margin-bottom: 28px; border-top: 1px solid var(--border-subtle); padding-top: 24px;">
+        <div class="flex items-center justify-between" style="margin-bottom: 14px;">
+          <div>
+            <h3 style="font-size: 1.15rem; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; color: var(--primary);">
+              <span class="material-symbols-outlined">list_alt</span>
+              4. Interactive Bill of Materials (BOM)
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Add the exact electronic parts, sensors, ICs and resistors required.</p>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="window.addBOMRow()">
+            <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+            Add Component
+          </button>
+        </div>
+
+        <div style="overflow-x: auto; margin-bottom: 12px;">
+          <table class="bom-table" style="font-size: 0.88rem;">
+            <thead>
+              <tr>
+                <th style="min-width: 170px;">Component Name *</th>
+                <th style="min-width: 130px;">Part No / MPN</th>
+                <th style="width: 80px; text-align: center;">Qty</th>
+                <th style="width: 130px; text-align: right;">Est. Unit (LKR)</th>
+                <th style="min-width: 150px;">Supplier Link</th>
+                <th style="width: 50px; text-align: center;"></th>
+              </tr>
+            </thead>
+            <tbody id="bom-rows-container">
+              <!-- Initial Dynamic Row -->
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="text-align: right; font-weight: 700; font-family: var(--font-mono); color: var(--text-muted);">Estimated Parts Total:</td>
+                <td style="text-align: right; font-weight: 700; font-family: var(--font-mono); color: var(--primary);" id="bom-total-display">Rs. 0.00</td>
+                <td colspan="2"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Section 5: Firmware / Code Snippet -->
+      <div style="margin-bottom: 28px; border-top: 1px solid var(--border-subtle); padding-top: 24px;">
+        <h3 style="font-size: 1.15rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; color: var(--primary);">
+          <span class="material-symbols-outlined">terminal</span>
+          5. Firmware &amp; Source Code
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 200px 1fr; gap: 16px; margin-bottom: 14px;">
+          <div class="input-group">
+            <label class="input-label">Language</label>
+            <select name="source_code_language" class="input-cyber" style="background: var(--bg-surface-low);">
+              <option value="cpp" selected>C / C++ (Arduino)</option>
+              <option value="python">Python / MicroPython</option>
+              <option value="rust">Rust</option>
+              <option value="c">Pure C</option>
+              <option value="json">JSON / Config</option>
+            </select>
+          </div>
+          <div></div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Microcontroller Source Code / Ino / Python</label>
+          <textarea name="source_code" class="input-cyber" rows="10" placeholder="// Paste your flashable Arduino firmware or MicroPython code here..." style="font-family: var(--font-mono); font-size: 0.88rem; resize: vertical;"></textarea>
+        </div>
+      </div>
+
+      <!-- Section 6: Blueprints & Files -->
+      <div style="margin-bottom: 28px; border-top: 1px solid var(--border-subtle); padding-top: 24px;">
+        <h3 style="font-size: 1.15rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--primary);">
+          <span class="material-symbols-outlined">upload_file</span>
+          6. Blueprints &amp; Media
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+          <!-- Cover Image -->
+          <div class="input-group">
+            <label class="input-label">Project Cover Photo</label>
+            <input type="file" name="image" accept="image/*" class="input-cyber" style="padding: 8px; background: var(--bg-surface-low);">
+          </div>
+
+          <!-- Primary Attachment -->
+          <div class="input-group">
+            <label class="input-label">Gerber ZIP / Schematic / 3D CAD File</label>
+            <input type="file" name="attachment_file" class="input-cyber" style="padding: 8px; background: var(--bg-surface-low);">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <!-- Video Demo URL -->
+          <div class="input-group">
+            <label class="input-label">YouTube Demo URL</label>
+            <input type="url" name="video_url" class="input-cyber" placeholder="https://www.youtube.com/watch?v=...">
+          </div>
+
+          <!-- 3D Model URL -->
+          <div class="input-group">
+            <label class="input-label">3D Model URL (Onshape, Thingiverse)</label>
+            <input type="url" name="model_url" class="input-cyber" placeholder="https://cad.onshape.com/...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-between" style="border-top: 1px solid var(--border-medium); padding-top: 24px;">
+        <a href="/marketplace/" class="btn btn-ghost">Cancel</a>
+        <button type="submit" id="create-project-submit-btn" class="btn btn-primary btn-lg">
+          <span class="material-symbols-outlined">rocket_launch</span>
+          Publish Project to IoT HIVE
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/create-project.js' %}"></script>
+{% endblock %}

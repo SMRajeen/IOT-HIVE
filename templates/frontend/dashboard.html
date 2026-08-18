@@ -1,0 +1,311 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE | Creator Dashboard &amp; Orders{% endblock %}
+{% block page_id %}dashboard{% endblock %}
+
+{% block content %}
+<div class="app-container" style="padding-top: var(--space-8);">
+  
+  <!-- Dashboard Top Bar -->
+  <div class="card-cyber" style="padding: 28px 24px; margin-bottom: var(--space-8); background: var(--bg-surface-container);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <div class="badge-hud" id="dashboard-hud-badge" style="margin-bottom: 6px;">
+          <span class="dot"></span>
+          <span class="label" id="dashboard-hud-label">CREATOR STUDIO &bull; SRI LANKA</span>
+        </div>
+        <h1 id="dashboard-greeting" style="font-size: 1.85rem; margin: 0;">Creator Dashboard</h1>
+        <p id="dashboard-subtitle" style="color: var(--text-muted); margin-top: 4px; font-size: 0.95rem;">
+          Manage hardware blueprints, track views, process Sri Lanka shipments, and view order receipts.
+        </p>
+      </div>
+      
+      <div class="flex items-center gap-3" id="dashboard-top-actions">
+        <a href="/create-project/" class="btn btn-primary btn-sm">
+          <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+          Post New Project
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real Statistics Cards (5 Cards) -->
+  <div id="dashboard-kpi-grid" class="grid-cols-4" style="margin-bottom: var(--space-8); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+    
+    <div class="card-cyber kpi-card" style="padding: 22px;">
+      <div class="flex items-center justify-between" style="margin-bottom: 8px;">
+        <span class="stat-label">My Projects</span>
+        <span class="material-symbols-outlined" style="color: var(--primary);">memory</span>
+      </div>
+      <div class="kpi-value" id="kpi-my-projects">0</div>
+      <div class="kpi-change neutral">Shared in repository</div>
+    </div>
+
+    <div class="card-cyber kpi-card" style="padding: 22px;">
+      <div class="flex items-center justify-between" style="margin-bottom: 8px;">
+        <span class="stat-label">Hardware Sales</span>
+        <span class="material-symbols-outlined" style="color: var(--status-success);">payments</span>
+      </div>
+      <div class="kpi-value" id="kpi-total-sales" style="color: var(--status-success); font-size: 1.6rem;">Rs. 0.00</div>
+      <div class="kpi-change positive" id="kpi-sales-count">0 orders fulfilled</div>
+    </div>
+
+    <div class="card-cyber kpi-card" style="padding: 22px;">
+      <div class="flex items-center justify-between" style="margin-bottom: 8px;">
+        <span class="stat-label">Total Views</span>
+        <span class="material-symbols-outlined" style="color: var(--primary-container);">visibility</span>
+      </div>
+      <div class="kpi-value" id="kpi-total-views">0</div>
+      <div class="kpi-change positive">Across projects</div>
+    </div>
+
+    <div class="card-cyber kpi-card" style="padding: 22px;">
+      <div class="flex items-center justify-between" style="margin-bottom: 8px;">
+        <span class="stat-label">Inquiries &amp; Messages</span>
+        <span class="material-symbols-outlined" style="color: var(--status-warning);">chat</span>
+      </div>
+      <div class="kpi-value" id="kpi-inquiries">0</div>
+      <div class="kpi-change neutral">
+        <a href="/requests/" style="color: var(--primary); text-decoration: underline;">View Inquiries &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Maker Pro SaaS Subscription & Take-Rate Tier Banner -->
+  <div class="card-cyber" id="maker-pro-banner" style="padding: 22px 26px; margin-bottom: var(--space-8); background: linear-gradient(135deg, rgba(255, 170, 0, 0.08) 0%, rgba(0, 255, 136, 0.04) 100%); border: 1px solid rgba(255, 170, 0, 0.3); border-radius: 12px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div style="display: flex; gap: 16px; align-items: center;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255, 170, 0, 0.15); border: 1px solid #ffaa00; display: flex; align-items: center; justify-content: center; color: #ffaa00;">
+          <span class="material-symbols-outlined" style="font-size: 28px;">workspace_premium</span>
+        </div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+            <h3 style="margin: 0; font-size: 1.15rem; color: #fff;">Maker Pro Subscription &bull; SaaS Recurring Revenue</h3>
+            <span class="tag-mono" style="background: rgba(255,170,0,0.2); color: #ffaa00; border-color: rgba(255,170,0,0.4); font-size: 0.72rem;">0% COMMISSION TIER</span>
+          </div>
+          <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+            Current Plan: <strong id="current-maker-tier-badge" style="color: var(--text-primary);">Standard Maker (8% Escrow Fee)</strong>. Upgrade to <strong>Maker Pro (Rs. 1,490 / mo)</strong> for 0% commission, Gold Verified Badge &amp; SMS alerts.
+          </p>
+        </div>
+      </div>
+      <button type="button" onclick="window.openMakerProModal()" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #ffaa00, #ff7700); border-color: #ffaa00; color: #000; font-weight: 700;">
+        <span class="material-symbols-outlined" style="font-size: 18px;">star</span>
+        View SaaS Pro Tiers
+      </button>
+    </div>
+  </div>
+
+  <!-- Hardware Orders & Shipping Fulfillment Section -->
+  <div class="card-cyber" style="padding: 28px; margin-bottom: var(--space-8);">
+    <div class="flex items-center justify-between" style="margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h3 id="dashboard-orders-title" style="font-size: 1.3rem; margin: 0 0 4px; display: flex; align-items: center; gap: 8px;">
+          <span class="material-symbols-outlined text-primary">local_shipping</span>
+          Hardware Orders &amp; Fulfillment
+        </h3>
+        <p id="dashboard-orders-subtitle" style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">Manage customer shipments across Sri Lanka, update courier tracking numbers, and view purchases.</p>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="flex items-center gap-2" id="dashboard-orders-tabs">
+        <button type="button" id="tab-orders-sales-btn" class="btn btn-secondary btn-sm active" onclick="window.switchOrdersTab('sales')">
+          <span class="material-symbols-outlined" style="font-size: 16px;">sell</span>
+          Creator Sales (<span id="sales-count-badge">0</span>)
+        </button>
+        <button type="button" id="tab-orders-purchases-btn" class="btn btn-ghost btn-sm" onclick="window.switchOrdersTab('purchases')">
+          <span class="material-symbols-outlined" style="font-size: 16px;">shopping_bag</span>
+          My Purchases (<span id="purchases-count-badge">0</span>)
+        </button>
+      </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table class="table-cyber">
+        <thead>
+          <tr id="orders-table-headers">
+            <th>Order ID</th>
+            <th>Project &amp; Tier</th>
+            <th>Buyer / Address</th>
+            <th>Amount (LKR)</th>
+            <th>Delivery Status</th>
+            <th>Tracking / Action</th>
+          </tr>
+        </thead>
+        <tbody id="dashboard-orders-tbody">
+          <tr>
+            <td colspan="6" style="padding: 32px; text-align: center; color: var(--text-muted);">
+              <span class="material-symbols-outlined spin" style="font-size: 24px; color: var(--primary);">sync</span>
+              <p style="margin-top: 8px;">Loading hardware orders...</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Projects Management Table -->
+  <div id="dashboard-projects-section" class="card-cyber" style="padding: 28px; margin-bottom: var(--space-8);">
+    <div class="flex items-center justify-between" style="margin-bottom: 20px;">
+      <h3 style="font-size: 1.25rem; margin: 0;">My Published Projects</h3>
+      <a href="/create-project/" class="btn btn-ghost btn-sm">+ Add Project</a>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table class="table-cyber">
+        <thead>
+          <tr>
+            <th>Project Title</th>
+            <th>Category</th>
+            <th>Base Price</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="dashboard-projects-tbody">
+          <tr>
+            <td colspan="5" style="padding: 32px; text-align: center; color: var(--text-muted);">
+              <span class="material-symbols-outlined spin" style="font-size: 24px; color: var(--primary);">sync</span>
+              <p style="margin-top: 8px;">Loading your projects...</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Maker Pro SaaS Subscription Modal (Investor Revenue Showcase) -->
+<div id="maker-pro-modal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
+  <div class="card-cyber" style="max-width: 680px; width: 100%; padding: 32px; background: var(--bg-surface-container); border: 1px solid rgba(255, 170, 0, 0.4); border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,0.9); position: relative; max-height: 90vh; overflow-y: auto;">
+    
+    <div class="flex items-center justify-between" style="margin-bottom: 20px;">
+      <div class="flex items-center gap-3">
+        <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 170, 0, 0.15); border: 1px solid #ffaa00; display: flex; align-items: center; justify-content: center; color: #ffaa00;">
+          <span class="material-symbols-outlined">workspace_premium</span>
+        </div>
+        <div>
+          <h2 style="font-size: 1.35rem; margin: 0;">IoT HIVE Creator Tiers &bull; SaaS Model</h2>
+          <div class="text-xs" style="color: var(--text-muted);">Blended Marketplace Take-Rate + Recurring Subscription Revenue</div>
+        </div>
+      </div>
+      <button type="button" class="btn-icon" onclick="window.closeMakerProModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 24px;">
+      
+      <!-- Free Plan -->
+      <div style="padding: 20px; background: var(--bg-surface-high); border: 1px solid var(--border-medium); border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 4px;">Standard Maker</div>
+          <div style="font-size: 1.6rem; font-weight: 800; font-family: var(--font-mono); color: var(--text-primary); margin-bottom: 12px;">Rs. 0 <span style="font-size: 0.8rem; font-weight: 400; color: var(--text-muted);">/ month</span></div>
+          <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: var(--text-muted); line-height: 1.8;">
+            <li>✓ Unlimited Project Blueprint Listings</li>
+            <li>✓ PayHere &amp; Card Gateway Access</li>
+            <li>✓ Islandwide Courier Tracking</li>
+            <li style="color: var(--status-warning);">• 8% Platform Escrow Fee</li>
+            <li style="color: var(--text-muted); opacity: 0.6;">✕ No Verified Gold Badge</li>
+            <li style="color: var(--text-muted); opacity: 0.6;">✕ Standard Bounty Notifications</li>
+          </ul>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 20px;" disabled>Active Current Plan</button>
+      </div>
+
+      <!-- Pro Plan -->
+      <div style="padding: 20px; background: linear-gradient(135deg, rgba(255, 170, 0, 0.12) 0%, rgba(0, 255, 136, 0.08) 100%); border: 2px solid #ffaa00; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+        <span class="tag-mono" style="position: absolute; top: -10px; right: 16px; background: #ffaa00; color: #000; font-weight: 800; font-size: 0.7rem;">RECOMMENDED</span>
+        <div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: #ffaa00; margin-bottom: 4px;">Maker Pro Tier</div>
+          <div style="font-size: 1.6rem; font-weight: 800; font-family: var(--font-mono); color: #00ff88; margin-bottom: 12px;">Rs. 1,490 <span style="font-size: 0.8rem; font-weight: 400; color: var(--text-muted);">/ month</span></div>
+          <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.8;">
+            <li><strong style="color: #00ff88;">✓ 0% Platform Escrow Fee</strong> (Keep 100% Payout)</li>
+            <li><strong style="color: #ffaa00;">✓ Gold Verified Maker Badge</strong></li>
+            <li><strong>✓ Instant SMS on High-Budget Bounties</strong> (NotifyLK)</li>
+            <li><strong>✓ Top Priority Search Placement</strong></li>
+            <li><strong>✓ Dedicated Maker Store URL</strong></li>
+          </ul>
+        </div>
+        <button type="button" id="btn-activate-maker-pro" onclick="window.activateMakerProDemo()" class="btn btn-primary btn-sm" style="width: 100%; margin-top: 20px; background: linear-gradient(135deg, #ffaa00, #ff7700); color: #000; font-weight: 800;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">bolt</span>
+          Activate Pro Membership
+        </button>
+      </div>
+
+    </div>
+
+    <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+      Flexible SaaS Subscription &bull; Cancel Anytime &bull; Instant Activation via Card / PayHere
+    </div>
+
+  </div>
+</div>
+
+<!-- Shipping Fulfillment Modal -->
+<div id="shipping-modal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
+  <div class="card-cyber" style="max-width: 520px; width: 100%; padding: 28px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+    
+    <div class="flex items-center justify-between" style="margin-bottom: 18px;">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined" style="color: var(--primary);">local_shipping</span>
+        <h3 style="margin: 0; font-size: 1.25rem;">Courier Dispatch Details</h3>
+      </div>
+      <button type="button" class="btn-icon" onclick="window.closeShippingModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div id="shipping-modal-alert" style="display: none; margin-bottom: 14px;"></div>
+
+    <form onsubmit="window.handleSaveShipping(event)">
+      <input type="hidden" id="modal-shipping-order-id">
+
+      <div style="padding: 12px; background: var(--bg-surface-high); border-radius: 8px; margin-bottom: 16px; font-size: 0.88rem;">
+        <span id="modal-order-summary-label" style="color: var(--text-secondary); font-weight: 600;">Order #0</span>
+      </div>
+
+      <div class="input-group" style="margin-bottom: 14px;">
+        <label class="input-label">Courier Service / Handled By *</label>
+        <select id="modal-courier-name" class="input-cyber" required style="background: var(--bg-surface-high);">
+          <option value="PromptX Courier Sri Lanka">PromptX Courier Sri Lanka</option>
+          <option value="Domex Courier">Domex Express</option>
+          <option value="SpeedPost Sri Lanka Post">SpeedPost (Sri Lanka Post)</option>
+          <option value="PickMe Flash Delivery">PickMe Flash Delivery</option>
+          <option value="Certis Lanka Courier">Certis Lanka Courier</option>
+          <option value="Direct Creator Handover">Direct Creator Handover</option>
+        </select>
+      </div>
+
+      <div class="input-group" style="margin-bottom: 14px;">
+        <label class="input-label">Tracking Number / Waybill ID *</label>
+        <input type="text" id="modal-tracking-number" class="input-cyber" placeholder="e.g. PRX-LK-902341" required style="font-family: var(--font-mono);">
+      </div>
+
+      <div class="input-group" style="margin-bottom: 20px;">
+        <label class="input-label">Parcel Status</label>
+        <select id="modal-order-status" class="input-cyber" style="background: var(--bg-surface-high);">
+          <option value="shipped">Shipped with Courier</option>
+          <option value="delivered">Delivered / Handed Over</option>
+          <option value="paid">Processing / Packing</option>
+        </select>
+      </div>
+
+      <div class="flex items-center justify-between gap-3">
+        <button type="button" onclick="window.closeShippingModal()" class="btn btn-ghost">Cancel</button>
+        <button type="submit" id="modal-shipping-submit-btn" class="btn btn-primary">
+          <span class="material-symbols-outlined">save</span>
+          Update Shipment
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

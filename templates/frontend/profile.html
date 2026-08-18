@@ -1,0 +1,158 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE | Maker Profile{% endblock %}
+{% block page_id %}profile{% endblock %}
+
+{% block content %}
+<div class="app-container" style="padding-top: var(--space-8); max-width: 960px;">
+  
+  <!-- Profile View Section -->
+  <div id="profile-view-section">
+    <!-- Hero Profile Card -->
+    <div class="card-cyber" style="padding: 36px 32px; margin-bottom: var(--space-8); background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+        <div style="display: flex; gap: 20px; align-items: center;">
+          <div id="profile-avatar-container" style="width: 80px; height: 80px; border-radius: 50%; background: var(--bg-surface-high); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);">
+            <span class="material-symbols-outlined" style="font-size: 40px; color: var(--primary);">person</span>
+          </div>
+          <div>
+            <h1 id="profile-name" style="font-size: 1.85rem; margin: 0 0 4px 0;">Loading profile...</h1>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <span id="profile-handle" class="font-mono" style="color: var(--primary); font-size: 0.95rem;">@username</span>
+              <span id="profile-role-badge"></span>
+            </div>
+            <div class="flex items-center gap-3 font-mono text-xs" style="color: var(--text-muted); flex-wrap: wrap;">
+              <span>Location: <strong id="profile-location" style="color: var(--text-secondary);">Global</strong></span>
+              <span>&bull;</span>
+              <span>Mobile SMS: <strong id="profile-phone-display" style="color: #00ff88;">Not linked</strong></span>
+              <span>&bull;</span>
+              <span>Website: <a id="profile-website" class="text-link" target="_blank" rel="noopener noreferrer">None</a></span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button class="btn btn-ghost btn-sm" onclick="window.sendTestSMSPrompt()" title="Verify your phone receives SMS">
+            <span class="material-symbols-outlined" style="font-size: 16px; color: #00ff88;">sms</span>
+            Test SMS
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="window.toggleEditProfile(true)">
+            <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+            Edit Profile
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; border-top: 1px solid var(--border-subtle); padding-top: 18px;">
+        <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono); margin-bottom: 6px;">About Maker</h4>
+        <p id="profile-bio" style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem; margin: 0;">
+          Loading bio...
+        </p>
+      </div>
+    </div>
+
+    <!-- User's Published Projects -->
+    <div style="margin-bottom: var(--space-8);">
+      <div class="flex items-center justify-between" style="margin-bottom: 16px;">
+        <h2 style="font-size: 1.4rem; margin: 0;">Published Projects</h2>
+        <span id="profile-projects-count" class="tag-mono">0 Projects</span>
+      </div>
+
+      <div id="profile-projects-grid" class="grid-cols-3">
+        <!-- Rendered by profile.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Edit Section (Hidden by default) -->
+  <div id="profile-edit-section" style="display: none;">
+    <div class="card-cyber" style="padding: 36px 32px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl);">
+      <div class="flex items-center justify-between" style="margin-bottom: 24px;">
+        <div>
+          <h2 style="font-size: 1.6rem; margin: 0 0 4px 0;">Edit Profile</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Update your public profile photo, mobile phone for SMS alerts, and creator info.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="window.toggleEditProfile(false)">Cancel</button>
+      </div>
+
+      <form id="profile-edit-form" enctype="multipart/form-data">
+        <div id="profile-edit-alert" style="display: none; margin-bottom: 18px;"></div>
+
+        <!-- Avatar Picture Upload -->
+        <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 24px; padding: 18px; background: var(--bg-surface-low); border-radius: 12px; border: 1px dashed var(--border-medium);">
+          <div id="edit-avatar-preview" style="width: 72px; height: 72px; border-radius: 50%; background: var(--bg-surface-high); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            <span class="material-symbols-outlined" style="font-size: 36px; color: var(--primary);">person</span>
+          </div>
+          <div style="flex: 1;">
+            <label class="input-label" style="margin-bottom: 4px;">Profile Photo</label>
+            <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0 0 10px 0;">Upload a JPG, PNG, or WebP profile picture (Max 5MB).</p>
+            <input type="file" id="avatar-file-input" name="avatar" accept="image/*" class="input-cyber" style="padding: 8px;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;">
+          <div class="input-group">
+            <label class="input-label">First Name</label>
+            <input type="text" name="first_name" class="input-cyber" placeholder="e.g. Alex">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Last Name</label>
+            <input type="text" name="last_name" class="input-cyber" placeholder="e.g. Vance">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;">
+          <div class="input-group">
+            <label class="input-label">Email Address</label>
+            <input type="email" name="email" class="input-cyber" placeholder="you@example.com">
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Mobile Phone (For Order &amp; Bounty SMS)</label>
+            <input type="text" name="phone_number" class="input-cyber" placeholder="e.g. +94710509154 or 0710509154" style="font-family: var(--font-mono);">
+          </div>
+        </div>
+
+        <div class="input-group" style="margin-bottom: 18px;">
+          <label class="input-label" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Account Role &amp; Access Mode *</span>
+            <span class="text-xs text-muted">Controls navigation, buttons &amp; publishing privileges</span>
+          </label>
+          <select name="role" class="input-cyber" style="background: var(--bg-surface-low);">
+            <option value="both">Buyer &amp; Seller (Recommended &bull; Full Access to Buy, Bid &amp; Post)</option>
+            <option value="seller">Seller Only (Hardware Creator &amp; Bounty Builder Studio)</option>
+            <option value="buyer">Buyer Only (Hardware Marketplace Explorer &amp; Orders)</option>
+          </select>
+        </div>
+
+        <div class="input-group" style="margin-bottom: 18px;">
+          <label class="input-label">Bio / Hardware Specialties</label>
+          <textarea name="bio" class="input-cyber" rows="4" placeholder="Tell the community about your embedded hardware experience, microcontrollers, sensor engineering, or robotics projects..." style="resize: vertical;"></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 24px;">
+          <div class="input-group">
+            <label class="input-label">Location</label>
+            <input type="text" name="location" class="input-cyber" placeholder="e.g. Colombo, Sri Lanka">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Website or Portfolio</label>
+            <input type="url" name="website" class="input-cyber" placeholder="https://github.com/yourhandle">
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button type="submit" id="profile-save-btn" class="btn btn-primary">Save Changes</button>
+          <button type="button" class="btn btn-ghost" onclick="window.toggleEditProfile(false)">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/profile.js' %}"></script>
+{% endblock %}

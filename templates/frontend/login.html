@@ -1,0 +1,161 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE | Sign In{% endblock %}
+{% block page_id %}login{% endblock %}
+
+{% block content %}
+<div class="app-container" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 200px); padding: 40px 20px;">
+  <div style="max-width: 440px; width: 100%;">
+    
+    <div class="card-cyber" style="padding: 40px 32px; background: var(--bg-surface-container); box-shadow: 0 24px 60px rgba(0,0,0,0.8);">
+      
+      <!-- Top Brand -->
+      <div style="text-align: center; margin-bottom: 28px;">
+        <div class="brand-logo" style="justify-content: center; margin-bottom: 12px;">
+          <div class="brand-icon-box" style="width: 44px; height: 44px;">
+            <span class="material-symbols-outlined" style="font-size: 24px;">hive</span>
+          </div>
+        </div>
+        <h1 style="font-size: 1.75rem; margin-bottom: 4px;">Welcome Back</h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Sign in to your IoT Hive account</p>
+      </div>
+
+      <!-- Login Form -->
+      <form data-login-form style="display: flex; flex-direction: column; gap: 18px;">
+        <div data-login-message style="display: none;"></div>
+
+        <div class="input-group">
+          <label class="input-label">Username or Email Address</label>
+          <div class="search-box-cyber">
+            <span class="material-symbols-outlined" style="color: var(--text-muted); margin-right: 8px; font-size: 20px;">person</span>
+            <input type="text" name="username" placeholder="Enter your username or email" required autocomplete="username">
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label class="input-label" style="margin: 0;">Password</label>
+            <button type="button" id="forgot-password-link" data-forgot-password onclick="window.openResetPasswordModal ? window.openResetPasswordModal() : (document.getElementById('reset-password-modal').style.display='flex')" style="background: none; border: none; padding: 0; color: var(--primary); font-size: 0.82rem; cursor: pointer; text-decoration: none; font-family: inherit;">Forgot password?</button>
+          </div>
+          <div class="search-box-cyber">
+            <span class="material-symbols-outlined" style="color: var(--text-muted); margin-right: 8px; font-size: 20px;">lock</span>
+            <input type="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+            <button type="button" data-password-toggle class="btn-icon" style="width: 28px; height: 28px;">
+              <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 8px;">
+          Sign In
+        </button>
+
+        <div style="text-align: center; font-size: 0.88rem; color: var(--text-muted); margin-top: 8px;">
+          Don't have an account? <a href="/register/" class="text-link" style="color: var(--primary); font-weight: 600;">Sign up</a>
+        </div>
+      </form>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Password Reset Modal -->
+<div id="reset-password-modal" class="modal-backdrop" onclick="if(event.target === this) window.closeResetPasswordModal()">
+  <div class="modal-box card-cyber" style="max-width: 440px; width: 100%; padding: 32px; background: var(--bg-surface-container);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h3 style="margin: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined" style="color: var(--primary);">lock_reset</span>
+        Reset Password
+      </h3>
+      <button type="button" id="close-reset-modal" onclick="window.closeResetPasswordModal()" class="btn-icon" style="width: 32px; height: 32px;">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Request Form -->
+    <form id="reset-request-form" style="display: flex; flex-direction: column; gap: 16px;">
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+        Enter your username or email address and we will instantly unlock your account to set a new password.
+      </p>
+      <div id="reset-modal-msg" style="display: none;"></div>
+
+      <div class="input-group">
+        <label class="input-label">Username or Email Address</label>
+        <div class="search-box-cyber">
+          <span class="material-symbols-outlined" style="color: var(--text-muted); margin-right: 8px; font-size: 20px;">person</span>
+          <input type="text" id="reset-email-input" placeholder="Enter your username or email" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%;">
+        Verify Account &amp; Continue
+      </button>
+    </form>
+
+    <!-- Confirm Form (shown when reset tokens are present or verified) -->
+    <form id="reset-confirm-form" style="display: none; flex-direction: column; gap: 16px;">
+      <div id="reset-user-pill" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.2); border-radius: 6px; font-size: 0.85rem; color: var(--primary);">
+        <span class="material-symbols-outlined" style="font-size: 16px;">verified_user</span>
+        <span id="reset-user-text">Account Verified</span>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+        Enter your new password below.
+      </p>
+      <div id="reset-confirm-msg" style="display: none;"></div>
+
+      <div class="input-group">
+        <label class="input-label">New Password</label>
+        <div class="search-box-cyber">
+          <span class="material-symbols-outlined" style="color: var(--text-muted); margin-right: 8px; font-size: 20px;">lock</span>
+          <input type="password" id="reset-new-password" placeholder="At least 6 characters" minlength="6" required autocomplete="new-password">
+          <button type="button" data-password-toggle class="btn-icon" style="width: 28px; height: 28px;">
+            <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%;">
+        Save New Password
+      </button>
+
+      <div style="text-align: center;">
+        <a href="javascript:void(0)" id="reset-back-to-req" style="color: var(--text-muted); font-size: 0.82rem; text-decoration: none;">&larr; Use another account</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.openResetPasswordModal = function() {
+    const modal = document.getElementById('reset-password-modal');
+    if (!modal) return;
+    modal.classList.add('open');
+    modal.style.display = 'flex';
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'auto';
+    const reqForm = document.getElementById('reset-request-form');
+    const confForm = document.getElementById('reset-confirm-form');
+    const reqMsg = document.getElementById('reset-modal-msg');
+    const confMsg = document.getElementById('reset-confirm-msg');
+    if (reqForm) reqForm.style.display = 'flex';
+    if (confForm) confForm.style.display = 'none';
+    if (reqMsg) { reqMsg.style.display = 'none'; reqMsg.textContent = ''; }
+    if (confMsg) { confMsg.style.display = 'none'; confMsg.textContent = ''; }
+    const emailInput = document.getElementById('reset-email-input');
+    if (emailInput) setTimeout(() => emailInput.focus(), 50);
+  };
+
+  window.closeResetPasswordModal = function() {
+    const modal = document.getElementById('reset-password-modal');
+    if (!modal) return;
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+    modal.style.opacity = '0';
+    modal.style.pointerEvents = 'none';
+  };
+</script>
+{% endblock %}

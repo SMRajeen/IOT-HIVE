@@ -1,0 +1,81 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE | Create an Account{% endblock %}
+{% block page_id %}register{% endblock %}
+
+{% block content %}
+<div class="app-container" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 200px); padding: 40px 20px;">
+  <div style="max-width: 500px; width: 100%;">
+    
+    <div class="card-cyber" style="padding: 40px 32px; background: var(--bg-surface-container); box-shadow: 0 24px 60px rgba(0,0,0,0.8);">
+      
+      <!-- Top Brand -->
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div class="brand-logo" style="justify-content: center; margin-bottom: 12px;">
+          <div class="brand-icon-box" style="width: 44px; height: 44px;">
+            <span class="material-symbols-outlined" style="font-size: 24px;">hive</span>
+          </div>
+        </div>
+        <h1 style="font-size: 1.75rem; margin-bottom: 4px;">Join IoT Hive</h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Create a free account to share and discover smart hardware</p>
+      </div>
+
+      <!-- Registration Form -->
+      <form data-register-form style="display: flex; flex-direction: column; gap: 16px;">
+        <div data-register-message style="display: none;"></div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div class="input-group">
+            <label class="input-label">First Name</label>
+            <input type="text" name="first_name" class="input-cyber" placeholder="John">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Last Name</label>
+            <input type="text" name="last_name" class="input-cyber" placeholder="Doe">
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Username *</label>
+          <input type="text" name="username" class="input-cyber" placeholder="Choose a unique username" required autocomplete="username">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Email Address *</label>
+          <input type="email" name="email" class="input-cyber" placeholder="you@example.com" required autocomplete="email">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">I am interested in</label>
+          <select name="role" class="input-cyber" style="background: var(--bg-surface-low);">
+            <option value="both">Both sharing and finding projects</option>
+            <option value="seller">Sharing and selling my hardware</option>
+            <option value="buyer">Discovering and buying projects</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Password (at least 6 characters) *</label>
+          <input type="password" name="password" class="input-cyber" placeholder="Create a password" required minlength="6" autocomplete="new-password">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Confirm Password *</label>
+          <input type="password" name="confirm_password" class="input-cyber" placeholder="Re-enter your password" required minlength="6" autocomplete="new-password">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 8px;">
+          Create Free Account
+        </button>
+
+        <div style="text-align: center; font-size: 0.88rem; color: var(--text-muted); margin-top: 6px;">
+          Already have an account? <a href="/login/" class="text-link" style="color: var(--primary); font-weight: 600;">Sign in</a>
+        </div>
+      </form>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}

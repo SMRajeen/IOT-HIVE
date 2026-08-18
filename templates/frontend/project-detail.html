@@ -1,0 +1,134 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE | Hardware Blueprint &amp; Specs{% endblock %}
+{% block page_id %}project{% endblock %}
+
+{% block content %}
+<div class="app-container" style="padding-top: var(--space-8);">
+  
+  <!-- Dynamic Project Details Container -->
+  <div id="project-detail-content">
+    <div style="padding: 64px; text-align: center; color: var(--text-muted);">
+      <span class="material-symbols-outlined spin" style="font-size: 36px; color: var(--primary);">sync</span>
+      <p style="margin-top: 12px;">Loading hardware project details &amp; community makes...</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Review & Community Make Submission Modal -->
+<div id="review-modal" class="modal-cyber" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
+  <div class="card-cyber" style="max-width: 540px; width: 100%; padding: 32px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl); box-shadow: 0 24px 60px rgba(0,0,0,0.9); position: relative;">
+    
+    <button onclick="window.closeReviewModal()" class="btn-icon" style="position: absolute; top: 16px; right: 16px;">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+
+    <div style="margin-bottom: 20px;">
+      <div class="badge-hud" style="margin-bottom: 6px;">
+        <span class="dot" style="background: #ffb700;"></span>
+        <span class="label" style="color: #ffb700;">COMMUNITY FEEDBACK</span>
+      </div>
+      <h3 style="font-size: 1.35rem; margin: 0;">Rate &amp; Post Your Make</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">
+        Share your experience building this hardware, report tips, and upload photos of your finished build.
+      </p>
+    </div>
+
+    <form id="review-form" onsubmit="window.handleReviewSubmit(event)" enctype="multipart/form-data">
+      <div id="review-alert" style="display: none; margin-bottom: 16px;"></div>
+
+      <!-- Interactive 5-Star Picker -->
+      <div style="margin-bottom: 18px;">
+        <label class="input-label" style="margin-bottom: 8px;">Your Rating *</label>
+        <div id="star-picker-container" style="display: flex; gap: 8px; font-size: 28px; cursor: pointer; color: #ffb700;">
+          <span class="material-symbols-outlined star-select" data-val="1" onclick="window.setReviewRating(1)">star</span>
+          <span class="material-symbols-outlined star-select" data-val="2" onclick="window.setReviewRating(2)">star</span>
+          <span class="material-symbols-outlined star-select" data-val="3" onclick="window.setReviewRating(3)">star</span>
+          <span class="material-symbols-outlined star-select" data-val="4" onclick="window.setReviewRating(4)">star</span>
+          <span class="material-symbols-outlined star-select" data-val="5" onclick="window.setReviewRating(5)">star</span>
+        </div>
+        <input type="hidden" id="review-rating-val" name="rating" value="5">
+      </div>
+
+      <div class="input-group" style="margin-bottom: 16px;">
+        <label class="input-label">Review Headline</label>
+        <input type="text" id="review-title" name="title" class="input-cyber" placeholder="e.g. Excellent PCB routing, worked on first try!">
+      </div>
+
+      <div class="input-group" style="margin-bottom: 16px;">
+        <label class="input-label">Build Notes &amp; Review *</label>
+        <textarea id="review-comment" name="comment" class="input-cyber" rows="4" required placeholder="Describe your build experience, component sourcing, firmware tweaks, or ease of assembly..." style="resize: vertical;"></textarea>
+      </div>
+
+      <div class="input-group" style="margin-bottom: 24px;">
+        <label class="input-label">Upload Photo of Your Completed Hardware (Community Make)</label>
+        <input type="file" id="review-build-image" name="build_image" accept="image/*" class="input-cyber" style="padding: 8px;">
+        <span class="text-xs" style="color: var(--text-muted); margin-top: 4px; display: block;">Show off your soldering, 3D enclosure, or working prototype in the Community Makes gallery!</span>
+      </div>
+
+      <div class="flex items-center justify-between gap-3">
+        <button type="button" onclick="window.closeReviewModal()" class="btn btn-ghost">Cancel</button>
+        <button type="submit" id="review-submit-btn" class="btn btn-primary">
+          <span class="material-symbols-outlined">send</span>
+          Submit Review
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- Image Lightbox Modal -->
+<div id="image-lightbox-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(12px); z-index: 3000; align-items: center; justify-content: center; padding: 20px;" onclick="window.closeLightbox()">
+  <button class="btn-icon" style="position: absolute; top: 20px; right: 20px; color: #fff; font-size: 28px;" onclick="window.closeLightbox()">
+    <span class="material-symbols-outlined">close</span>
+  </button>
+  <img id="lightbox-img" src="" alt="Hardware Make" style="max-width: 90vw; max-height: 85vh; object-fit: contain; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);" onclick="event.stopPropagation()">
+</div>
+
+<!-- Inquiry Modal (Direct Message) -->
+<div id="inquiry-modal" class="modal-cyber" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
+  <div class="card-cyber" style="max-width: 520px; width: 100%; padding: 32px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl); box-shadow: 0 24px 60px rgba(0,0,0,0.9); position: relative;">
+    
+    <button onclick="window.closeInquiryModal()" class="btn-icon" style="position: absolute; top: 16px; right: 16px;">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+
+    <div style="margin-bottom: 20px;">
+      <div class="badge-hud" style="margin-bottom: 6px;">
+        <span class="dot"></span>
+        <span class="label">DIRECT INQUIRY</span>
+      </div>
+      <h3 style="font-size: 1.35rem; margin: 0;">Contact Project Creator</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">
+        Send a message or custom hardware customization inquiry directly to the maker.
+      </p>
+    </div>
+
+    <form onsubmit="window.handleSendInquiry(event)">
+      <div id="inquiry-alert" style="display: none; margin-bottom: 16px;"></div>
+
+      <div class="input-group" style="margin-bottom: 20px;">
+        <label class="input-label">Your Message or Custom Request *</label>
+        <textarea id="inquiry-message" class="input-cyber" rows="5" required placeholder="Hi! I have a question about this circuit design / would like to request custom firmware modifications..." style="resize: vertical;"></textarea>
+      </div>
+
+      <div class="flex items-center justify-between gap-3">
+        <button type="button" onclick="window.closeInquiryModal()" class="btn btn-ghost">Cancel</button>
+        <button type="submit" id="inquiry-submit-btn" class="btn btn-primary">
+          <span class="material-symbols-outlined">send</span>
+          Send Message
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/payment.js' %}"></script>
+<script src="{% static 'js/project-details.js' %}"></script>
+{% endblock %}

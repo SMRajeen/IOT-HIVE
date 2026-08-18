@@ -1,0 +1,102 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE | Hardware Marketplace &amp; Project Directory{% endblock %}
+{% block page_id %}marketplace{% endblock %}
+
+{% block content %}
+<div class="app-container" style="padding-top: var(--space-8);">
+  
+  <!-- Marketplace Header -->
+  <div class="card-cyber" style="padding: 28px 24px; margin-bottom: var(--space-6); background: var(--bg-surface-container);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <div class="badge-hud" style="margin-bottom: 6px;">
+          <span class="dot"></span>
+          <span class="label">EXPLORE HARDWARE</span>
+        </div>
+        <h1 style="font-size: 2rem; margin: 0;">Projects &amp; Electronics Directory</h1>
+        <p style="color: var(--text-muted); margin-top: 4px; font-size: 0.95rem;">
+          Find circuit schematics, open-source Bill of Materials, flashable firmware, and robotics blueprints.
+        </p>
+      </div>
+      
+      <!-- Top Action -->
+      <div id="marketplace-top-action">
+        <a href="/create-project/" class="btn btn-primary btn-sm">
+          <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+          Share a Project
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Multi-Facet Filter Console -->
+  <div class="card-cyber" style="padding: 20px; margin-bottom: var(--space-6);">
+    <div style="display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; margin-bottom: 16px;">
+      <div class="search-box-cyber">
+        <span class="material-symbols-outlined" style="color: var(--text-muted); margin-right: 8px;">search</span>
+        <input type="text" id="marketplace-search" placeholder="Search by title, MCU (ESP32, STM32, Pico), sensor, or keyword...">
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">SORT:</span>
+        <select id="marketplace-sort" class="input-cyber" style="width: 170px; padding: 8px 12px; background: var(--bg-surface-low);">
+          <option value="latest">Latest First</option>
+          <option value="popular">Most Viewed</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="featured">Featured First</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Category Filter Pills -->
+    <div style="margin-bottom: 12px;">
+      <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">Category:</div>
+      <div class="flex items-center gap-2" style="overflow-x: auto; padding-bottom: 4px;" id="category-pills">
+        <button class="filter-pill active" data-slug="all">All Categories</button>
+      </div>
+    </div>
+
+    <!-- Microcontroller & Board Filters -->
+    <div style="border-top: 1px solid var(--border-subtle); padding-top: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <div class="flex items-center gap-2" style="overflow-x: auto;" id="mcu-pills">
+        <span style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; margin-right: 4px;">MCU / Core:</span>
+        <button class="filter-pill active" data-mcu="all">All Boards</button>
+        <button class="filter-pill" data-mcu="ESP32">ESP32</button>
+        <button class="filter-pill" data-mcu="Raspberry Pi">Raspberry Pi</button>
+        <button class="filter-pill" data-mcu="Arduino">Arduino</button>
+        <button class="filter-pill" data-mcu="STM32">STM32</button>
+        <button class="filter-pill" data-mcu="RP2040">RP2040 Pico</button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase;">Difficulty:</span>
+        <select id="marketplace-difficulty" class="input-cyber" style="width: auto; padding: 4px 10px; font-size: 0.82rem; background: var(--bg-surface-low);">
+          <option value="all">All Levels</option>
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+          <option value="expert">Expert</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Counter -->
+  <div class="flex items-center justify-between" style="margin-bottom: 16px;">
+    <span class="tag-mono" id="results-count-label">Loading projects...</span>
+  </div>
+
+  <!-- Projects Grid -->
+  <div class="grid-cols-3" id="marketplace-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+    <!-- Rendered dynamically by marketplace.js -->
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/marketplace.js' %}"></script>
+{% endblock %}

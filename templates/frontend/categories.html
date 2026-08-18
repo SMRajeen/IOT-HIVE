@@ -1,0 +1,31 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE | Hardware &amp; Project Categories{% endblock %}
+{% block page_id %}categories{% endblock %}
+
+{% block content %}
+<div class="app-container" style="padding-top: var(--space-8);">
+  
+  <div class="card-cyber" style="padding: 36px 32px; margin-bottom: var(--space-8); background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl);">
+    <div class="badge-hud" style="margin-bottom: 8px;">
+      <span class="dot"></span>
+      <span class="label">EXPLORE HARDWARE TAXONOMY</span>
+    </div>
+    <h1 style="font-size: 2.2rem; margin-bottom: 8px;">Hardware &amp; Project Categories</h1>
+    <p style="color: var(--text-secondary); max-width: 720px; font-size: 1rem; line-height: 1.6; margin: 0;">
+      Browse open-source hardware, micro-architectures, and smart DIY electronics grouped by domain. Select any category box to view vetted projects, circuit schematics, and maker builds.
+    </p>
+  </div>
+
+  <!-- Dynamic Categories Box Grid -->
+  <div id="categories-page-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; margin-bottom: 48px;">
+    <!-- Rendered dynamically by categories.js -->
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/categories.js' %}"></script>
+{% endblock %}

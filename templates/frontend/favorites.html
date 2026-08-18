@@ -1,0 +1,34 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE | Saved Projects{% endblock %}
+{% block page_id %}favorites{% endblock %}
+
+{% block content %}
+<div class="app-container" style="padding-top: var(--space-8);">
+  
+  <div class="card-cyber" style="padding: 28px 24px; margin-bottom: var(--space-8); background: var(--bg-surface-container);">
+    <div class="badge-hud" style="margin-bottom: 6px;">
+      <span class="dot"></span>
+      <span class="label">BOOKMARKS</span>
+    </div>
+    <h1 style="font-size: 1.85rem; margin: 0;">Saved Projects</h1>
+    <p id="favorites-count-label" style="color: var(--text-muted); margin-top: 4px; font-size: 0.95rem;">
+      Your collection of bookmarked hardware and gadgets.
+    </p>
+  </div>
+
+  <!-- Favorites Grid -->
+  <div id="favorites-grid" class="grid-cols-3" style="grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));">
+    <div style="grid-column: 1 / -1; padding: 48px; text-align: center; color: var(--text-muted);">
+      <span class="material-symbols-outlined spin" style="font-size: 32px; color: var(--primary);">sync</span>
+      <p style="margin-top: 8px;">Loading saved projects...</p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/favorites.js' %}"></script>
+{% endblock %}
