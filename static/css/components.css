@@ -909,24 +909,31 @@
 .badge-status {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 3px 10px;
-  border-radius: var(--radius-full, 9999px);
-  font-size: 0.78rem;
-  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   font-family: var(--font-mono, monospace);
+  line-height: 1.2;
+  text-align: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .badge-status.online {
-  background: rgba(0, 255, 136, 0.12);
+  background: rgba(0, 255, 136, 0.14);
   color: var(--status-online, #00ff88);
-  border: 1px solid rgba(0, 255, 136, 0.3);
+  border: 1px solid rgba(0, 255, 136, 0.35);
 }
 
 .badge-status.standby {
-  background: rgba(255, 184, 0, 0.12);
+  background: rgba(255, 184, 0, 0.14);
   color: var(--status-warning, #ffb800);
-  border: 1px solid rgba(255, 184, 0, 0.3);
+  border: 1px solid rgba(255, 184, 0, 0.35);
 }
 
 .gallery-thumb.active {

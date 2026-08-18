@@ -115,7 +115,13 @@ async function loadAdminUsers() {
   if (!container) return;
 
   try {
-    const users = await API.admin.users();
+    const data = await API.admin.users();
+    const users = Array.isArray(data) ? data : (data.results || []);
+    if (!users.length) {
+      container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 24px;">No users registered yet.</p>';
+      return;
+    }
+
     container.innerHTML = `
       <table class="table-cyber">
         <thead>
@@ -125,7 +131,7 @@ async function loadAdminUsers() {
             <th>Email</th>
             <th>Role</th>
             <th>Phone</th>
-            <th>Admin Status</th>
+            <th style="white-space: nowrap;">Admin Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -134,24 +140,24 @@ async function loadAdminUsers() {
             <tr>
               <td class="font-mono">#${u.id}</td>
               <td>
-                <div class="flex items-center gap-2">
-                  <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--bg-surface-high); border: 1px solid var(--primary); display: flex; align-items: center; justify-content: center;">
+                <div class="flex items-center gap-2" style="white-space: nowrap;">
+                  <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--bg-surface-high); border: 1px solid var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                     <span class="material-symbols-outlined" style="font-size: 14px; color: var(--primary);">person</span>
                   </div>
-                  <strong>@${u.username}</strong>
-                  ${u.first_name ? `<span class="text-xs text-muted">(${u.first_name} ${u.last_name || ''})</span>` : ''}
+                  <strong>@${Auth.escapeHtml(u.username)}</strong>
+                  ${u.first_name ? `<span class="text-xs text-muted">(${Auth.escapeHtml(u.first_name)} ${Auth.escapeHtml(u.last_name || '')})</span>` : ''}
                 </div>
               </td>
-              <td class="font-mono text-xs">${u.email || 'None'}</td>
-              <td><span class="tag-mono" style="text-transform: capitalize;">${u.role || 'both'}</span></td>
-              <td class="font-mono text-xs">${u.phone_number || '-'}</td>
-              <td>
+              <td class="font-mono text-xs">${Auth.escapeHtml(u.email || 'None')}</td>
+              <td><span class="tag-mono" style="text-transform: capitalize;">${Auth.escapeHtml(u.role || 'both')}</span></td>
+              <td class="font-mono text-xs">${Auth.escapeHtml(u.phone_number || '-')}</td>
+              <td style="white-space: nowrap;">
                 ${(u.is_staff || u.is_superuser) 
                   ? '<span class="badge-status online" style="color: #00ff88;">ADMIN / STAFF</span>' 
                   : '<span class="badge-status standby">STANDARD</span>'}
               </td>
               <td>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" style="white-space: nowrap;">
                   <button class="btn btn-ghost btn-xs" onclick="toggleAdminStaff(${u.id}, ${!u.is_staff})">
                     ${u.is_staff ? 'Revoke Staff' : 'Make Staff'}
                   </button>
@@ -175,7 +181,25 @@ async function loadAdminCategories() {
   if (!container) return;
 
   try {
-    const categories = await API.categories.list();
+    container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 24px;"><span class="material-symbols-outlined spin" style="font-size: 18px; vertical-align: middle; margin-right: 6px;">sync</span>Loading categories...</p>';
+    const data = await API.categories.list();
+    const categories = Array.isArray(data) ? data : (data.results || []);
+
+    if (!categories || categories.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 36px 20px; color: var(--text-muted);">
+          <span class="material-symbols-outlined" style="font-size: 40px; color: var(--primary); margin-bottom: 8px; display: block;">category</span>
+          <p style="margin: 0 0 8px 0; font-size: 1.05rem; color: var(--text-primary); font-weight: 600;">No categories in database yet.</p>
+          <p style="margin: 0 0 16px 0; font-size: 0.88rem;">Click below or use 'Create New Category' to initialize the platform hardware taxonomy.</p>
+          <button type="button" onclick="window.seedDefaultCategories()" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 16px;">add_circle</span>
+            Seed Standard Hardware Categories
+          </button>
+        </div>
+      `;
+      return;
+    }
+
     container.innerHTML = `
       <table class="table-cyber">
         <thead>
@@ -192,16 +216,16 @@ async function loadAdminCategories() {
           ${categories.map(c => `
             <tr>
               <td>
-                <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(0, 255, 136, 0.12); border: 1px solid rgba(0, 255, 136, 0.3); display: flex; align-items: center; justify-content: center;">
+                <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(0, 255, 136, 0.12); border: 1px solid rgba(0, 255, 136, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                   <span class="material-symbols-outlined" style="font-size: 18px; color: #00ff88;">${c.icon || 'memory'}</span>
                 </div>
               </td>
-              <td><strong>${c.name}</strong></td>
-              <td class="font-mono text-xs">${c.slug}</td>
-              <td class="text-xs" style="max-width: 320px;">${c.description}</td>
-              <td class="font-mono font-bold">${c.project_count || 0}</td>
+              <td><strong>${Auth.escapeHtml(c.name)}</strong></td>
+              <td><span class="tag-mono" style="font-size: 0.72rem;">${Auth.escapeHtml(c.slug)}</span></td>
+              <td class="text-xs" style="max-width: 320px; line-height: 1.4; color: var(--text-secondary);">${Auth.escapeHtml(c.description || '-')}</td>
+              <td class="font-mono font-bold" style="color: var(--primary);">${c.project_count !== undefined ? c.project_count : 0}</td>
               <td>
-                <button class="btn btn-ghost btn-xs" style="color: #ff5357;" onclick="deleteCategoryAsAdmin('${c.slug}')">
+                <button class="btn btn-ghost btn-xs" style="color: #ff5357; display: inline-flex; align-items: center; gap: 4px;" onclick="deleteCategoryAsAdmin('${c.slug}')">
                   <span class="material-symbols-outlined" style="font-size: 15px;">delete</span>
                   Delete
                 </button>
@@ -430,3 +454,34 @@ window.deleteUserAsAdmin = async function(id) {
     if (window.showToast) showToast(err.message, 'error');
   }
 };
+
+window.seedDefaultCategories = async function() {
+  const defaults = [
+    { name: 'Smart Home', slug: 'smart-home', icon: 'home_iot_device', description: 'Automated ambient lighting, smart relays, energy monitors, and voice-assisted home controllers.' },
+    { name: 'Robotics & Autonomous', slug: 'robotics', icon: 'smart_toy', description: 'Autonomous mobile rovers, robotic arms, computer vision payloads, and smart kinematics machines.' },
+    { name: 'DIY Electronics', slug: 'electronics', icon: 'memory', description: 'Custom breakout PCBs, microcontroller development modules, sensor shields, and open hardware.' },
+    { name: 'Agriculture & Garden', slug: 'agriculture', icon: 'agriculture', description: 'Long-range field telemetry, multispectral moisture sensors, and automated smart farming nodes.' },
+    { name: 'Health & Fitness', slug: 'healthcare', icon: 'monitor_heart', description: 'Wearable health monitors, personal wellness gadgets, bio-signal loggers, and smart fitness trackers.' },
+    { name: 'Gadgets & Tools', slug: 'gadgets', icon: 'build', description: 'Everyday pocket tools, digital desk displays, custom macro controllers, and wireless gizmos.' },
+    { name: 'Connectivity & LoRaWAN', slug: 'connectivity', icon: 'router', description: 'Long-range packet forwarders, multi-hop mesh relays, and zero-downtime gateway appliances.' },
+    { name: 'Edge AI & Compute', slug: 'edge-compute', icon: 'developer_board', description: 'Low-latency edge artificial intelligence, embedded inference engines, and industrial DIN gateways.' }
+  ];
+
+  if (window.showToast) showToast('Initializing platform categories...', 'info');
+
+  try {
+    for (const cat of defaults) {
+      try {
+        await API.categories.create(cat);
+      } catch (e) {
+        // Continue if category already exists
+      }
+    }
+    if (window.showToast) showToast('All standard categories have been created!', 'success');
+    loadAdminCategories();
+    loadAdminStats();
+  } catch (err) {
+    if (window.showToast) showToast(err.message || 'Failed to seed categories.', 'error');
+  }
+};
+
