@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: iot-hive
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: SMS_GATEWAY
+        value: "notifylk"
+      - key: NOTIFY_LK_USER_ID
+        sync: false
+      - key: NOTIFY_LK_API_KEY
+        sync: false
+      - key: NOTIFY_LK_SENDER_ID
+        value: "IOTHIVE"
