@@ -122,14 +122,16 @@ async function loadAuthNav() {
     const isAdmin = user.is_staff || user.is_superuser || user.role === 'admin';
     const role = (user.role || 'both').toLowerCase();
 
-    // Role badge (compact for sleek header fit)
+    // Role badge (compact for sleek header fit - hide for admins)
     let roleBadgeHtml = '';
-    if (role === 'seller') {
-      roleBadgeHtml = `<span class="badge-role badge-role-seller" style="font-size: 0.68rem; padding: 1px 6px;">Seller</span>`;
-    } else if (role === 'buyer') {
-      roleBadgeHtml = `<span class="badge-role badge-role-buyer" style="font-size: 0.68rem; padding: 1px 6px;">Buyer</span>`;
-    } else {
-      roleBadgeHtml = `<span class="badge-role badge-role-both" style="font-size: 0.68rem; padding: 1px 6px;">Both</span>`;
+    if (!isAdmin) {
+      if (role === 'seller') {
+        roleBadgeHtml = `<span class="badge-role badge-role-seller" style="font-size: 0.68rem; padding: 1px 6px;">Seller</span>`;
+      } else if (role === 'buyer') {
+        roleBadgeHtml = `<span class="badge-role badge-role-buyer" style="font-size: 0.68rem; padding: 1px 6px;">Buyer</span>`;
+      } else {
+        roleBadgeHtml = `<span class="badge-role badge-role-both" style="font-size: 0.68rem; padding: 1px 6px;">Both</span>`;
+      }
     }
 
     const adminBtnHtml = isAdmin
@@ -366,8 +368,8 @@ function setupRegisterForm() {
     const lastName = (formData.get('last_name') || '').trim();
     const role = formData.get('role') || 'both';
 
-    if (!username || !email || !password) {
-      setMessage(msgBox, 'Please fill in all required fields.', 'error');
+    if (!email || !password) {
+      setMessage(msgBox, 'Please enter your email and password.', 'error');
       return;
     }
 
@@ -384,14 +386,16 @@ function setupRegisterForm() {
     setBusy(btn, true, 'Creating Account...');
 
     try {
-      await API.auth.register({
-        username,
+      const payload = {
         email,
         password,
         first_name: firstName,
         last_name: lastName,
         role
-      });
+      };
+      if (username) payload.username = username;
+
+      await API.auth.register(payload);
 
       setMessage(msgBox, 'Account created! Redirecting...', 'success');
       showToast('Welcome to IoT Hive!', 'success');
@@ -405,6 +409,38 @@ function setupRegisterForm() {
     }
   });
 }
+
+window.handleSocialLogin = async function(provider) {
+  const email = prompt(`Enter your ${provider === 'google' ? 'Google' : 'Facebook'} account email address:`);
+  if (!email || !email.includes('@')) {
+    if (window.showToast) showToast('Valid email required for OAuth authentication.', 'warning');
+    return;
+  }
+  const nameParts = email.split('@')[0].split('.');
+  const firstName = nameParts[0] ? nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1) : 'Maker';
+  const lastName = nameParts[1] ? nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1) : 'Community';
+
+  if (window.showToast) showToast(`Authenticating with ${provider.toUpperCase()}...`, 'info');
+
+  try {
+    const res = await API.auth.socialLogin({
+      provider,
+      email,
+      first_name: firstName,
+      last_name: lastName,
+      role: 'both'
+    });
+    if (window.showToast) showToast('Social authentication successful!', 'success');
+    cachedCurrentUser = null;
+    setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get('next') || '/marketplace/';
+      window.location.href = next;
+    }, 600);
+  } catch (err) {
+    if (window.showToast) showToast(err.message || 'Social login failed.', 'error');
+  }
+};
 
 let activeResetUid = null;
 let activeResetToken = null;

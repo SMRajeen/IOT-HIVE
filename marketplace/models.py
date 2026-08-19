@@ -2,6 +2,9 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
+
+raw_storage = RawMediaCloudinaryStorage()
 
 
 class Category(models.Model):
@@ -78,10 +81,11 @@ class Project(models.Model):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default="draft"
+        default="draft",
+        db_index=True
     )
 
-    featured = models.BooleanField(default=False)
+    featured = models.BooleanField(default=False, db_index=True)
     views = models.PositiveIntegerField(default=0)
 
     # Maker & Hardware Specs
@@ -94,22 +98,36 @@ class Project(models.Model):
     source_code = models.TextField(blank=True, default="")
     source_code_language = models.CharField(max_length=30, choices=CODE_LANG_CHOICES, default="cpp")
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["status", "-created_at"]),
+            models.Index(fields=["category", "status"]),
+            models.Index(fields=["featured", "status"]),
+        ]
 
     @property
     def average_rating(self):
+        if hasattr(self, '_avg_rating'):
+            return round(self._avg_rating, 1) if self._avg_rating is not None else None
         reviews = self.reviews.all()
         if not reviews.exists():
-            return 5.0  # Default base score
+            return None
         return round(sum(r.rating for r in reviews) / reviews.count(), 1)
 
     @property
     def review_count(self):
+        if hasattr(self, '_review_count'):
+            return self._review_count
         return self.reviews.count()
 
     @property
     def community_makes_count(self):
+        if hasattr(self, '_makes_count'):
+            return self._makes_count
         return self.reviews.exclude(build_image="").exclude(build_image__isnull=True).count()
 
     def save(self, *args, **kwargs):
@@ -175,18 +193,21 @@ class ProjectBOMItem(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["created_at"]
+        ordering = ["id"]
 
     def __str__(self):
-        return f"{self.name} x{self.quantity} ({self.project.title})"
+        return f"{self.name} (x{self.quantity}) - {self.project.title}"
 
 
 class ProjectAttachment(models.Model):
     FILE_TYPE_CHOICES = [
-        ("schematic", "Schematic / Circuit Diagram"),
-        ("gerber", "Gerber PCB Files (Zip)"),
-        ("firmware", "Firmware / Binary / Hex"),
-        ("cad_3d", "3D CAD / STL File"),
+        ("zip", "ZIP Archive"),
+        ("pdf", "PDF Document"),
+        ("stl", "3D STL Model"),
+        ("hex", "HEX / Firmware"),
+        ("bin", "Binary Firmware"),
+        ("gerber", "Gerber PCB Archive"),
+        ("schematic", "Circuit Schematic"),
         ("datasheet", "PDF Datasheet"),
         ("other", "Other Asset"),
     ]
@@ -197,7 +218,7 @@ class ProjectAttachment(models.Model):
         related_name="attachments"
     )
     title = models.CharField(max_length=200)
-    file = models.FileField(upload_to="projects/attachments/")
+    file = models.FileField(upload_to="projects/attachments/", storage=raw_storage)
     file_type = models.CharField(max_length=30, choices=FILE_TYPE_CHOICES, default="other")
     file_size = models.CharField(max_length=50, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -370,8 +391,17 @@ class Order(models.Model):
     tracking_courier = models.CharField(max_length=100, blank=True, default="") # PromptX, Domex, SpeedPost, PickMe
 
     notes = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["buyer", "-created_at"]),
+            models.Index(fields=["seller", "-created_at"]),
+            models.Index(fields=["status", "-created_at"]),
+            models.Index(fields=["transaction_id"]),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.transaction_id:
@@ -430,7 +460,9 @@ class HardwareBounty(models.Model):
     STATUS_CHOICES = [
         ("open", "Open for Bids"),
         ("in_progress", "In Progress / Awarded"),
-        ("completed", "Completed & Delivered"),
+        ("completed", "Completed"),
+        ("delivered", "Delivered"),
+        ("inactive", "Inactive"),
         ("closed", "Closed / Cancelled"),
     ]
 
@@ -454,17 +486,17 @@ class HardwareBounty(models.Model):
         null=True,
         related_name="bounties"
     )
-    budget = models.DecimalField(max_digits=12, decimal_places=2)
+    budget = models.DecimalField(max_digits=12, decimal_places=2, db_index=True)
     currency = models.CharField(max_length=10, default="LKR")
     deadline_days = models.PositiveIntegerField(default=14)
     difficulty = models.CharField(max_length=30, choices=DIFFICULTY_CHOICES, default="intermediate")
     
-    preferred_mcu = models.CharField(max_length=150, blank=True, default="ESP32 / STM32 / Raspberry Pi")
-    connectivity = models.CharField(max_length=200, blank=True, default="Wi-Fi / LoRa / BLE / MQTT")
+    preferred_mcu = models.CharField(max_length=150, blank=True, default="")
+    connectivity = models.CharField(max_length=200, blank=True, default="")
     description = models.TextField()
-    deliverables_needed = models.TextField(blank=True, default="Custom PCB Gerber, Schematic PDF, Firmware code, 3D printable enclosure STL.")
+    deliverables_needed = models.TextField(blank=True, default="")
     
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="open")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="open", db_index=True)
     awarded_maker = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -473,11 +505,16 @@ class HardwareBounty(models.Model):
         related_name="awarded_bounties"
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["status", "-created_at"]),
+            models.Index(fields=["client", "-created_at"]),
+            models.Index(fields=["awarded_maker", "-created_at"]),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -517,8 +554,8 @@ class BountyProposal(models.Model):
     bid_amount = models.DecimalField(max_digits=12, decimal_places=2)
     currency = models.CharField(max_length=10, default="LKR")
     delivery_days = models.PositiveIntegerField(default=10)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending", db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -528,6 +565,10 @@ class BountyProposal(models.Model):
                 fields=["bounty", "maker"],
                 name="unique_bounty_maker_proposal"
             )
+        ]
+        indexes = [
+            models.Index(fields=["bounty", "status"]),
+            models.Index(fields=["maker", "-created_at"]),
         ]
 
     def __str__(self):
@@ -561,12 +602,16 @@ class ChatMessage(models.Model):
         related_name="chat_messages"
     )
     message = models.TextField()
-    attachment = models.FileField(upload_to="chat/attachments/", blank=True, null=True)
-    is_read = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    attachment = models.FileField(upload_to="chat/attachments/", blank=True, null=True, storage=raw_storage)
+    is_read = models.BooleanField(default=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["sender", "recipient", "-created_at"]),
+            models.Index(fields=["recipient", "is_read"]),
+        ]
 
     def __str__(self):
         return f"Chat: {self.sender.username} -> {self.recipient.username} ({self.created_at.strftime('%Y-%m-%d %H:%M')})"

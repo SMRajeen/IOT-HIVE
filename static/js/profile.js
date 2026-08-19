@@ -1,5 +1,5 @@
 /**
- * IoT HIVE - Clean Maker Profile Controller
+ * IoT HIVE - Maker Profile Controller
  */
 
 (() => {
@@ -43,7 +43,9 @@
       const role = (currentUser.role || 'both').toLowerCase();
       const roleBadgeEl = document.getElementById('profile-role-badge');
       if (roleBadgeEl) {
-        if (role === 'seller') {
+        if (currentUser.is_staff || currentUser.is_superuser) {
+          roleBadgeEl.innerHTML = `<span class="badge" style="background: rgba(255, 83, 87, 0.15); color: #ff5357; border: 1px solid rgba(255, 83, 87, 0.3);">Administrator</span>`;
+        } else if (role === 'seller') {
           roleBadgeEl.innerHTML = `<span class="badge-role badge-role-seller">Seller</span>`;
         } else if (role === 'buyer') {
           roleBadgeEl.innerHTML = `<span class="badge-role badge-role-buyer">Buyer</span>`;
@@ -75,13 +77,14 @@
       // Populate edit form
       const form = document.getElementById('profile-edit-form');
       if (form) {
-        form.first_name.value = currentUser.first_name || '';
-        form.last_name.value = currentUser.last_name || '';
-        form.email.value = currentUser.email || '';
-        form.phone_number.value = currentUser.phone_number || '';
-        form.bio.value = currentUser.bio || '';
-        form.location.value = currentUser.location || '';
-        form.website.value = currentUser.website || '';
+        if (form.username) form.username.value = currentUser.username || '';
+        if (form.first_name) form.first_name.value = currentUser.first_name || '';
+        if (form.last_name) form.last_name.value = currentUser.last_name || '';
+        if (form.email) form.email.value = currentUser.email || '';
+        if (form.phone_number) form.phone_number.value = currentUser.phone_number || '';
+        if (form.bio) form.bio.value = currentUser.bio || '';
+        if (form.location) form.location.value = currentUser.location || '';
+        if (form.website) form.website.value = currentUser.website || '';
         if (form.role) form.role.value = role;
       }
 
@@ -116,9 +119,9 @@
       }
 
       grid.innerHTML = projects.map(p => {
-        const img = p.images?.[0]?.image ? api.resolveUrl(p.images[0].image) : '';
+        const img = p.images?.[0]?.image ? api.resolveUrl(p.images[0].image) : (p.cover_image ? api.resolveUrl(p.cover_image) : '');
         return `
-          <div class="card-cyber project-node-card" onclick="location.href='/project/${p.id}/'" style="cursor: pointer; display: flex; flex-direction: column;">
+          <div class="card-cyber project-node-card" onclick="location.href='/project/${p.id}/'" style="cursor: pointer; display: flex; flex-direction: column; overflow: hidden;">
             <div style="height: 160px; background: #000; overflow: hidden; border-radius: 6px; position: relative;">
               ${img ? `<img src="${img}" style="width: 100%; height: 100%; object-fit: cover;">` : `
                 <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-surface-high);">
@@ -126,10 +129,11 @@
                 </div>
               `}
               <span class="tag-mono" style="position: absolute; top: 8px; left: 8px;">${escapeHtml(p.category_name || 'Hardware')}</span>
+              ${p.status === 'draft' ? `<span class="badge" style="position: absolute; top: 8px; right: 8px; background: rgba(255, 183, 0, 0.2); color: #ffb700;">DRAFT</span>` : ''}
             </div>
             <div style="padding: 14px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
               <div>
-                <h4 style="font-size: 1rem; margin: 0 0 6px;">${escapeHtml(p.title)}</h4>
+                <h4 style="font-size: 1rem; margin: 0 0 6px; color: var(--text-primary);">${escapeHtml(p.title)}</h4>
                 <div class="font-mono font-bold" style="color: var(--primary); font-size: 1rem;">
                   ${p.is_free ? 'Free' : formatLKR(p.price)}
                 </div>
@@ -143,29 +147,59 @@
     }
   }
 
-  window.sendTestSMSPrompt = async () => {
-    const currentPhone = currentUser ? currentUser.phone_number : '';
-    const targetPhone = prompt('Enter the phone number to receive a test SMS (e.g. 0710509154 or +94710509154):', currentPhone || '+94');
-    if (!targetPhone) return;
-
-    if (window.showToast) showToast(`Dispatching test SMS to ${targetPhone}...`, 'info');
-
-    try {
-      const res = await api.notifications.testSMS(targetPhone);
-      if (window.showToast) showToast('SMS Dispatched successfully!', 'success');
-      alert(`[IoT HIVE SMS Gateway]
-Verification SMS dispatched to: ${res.result.phone_number}
-Status: ${res.result.status.toUpperCase()}
-
-Message: "${res.result.message}"`);
-    } catch (err) {
-      alert(`SMS Dispatch Failed: ${err.message || 'Error sending test SMS'}`);
-    }
-  };
-
   window.toggleEditProfile = (show) => {
     document.getElementById('profile-view-section').style.display = show ? 'none' : 'block';
     document.getElementById('profile-edit-section').style.display = show ? 'block' : 'none';
+  };
+
+  window.openDeleteAccountModal = () => {
+    const modal = document.getElementById('delete-account-modal');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  window.closeDeleteAccountModal = () => {
+    const modal = document.getElementById('delete-account-modal');
+    if (modal) modal.style.display = 'none';
+    const alert = document.getElementById('delete-account-alert');
+    if (alert) alert.style.display = 'none';
+    const pwd = document.getElementById('delete-account-password');
+    if (pwd) pwd.value = '';
+  };
+
+  window.handleDeleteAccountSubmit = async (e) => {
+    e.preventDefault();
+    const pwdInput = document.getElementById('delete-account-password');
+    const alert = document.getElementById('delete-account-alert');
+    const btn = document.getElementById('delete-account-submit-btn');
+
+    const password = pwdInput ? pwdInput.value : '';
+    if (!password) {
+      if (alert) {
+        alert.className = 'form-alert form-alert-error';
+        alert.textContent = 'Please enter your password to confirm deletion.';
+        alert.style.display = 'block';
+      }
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined spin">sync</span> Deleting...';
+
+    try {
+      await api.auth.deleteAccount(password);
+      if (window.showToast) showToast('Account deleted successfully.', 'success');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 800);
+    } catch (err) {
+      if (alert) {
+        alert.className = 'form-alert form-alert-error';
+        alert.textContent = err.message || 'Incorrect password or failed to delete account.';
+        alert.style.display = 'block';
+      }
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-symbols-outlined">delete_forever</span> Confirm Delete';
+    }
   };
 
   const editForm = document.getElementById('profile-edit-form');

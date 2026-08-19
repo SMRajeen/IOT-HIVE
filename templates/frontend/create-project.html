@@ -39,7 +39,7 @@
           <input type="text" name="title" class="input-cyber" placeholder="e.g. ESP32 Autonomous Indoor Smart Garden System" required>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
           <!-- Category -->
           <div class="input-group">
             <label class="input-label">Primary Category *</label>
@@ -50,8 +50,17 @@
 
           <!-- Digital Blueprint Price -->
           <div class="input-group">
-            <label class="input-label">Digital Blueprint Price (LKR / Rs.) *</label>
+            <label class="input-label">Digital Blueprint Price (LKR) *</label>
             <input type="number" id="project-price" name="price" class="input-cyber" placeholder="3500.00" step="10" min="0" value="3500.00">
+          </div>
+
+          <!-- Publishing Status -->
+          <div class="input-group">
+            <label class="input-label">Publishing Status *</label>
+            <select id="project-status" name="status" class="input-cyber" style="background: var(--bg-surface-low);">
+              <option value="published" selected>Published (Public)</option>
+              <option value="draft">Draft (Private)</option>
+            </select>
           </div>
         </div>
 
@@ -236,14 +245,32 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
           <!-- Cover Image -->
           <div class="input-group">
-            <label class="input-label">Project Cover Photo</label>
+            <label class="input-label">Project Cover Photo (.png, .jpg, .webp)</label>
             <input type="file" name="image" accept="image/*" class="input-cyber" style="padding: 8px; background: var(--bg-surface-low);">
           </div>
 
-          <!-- Primary Attachment -->
+          <!-- Primary Attachment File -->
           <div class="input-group">
-            <label class="input-label">Gerber ZIP / Schematic / 3D CAD File</label>
+            <label class="input-label">Primary Attachment (.zip, .pdf, .stl, .step, .hex, .bin)</label>
             <input type="file" name="attachment_file" class="input-cyber" style="padding: 8px; background: var(--bg-surface-low);">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+          <div class="input-group">
+            <label class="input-label">Attachment Title (Optional)</label>
+            <input type="text" name="attachment_title" class="input-cyber" placeholder="e.g. PCB Gerber & Schematics Package v1.0">
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Attachment Type</label>
+            <select name="attachment_type" class="input-cyber" style="background: var(--bg-surface-low);">
+              <option value="schematic">Schematic / Gerber ZIP</option>
+              <option value="cad">3D CAD (.stl, .step)</option>
+              <option value="firmware">Compiled Firmware (.hex, .bin)</option>
+              <option value="datasheet">Datasheet / PDF Guide</option>
+              <option value="other">Other Asset</option>
+            </select>
           </div>
         </div>
 

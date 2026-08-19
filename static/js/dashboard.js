@@ -232,6 +232,9 @@
                       <a href="/project/${p.id}/" class="btn btn-ghost btn-sm" title="View Project">
                         <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
                       </a>
+                      <a href="/create-project/?edit=${p.id}" class="btn btn-ghost btn-sm" title="Edit Project">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: var(--primary);">edit</span>
+                      </a>
                       <button onclick="window.deleteDashboardProject(${p.id})" class="btn btn-ghost btn-sm" style="color: var(--status-warning);" title="Delete">
                         <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
                       </button>

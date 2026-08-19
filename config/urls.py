@@ -33,6 +33,7 @@ urlpatterns = [
     path("login/", core_views.login_view, name="login"),
     path("register/", core_views.register_view, name="register"),
     path("admin-panel/", core_views.admin_panel_view, name="admin-panel"),
+    path("privacy-policy/", core_views.privacy_policy_view, name="privacy-policy"),
 ]
 
 if settings.DEBUG:

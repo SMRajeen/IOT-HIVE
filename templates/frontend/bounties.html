@@ -88,9 +88,25 @@
       </div>
     </div>
 
+    <!-- Filter & Scope Tabs (All, My Bounties, Awarded to Me) -->
+    <div style="display: flex; gap: 8px; margin-top: 16px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; flex-wrap: wrap;">
+      <button type="button" class="btn btn-primary btn-sm bounty-tab-btn" id="bounty-tab-all" onclick="window.switchBountyScope('all')">
+        <span class="material-symbols-outlined" style="font-size: 16px;">explore</span>
+        All Bounties
+      </button>
+      <button type="button" class="btn btn-secondary btn-sm bounty-tab-btn" id="bounty-tab-my" onclick="window.switchBountyScope('my')">
+        <span class="material-symbols-outlined" style="font-size: 16px;">assignment_ind</span>
+        My Posted Bounties
+      </button>
+      <button type="button" class="btn btn-secondary btn-sm bounty-tab-btn" id="bounty-tab-awarded" onclick="window.switchBountyScope('awarded')">
+        <span class="material-symbols-outlined" style="font-size: 16px;">military_tech</span>
+        Awarded / In-Progress
+      </button>
+    </div>
+
     <!-- Category Pills -->
-    <div class="flex items-center gap-2" style="margin-top: 16px; overflow-x: auto; padding-bottom: 4px;" id="bounty-category-pills">
-      <button class="filter-pill active" data-slug="all">All Bounties</button>
+    <div class="flex items-center gap-2" style="margin-top: 14px; overflow-x: auto; padding-bottom: 4px;" id="bounty-category-pills">
+      <button class="filter-pill active" data-slug="all">All Categories</button>
     </div>
   </div>
 
@@ -108,11 +124,11 @@
 <div id="create-bounty-modal" class="modal-cyber" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
   <div class="card-cyber" style="max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 32px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl); box-shadow: 0 24px 60px rgba(0,0,0,0.9); position: relative;">
     
-    <button onclick="window.closeCreateBountyModal()" class="btn-icon" style="position: absolute; top: 16px; right: 16px;">
+    <button onclick="window.closeCreateBountyModal()" class="btn-icon" style="position: absolute; top: 16px; right: 16px; z-index: 10;">
       <span class="material-symbols-outlined">close</span>
     </button>
 
-    <div style="margin-bottom: 20px;">
+    <div style="margin-bottom: 20px; padding-right: 40px;">
       <div class="badge-hud" style="margin-bottom: 6px;">
         <span class="dot" style="background: #00ff88;"></span>
         <span class="label" style="color: #00ff88;">NEW COMMISSION</span>
@@ -181,7 +197,7 @@
 
       <div class="input-group" style="margin-bottom: 24px;">
         <label class="input-label">Deliverables Needed</label>
-        <input type="text" name="deliverables_needed" class="input-cyber" value="Custom PCB Gerber zip, Schematics PDF, Firmware source, 3D printable STL.">
+        <input type="text" name="deliverables_needed" class="input-cyber" placeholder="e.g. PCB Gerber zip, Schematics PDF, Firmware source, 3D printable STL">
       </div>
 
       <div class="flex items-center justify-between gap-3">
@@ -200,11 +216,11 @@
 <div id="bounty-detail-modal" class="modal-cyber" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
   <div class="card-cyber" style="max-width: 680px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 32px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl); box-shadow: 0 24px 60px rgba(0,0,0,0.9); position: relative;">
     
-    <button onclick="window.closeBountyDetailModal()" class="btn-icon" style="position: absolute; top: 16px; right: 16px;">
+    <button onclick="window.closeBountyDetailModal()" class="btn-icon" style="position: absolute; top: 16px; right: 16px; z-index: 10;">
       <span class="material-symbols-outlined">close</span>
     </button>
 
-    <div id="bounty-modal-content">
+    <div id="bounty-modal-content" style="padding-top: 4px;">
       <!-- Dynamic render by bounties.js -->
     </div>
 

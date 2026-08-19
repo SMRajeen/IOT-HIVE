@@ -1,0 +1,321 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Privacy Policy | IoT HIVE{% endblock %}
+
+{% block meta_description %}
+IoT HIVE Privacy Policy — Learn how IoT HIVE collects, uses, stores, and protects your information.
+{% endblock %}
+
+{% block page_id %}privacy-policy{% endblock %}
+
+{% block extra_css %}
+<style>
+  .privacy-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 20px 80px;
+  }
+
+  .privacy-header {
+    margin-bottom: 48px;
+  }
+
+  .privacy-header h1 {
+    margin: 0 0 12px;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .privacy-header p {
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  .privacy-section {
+    margin-bottom: 38px;
+  }
+
+  .privacy-section h2 {
+    margin: 0 0 14px;
+    color: var(--text-primary);
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+
+  .privacy-section h3 {
+    margin: 22px 0 10px;
+    color: var(--text-primary);
+    font-size: 1.05rem;
+  }
+
+  .privacy-section p,
+  .privacy-section li {
+    color: var(--text-muted);
+    line-height: 1.8;
+    font-size: 0.95rem;
+  }
+
+  .privacy-section ul {
+    padding-left: 22px;
+  }
+
+  .privacy-section li {
+    margin-bottom: 8px;
+  }
+
+  .privacy-highlight {
+    padding: 18px 20px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    background: var(--bg-surface-lowest);
+    margin: 20px 0;
+  }
+
+  .privacy-updated {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .privacy-section a {
+    color: var(--accent-cyan);
+    text-decoration: none;
+  }
+
+  .privacy-section a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 640px) {
+    .privacy-page {
+      padding: 40px 18px 60px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="privacy-page">
+
+  <header class="privacy-header">
+    <h1>Privacy Policy</h1>
+    <p>
+      Your privacy matters to IoT HIVE. This Privacy Policy explains what
+      information we collect, how we use it, how it is stored, and the choices
+      available to you when using the IoT HIVE platform.
+    </p>
+    <p class="privacy-updated" style="margin-top: 14px;">
+      Last updated: August 20, 2026
+    </p>
+  </header>
+
+  <section class="privacy-section">
+    <h2>1. About IoT HIVE</h2>
+    <p>
+      IoT HIVE is a community and marketplace platform for smart hardware,
+      robotics, DIY electronics, IoT projects, connected devices, and related
+      digital resources. Users may create accounts, publish projects,
+      communicate with other users, submit inquiries, save projects, and
+      interact with marketplace features.
+    </p>
+  </section>
+
+  <section class="privacy-section">
+    <h2>2. Information We Collect</h2>
+
+    <h3>Account Information</h3>
+    <p>When you create or use an IoT HIVE account, we may collect information such as:</p>
+    <ul>
+      <li>Name and username</li>
+      <li>Email address</li>
+      <li>Password and authentication-related information</li>
+      <li>Profile information you choose to provide</li>
+      <li>Profile and other images you upload</li>
+    </ul>
+
+    <h3>Information From Facebook Login</h3>
+    <p>
+      If you choose to sign in or register using Facebook Login, IoT HIVE may
+      receive information that Facebook makes available to our application
+      according to the permissions granted and your Facebook settings. This
+      may include information such as your name, email address, and Facebook
+      account identifier.
+    </p>
+    <p>
+      We use this information to authenticate you, create or connect your
+      IoT HIVE account, maintain your account, and provide the requested
+      services.
+    </p>
+
+    <h3>Content You Provide</h3>
+    <p>
+      We may collect information and content that you voluntarily submit to
+      the platform, including project titles, descriptions, technical details,
+      project images, documents, files, inquiries, messages, favorites, and
+      other marketplace-related content.
+    </p>
+
+    <h3>Technical Information</h3>
+    <p>
+      We may receive technical information necessary to operate and secure the
+      platform, such as browser information, device information, IP address,
+      session information, request information, and server logs.
+    </p>
+  </section>
+
+  <section class="privacy-section">
+    <h2>3. How We Use Your Information</h2>
+    <p>We may use collected information to:</p>
+    <ul>
+      <li>Create and manage your IoT HIVE account</li>
+      <li>Authenticate users and provide login functionality</li>
+      <li>Provide Facebook Login when you choose to use it</li>
+      <li>Display and manage your profile</li>
+      <li>Publish and manage projects you submit</li>
+      <li>Process inquiries, orders, requests, and marketplace interactions</li>
+      <li>Allow users to save or favorite projects</li>
+      <li>Store and deliver uploaded project media and files</li>
+      <li>Send important account or service-related communications</li>
+      <li>Maintain platform security and prevent abuse</li>
+      <li>Diagnose errors and improve platform reliability</li>
+      <li>Comply with applicable legal obligations</li>
+    </ul>
+  </section>
+
+  <section class="privacy-section">
+    <h2>4. Uploaded Files and Cloudinary</h2>
+    <p>
+      IoT HIVE uses Cloudinary as a third-party cloud service for persistent
+      storage and delivery of user-uploaded media and files.
+    </p>
+    <p>
+      Depending on the feature being used, uploaded content may include profile
+      images, project images, documents, ZIP files, CAD/STL files, firmware
+      files, and other supported project resources.
+    </p>
+    <div class="privacy-highlight">
+      <strong>Important:</strong>
+      <span style="color: var(--text-muted);">
+        Uploaded files are stored using third-party cloud infrastructure so
+        that they remain available when the application is deployed or
+        restarted.
+      </span>
+    </div>
+  </section>
+
+  <section class="privacy-section">
+    <h2>5. Database and Application Hosting</h2>
+    <p>
+      IoT HIVE uses cloud infrastructure to operate its application and store
+      account and application data. PostgreSQL is used for structured
+      application data, while the IoT HIVE application is hosted on Render.
+    </p>
+    <p>
+      We take reasonable technical measures to protect information against
+      unauthorized access, alteration, disclosure, or destruction. However,
+      no internet-based service can guarantee absolute security.
+    </p>
+  </section>
+
+  <section class="privacy-section">
+    <h2>6. Cookies and Sessions</h2>
+    <p>
+      IoT HIVE may use cookies and session technologies necessary for
+      authentication, security, maintaining login sessions, and providing
+      core website functionality.
+    </p>
+  </section>
+
+  <section class="privacy-section">
+    <h2>7. Third-Party Services</h2>
+    <p>
+      IoT HIVE may use third-party services to provide specific functionality.
+      These services may process information according to their own privacy
+      policies and terms.
+    </p>
+    <ul>
+      <li>Meta/Facebook — authentication through Facebook Login</li>
+      <li>Cloudinary — storage and delivery of uploaded media and files</li>
+      <li>Render — application hosting</li>
+      <li>Neon/PostgreSQL infrastructure — application database services</li>
+      <li>Notification services — where required for platform communications</li>
+    </ul>
+  </section>
+
+  <section class="privacy-section">
+    <h2>8. Sharing of Information</h2>
+    <p>
+      We do not sell your personal information. Information may be shared or
+      made available when necessary to provide platform functionality, operate
+      third-party services, protect the security of IoT HIVE, comply with
+      applicable law, or respond to legitimate legal requests.
+    </p>
+    <p>
+      Information and content that you intentionally publish publicly on IoT
+      HIVE, such as public project information and your public profile details,
+      may be visible to other users or visitors.
+    </p>
+  </section>
+
+  <section class="privacy-section">
+    <h2>9. Your Choices and Rights</h2>
+    <p>
+      Depending on applicable law, you may have rights concerning your personal
+      information, including the ability to request access, correction,
+      deletion, or other changes to your information.
+    </p>
+    <p>
+      You should also review the information you choose to publish publicly
+      before submitting it to IoT HIVE.
+    </p>
+  </section>
+
+  <section class="privacy-section">
+    <h2>10. Data Deletion</h2>
+    <p>
+      If you want to request deletion of your IoT HIVE account and associated
+      personal information, contact us using the contact method provided below.
+    </p>
+    <p>
+      Some information may need to be retained where required by law, for
+      legitimate security purposes, to resolve disputes, or to maintain
+      necessary transaction records.
+    </p>
+  </section>
+
+  <section class="privacy-section">
+    <h2>11. Children's Privacy</h2>
+    <p>
+      IoT HIVE is not intended to knowingly collect personal information from
+      children in violation of applicable laws. If you believe a child has
+      provided personal information to IoT HIVE without appropriate
+      authorization, please contact us so that we can review the situation.
+    </p>
+  </section>
+
+  <section class="privacy-section">
+    <h2>12. Changes to This Privacy Policy</h2>
+    <p>
+      We may update this Privacy Policy from time to time when our services,
+      technology, or legal requirements change. The updated version will be
+      published on this page with a revised "Last updated" date.
+    </p>
+  </section>
+
+  <section class="privacy-section">
+    <h2>13. Contact Us</h2>
+    <p>
+      If you have questions about this Privacy Policy, your personal
+      information, or a data deletion request, please contact the IoT HIVE
+      team through the contact information provided by the platform.
+    </p>
+    <p>
+      <strong>IoT HIVE</strong><br>
+      Email: iothive221@gmail.com
+    </p>
+  </section>
+
+</div>
+{% endblock %}

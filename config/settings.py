@@ -190,3 +190,26 @@ TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')
 NOTIFY_LK_USER_ID = os.getenv('NOTIFY_LK_USER_ID', '')
 NOTIFY_LK_API_KEY = os.getenv('NOTIFY_LK_API_KEY', '')
 NOTIFY_LK_SENDER_ID = os.getenv('NOTIFY_LK_SENDER_ID', 'IOTHIVE')
+
+# ============================================================
+# Email Notification Configuration (Gmail SMTP / Console)
+# ============================================================
+EMAIL_BACKEND = os.getenv(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.smtp.EmailBackend' if os.getenv('EMAIL_HOST_PASSWORD') else 'django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'iothive221@gmail.com')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'IoT HIVE <iothive221@gmail.com>')
+
+# ============================================================
+# OAuth Social Login (Google & Facebook)
+# ============================================================
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
+FACEBOOK_APP_ID = os.getenv('FACEBOOK_APP_ID', '')
+FACEBOOK_APP_SECRET = os.getenv('FACEBOOK_APP_SECRET', '')
+

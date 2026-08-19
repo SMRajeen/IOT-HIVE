@@ -8,6 +8,12 @@ from .sms import (
     notify_chat_message,
     normalize_phone_number,
 )
+from .emails import (
+    send_inquiry_notification,
+    send_inquiry_reply_notification,
+    send_order_notification,
+    send_bounty_awarded_notification,
+)
 from .models import NotificationLog
 from .serializers import NotificationLogSerializer
 
@@ -15,7 +21,7 @@ import json
 import hashlib
 import uuid
 from decimal import Decimal
-from django.db.models import Q, Sum, Max, Count
+from django.db.models import Q, Sum, Max, Count, Avg
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -47,6 +53,7 @@ from .models import (
 from .serializers import (
     CategorySerializer,
     ProjectSerializer,
+    ProjectListSerializer,
     ProjectTierSerializer,
     ProjectBOMItemSerializer,
     ProjectAttachmentSerializer,
@@ -83,16 +90,37 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
-    serializer_class = ProjectSerializer
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ProjectListSerializer
+        return ProjectSerializer
 
     def get_permissions(self):
         if self.action in ["list", "retrieve", "reviews"]:
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
+    def check_object_permissions(self, request, obj):
+        super().check_object_permissions(request, obj)
+        if request.method in ["PUT", "PATCH", "DELETE"]:
+            if obj.seller != request.user and not (request.user.is_staff or request.user.is_superuser):
+                raise exceptions.PermissionDenied("You do not have permission to modify this project.")
+
     def get_queryset(self):
-        queryset = Project.objects.filter(status="published").select_related(
+        user = self.request.user
+        if self.action == "list":
+            queryset = Project.objects.filter(status="published")
+        elif user.is_authenticated:
+            if user.is_staff or user.is_superuser:
+                queryset = Project.objects.all()
+            else:
+                queryset = Project.objects.filter(Q(status="published") | Q(seller=user))
+        else:
+            queryset = Project.objects.filter(status="published")
+
+        queryset = queryset.select_related(
             "seller", "category", "video", "model_3d"
         ).prefetch_related(
             "tiers", "bom_items", "attachments", "images", "reviews__user"
@@ -141,18 +169,21 @@ class ProjectViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         instance.views += 1
         instance.save(update_fields=["views"])
-        serializer = self.get_serializer(instance)
+        serializer = ProjectSerializer(instance)
         return Response(serializer.data)
 
     def perform_create(self, serializer):
-        serializer.save(seller=self.request.user, status="published")
+        status_val = self.request.data.get("status", "published")
+        if status_val not in ["draft", "published"]:
+            status_val = "published"
+        serializer.save(seller=self.request.user, status=status_val)
 
-    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=["get"], url_path="my-projects", permission_classes=[permissions.IsAuthenticated])
     def my_projects(self, request):
         projects = Project.objects.filter(seller=request.user).select_related(
             "category"
         ).prefetch_related("tiers", "bom_items", "attachments", "images").order_by("-created_at")
-        serializer = self.get_serializer(projects, many=True)
+        serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=["get", "post"], permission_classes=[permissions.IsAuthenticatedOrReadOnly], parser_classes=[MultiPartParser, FormParser, JSONParser])
@@ -177,7 +208,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
             if not comment:
                 return Response({"detail": "Review comment cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Check if user already reviewed - update or create
             review, created = ProjectReview.objects.update_or_create(
                 project=project,
                 user=request.user,
@@ -229,12 +259,86 @@ class ProjectRequestViewSet(viewsets.ModelViewSet):
             Q(buyer=self.request.user) | Q(project__seller=self.request.user)
         ).select_related("project", "buyer", "project__seller").order_by("-created_at")
 
+    @action(detail=False, methods=["get"], url_path="sent")
+    def sent(self, request):
+        requests = ProjectRequest.objects.filter(buyer=request.user).select_related("project", "buyer", "project__seller").order_by("-created_at")
+        return Response(ProjectRequestSerializer(requests, many=True).data)
+
+    @action(detail=False, methods=["get"], url_path="received")
+    def received(self, request):
+        requests = ProjectRequest.objects.filter(project__seller=request.user).select_related("project", "buyer", "project__seller").order_by("-created_at")
+        return Response(ProjectRequestSerializer(requests, many=True).data)
+
     def perform_create(self, serializer):
         project_id = self.request.data.get("project")
         project = Project.objects.filter(id=project_id).first()
         if not project:
             raise serializers.ValidationError("Project not found.")
-        serializer.save(buyer=self.request.user, project=project)
+        req_instance = serializer.save(buyer=self.request.user, project=project)
+
+        # Create initial chat message so conversation is visible in messenger
+        try:
+            ChatMessage.objects.create(
+                sender=self.request.user,
+                recipient=project.seller,
+                project=project,
+                message=f"[Inquiry #{req_instance.id}] {req_instance.requirements}"
+            )
+        except Exception:
+            pass
+
+        # Dispatch email notification
+        try:
+            sender_name = self.request.user.get_full_name() or self.request.user.username
+            recipient_name = project.seller.get_full_name() or project.seller.username
+            send_inquiry_notification(
+                recipient_email=project.seller.email,
+                recipient_name=recipient_name,
+                sender_name=sender_name,
+                project_title=project.title,
+                message_text=req_instance.requirements
+            )
+        except Exception:
+            pass
+
+    @action(detail=True, methods=["post"], url_path="reply")
+    def reply(self, request, pk=None):
+        req_obj = self.get_object()
+        reply_message = request.data.get("reply", "").strip() or request.data.get("message", "").strip()
+        if not reply_message:
+            return Response({"detail": "Reply message cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check permission: buyer, seller, or admin can reply
+        if request.user != req_obj.buyer and request.user != req_obj.project.seller and not request.user.is_staff:
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
+        recipient = req_obj.buyer if request.user == req_obj.project.seller else req_obj.project.seller
+        sender_name = request.user.get_full_name() or request.user.username
+        recipient_name = recipient.get_full_name() or recipient.username
+
+        chat_msg = ChatMessage.objects.create(
+            sender=request.user,
+            recipient=recipient,
+            project=req_obj.project,
+            message=f"[Inquiry #{req_obj.id} Reply] {reply_message}"
+        )
+
+        try:
+            send_inquiry_reply_notification(
+                recipient_email=recipient.email,
+                recipient_name=recipient_name,
+                sender_name=sender_name,
+                project_title=req_obj.project.title,
+                reply_text=reply_message
+            )
+        except Exception:
+            pass
+
+        return Response({
+            "message": "Reply sent successfully!",
+            "chat_message": ChatMessageSerializer(chat_msg).data
+        })
+
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -280,6 +384,24 @@ class OrderViewSet(viewsets.ModelViewSet):
         except Exception:
             pass
 
+        try:
+            buyer_name = self.request.user.get_full_name() or self.request.user.username
+            seller_name = seller.get_full_name() or seller.username if seller else "Maker"
+            project_title = project.title if project else "Hardware Project"
+            tier_name = tier.name if tier else "Digital Blueprint"
+            send_order_notification(
+                buyer_email=self.request.user.email,
+                seller_email=seller.email if seller else "",
+                buyer_name=buyer_name,
+                seller_name=seller_name,
+                project_title=project_title,
+                tier_name=tier_name,
+                amount=str(amount),
+                transaction_id=tx_id
+            )
+        except Exception:
+            pass
+
     @action(detail=True, methods=["patch"])
     def update_shipping(self, request, pk=None):
         order = self.get_object()
@@ -316,9 +438,15 @@ class BountyViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
+        if self.action in ["list", "retrieve", "stats"]:
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
+
+    def check_object_permissions(self, request, obj):
+        super().check_object_permissions(request, obj)
+        if request.method in ["PUT", "PATCH", "DELETE"]:
+            if obj.client != request.user and not (request.user.is_staff or request.user.is_superuser):
+                raise exceptions.PermissionDenied("You do not have permission to modify this bounty.")
 
     def get_queryset(self):
         queryset = HardwareBounty.objects.select_related("client", "category", "awarded_maker").prefetch_related("proposals__maker")
@@ -361,13 +489,62 @@ class BountyViewSet(viewsets.ModelViewSet):
         category = Category.objects.filter(id=category_id).first() if category_id else None
         serializer.save(client=self.request.user, category=category)
 
+    @action(detail=False, methods=["get"], url_path="my-bounties", permission_classes=[permissions.IsAuthenticated])
+    def my_bounties(self, request):
+        bounties = HardwareBounty.objects.filter(client=request.user).select_related("client", "category", "awarded_maker").prefetch_related("proposals__maker").order_by("-created_at")
+        return Response(HardwareBountySerializer(bounties, many=True).data)
+
+    @action(detail=False, methods=["get"], url_path="awarded-bounties", permission_classes=[permissions.IsAuthenticated])
+    def awarded_bounties(self, request):
+        bounties = HardwareBounty.objects.filter(awarded_maker=request.user).select_related("client", "category", "awarded_maker").prefetch_related("proposals__maker").order_by("-created_at")
+        return Response(HardwareBountySerializer(bounties, many=True).data)
+
+    @action(detail=False, methods=["get"])
+    def stats(self, request):
+        open_bounties = HardwareBounty.objects.filter(status="open")
+        active_count = open_bounties.count()
+        total_budget = open_bounties.aggregate(Sum("budget"))["budget__sum"] or Decimal("0.00")
+        # Real platform commission calculation: 8% platform escrow fee
+        commission_pool = round(total_budget * Decimal("0.08"), 2)
+        verified_makers_count = UserProfile.objects.filter(role__in=["seller", "both"]).count()
+
+        return Response({
+            "active_bounties": active_count,
+            "total_budget": total_budget,
+            "commission_pool": commission_pool,
+            "verified_makers": verified_makers_count,
+        })
+
+    @action(detail=True, methods=["patch", "post"], url_path="update-status", permission_classes=[permissions.IsAuthenticated])
+    def update_status(self, request, pk=None):
+        bounty = self.get_object()
+        user = request.user
+        new_status = request.data.get("status")
+        valid_statuses = ["open", "in_progress", "completed", "delivered", "inactive", "closed"]
+        if new_status not in valid_statuses:
+            return Response({"detail": f"Invalid status. Choices are: {', '.join(valid_statuses)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        is_client = (bounty.client == user)
+        is_awarded = (bounty.awarded_maker == user)
+        is_admin = (user.is_staff or user.is_superuser)
+
+        if not (is_client or is_awarded or is_admin):
+            return Response({"detail": "You are not authorized to update this bounty status."}, status=status.HTTP_403_FORBIDDEN)
+
+        bounty.status = new_status
+        bounty.save()
+        return Response({
+            "message": f"Bounty status updated to {new_status}.",
+            "bounty": HardwareBountySerializer(bounty).data
+        })
+
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
     def submit_proposal(self, request, pk=None):
         bounty = self.get_object()
         if bounty.client == request.user:
             return Response({"detail": "You cannot submit a proposal on your own bounty."}, status=status.HTTP_400_BAD_REQUEST)
         if bounty.status not in ["open"]:
-            return Response({"detail": "This bounty is no longer accepting proposals."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "This bounty is inactive or no longer accepting proposals."}, status=status.HTTP_400_BAD_REQUEST)
 
         pitch = request.data.get("pitch", "").strip()
         bid_amount = request.data.get("bid_amount", bounty.budget)
@@ -405,7 +582,7 @@ class BountyViewSet(viewsets.ModelViewSet):
         if not proposal:
             return Response({"detail": "Proposal not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Mark this proposal accepted and others rejected/pending
+        # Mark this proposal accepted and others rejected
         bounty.proposals.exclude(id=proposal.id).update(status="rejected")
         proposal.status = "accepted"
         proposal.save()
@@ -419,6 +596,20 @@ class BountyViewSet(viewsets.ModelViewSet):
         bounty.save()
         try:
             notify_bounty_awarded(bounty)
+        except Exception:
+            pass
+
+        # Send email notification to maker
+        try:
+            client_name = request.user.get_full_name() or request.user.username
+            maker_name = proposal.maker.get_full_name() or proposal.maker.username
+            send_bounty_awarded_notification(
+                maker_email=proposal.maker.email,
+                maker_name=maker_name,
+                client_name=client_name,
+                bounty_title=bounty.title,
+                budget=str(proposal.bid_amount)
+            )
         except Exception:
             pass
 
@@ -683,6 +874,24 @@ def direct_card_charge_view(request):
         shipping_district=request.data.get("shipping_district", ""),
         shipping_postal_code=request.data.get("shipping_postal_code", ""),
     )
+
+    try:
+        buyer_name = user.get_full_name() or user.username
+        seller_name = project.seller.get_full_name() or project.seller.username
+        project_title = project.title
+        tier_name = tier.name if tier else "Digital Blueprint"
+        send_order_notification(
+            buyer_email=user.email,
+            seller_email=project.seller.email,
+            buyer_name=buyer_name,
+            seller_name=seller_name,
+            project_title=project_title,
+            tier_name=tier_name,
+            amount=str(amount),
+            transaction_id=order_id
+        )
+    except Exception:
+        pass
 
     return Response({
         "success": True,

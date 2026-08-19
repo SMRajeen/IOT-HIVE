@@ -169,6 +169,50 @@ class ProjectReviewSerializer(serializers.ModelSerializer):
         return obj.created_at.strftime("%b %d, %Y")
 
 
+class ProjectListSerializer(serializers.ModelSerializer):
+    """High-performance lightweight serializer for project listings, search, and home feed."""
+    seller_username = serializers.CharField(source="seller.username", read_only=True)
+    seller_name = serializers.SerializerMethodField()
+    category_name = serializers.CharField(source="category.name", read_only=True)
+    category_slug = serializers.CharField(source="category.slug", read_only=True)
+    images = ProjectImageSerializer(many=True, read_only=True)
+    bom_items_count = serializers.IntegerField(source="bom_items.count", read_only=True)
+    average_rating = serializers.FloatField(read_only=True)
+    review_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Project
+        fields = [
+            "id",
+            "title",
+            "slug",
+            "seller",
+            "seller_username",
+            "seller_name",
+            "category",
+            "category_name",
+            "category_slug",
+            "short_description",
+            "price",
+            "is_free",
+            "status",
+            "featured",
+            "views",
+            "microcontroller",
+            "connectivity",
+            "difficulty",
+            "average_rating",
+            "review_count",
+            "bom_items_count",
+            "images",
+            "created_at",
+        ]
+
+    def get_seller_name(self, obj):
+        name = f"{obj.seller.first_name} {obj.seller.last_name}".strip()
+        return name if name else obj.seller.username
+
+
 class ProjectSerializer(serializers.ModelSerializer):
     seller_username = serializers.CharField(
         source="seller.username",
@@ -196,12 +240,17 @@ class ProjectSerializer(serializers.ModelSerializer):
     review_count = serializers.IntegerField(read_only=True)
     community_makes_count = serializers.IntegerField(read_only=True)
 
-    # Write-only fields for creation
+    # Write-only fields for creation & update
     image = serializers.ImageField(write_only=True, required=False)
     video_url = serializers.URLField(write_only=True, required=False)
     model_url = serializers.URLField(write_only=True, required=False)
     bom_data = serializers.CharField(write_only=True, required=False)
+    bom_items_data = serializers.JSONField(write_only=True, required=False)
     tiers_data = serializers.CharField(write_only=True, required=False)
+    tiers_list = serializers.JSONField(write_only=True, required=False)
+    attachment_file = serializers.FileField(write_only=True, required=False)
+    attachment_title = serializers.CharField(write_only=True, required=False)
+    attachment_type = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = Project
@@ -244,7 +293,12 @@ class ProjectSerializer(serializers.ModelSerializer):
             "video_url",
             "model_url",
             "bom_data",
+            "bom_items_data",
             "tiers_data",
+            "tiers_list",
+            "attachment_file",
+            "attachment_title",
+            "attachment_type",
         ]
         read_only_fields = [
             "id",
@@ -259,28 +313,13 @@ class ProjectSerializer(serializers.ModelSerializer):
         name = f"{obj.seller.first_name} {obj.seller.last_name}".strip()
         return name if name else obj.seller.username
 
-    def create(self, validated_data):
-        image = validated_data.pop("image", None)
-        video_url = validated_data.pop("video_url", None)
-        model_url = validated_data.pop("model_url", None)
-        bom_data = validated_data.pop("bom_data", None)
-        tiers_data = validated_data.pop("tiers_data", None)
-
-        project = Project.objects.create(**validated_data)
-
-        if image:
-            ProjectImage.objects.create(project=project, image=image)
-
-        if video_url:
-            ProjectVideo.objects.create(project=project, video_url=video_url)
-
-        if model_url:
-            ProjectModel3D.objects.create(project=project, model_url=model_url)
-
-        # Parse BOM Items
-        if bom_data:
-            try:
-                bom_list = json.loads(bom_data) if isinstance(bom_data, str) else bom_data
+    def _process_bom(self, project, bom_input):
+        if not bom_input:
+            return
+        try:
+            bom_list = json.loads(bom_input) if isinstance(bom_input, str) else bom_input
+            if isinstance(bom_list, list):
+                project.bom_items.all().delete()
                 for item in bom_list:
                     if item.get("name"):
                         ProjectBOMItem.objects.create(
@@ -292,13 +331,16 @@ class ProjectSerializer(serializers.ModelSerializer):
                             supplier_url=item.get("supplier_url", "").strip(),
                             is_optional=bool(item.get("is_optional", False))
                         )
-            except Exception as e:
-                print(f"Error parsing BOM data on create: {e}")
+        except Exception as e:
+            print(f"Error processing BOM data: {e}")
 
-        # Parse Multi-Tier Commercial Options
-        if tiers_data:
-            try:
-                tier_list = json.loads(tiers_data) if isinstance(tiers_data, str) else tiers_data
+    def _process_tiers(self, project, tiers_input):
+        if not tiers_input:
+            return
+        try:
+            tier_list = json.loads(tiers_input) if isinstance(tiers_input, str) else tiers_input
+            if isinstance(tier_list, list) and len(tier_list) > 0:
+                project.tiers.all().delete()
                 for t in tier_list:
                     if t.get("name"):
                         ProjectTier.objects.create(
@@ -312,8 +354,79 @@ class ProjectSerializer(serializers.ModelSerializer):
                             stock_quantity=int(t.get("stock_quantity", -1)),
                             is_available=bool(t.get("is_available", True))
                         )
-            except Exception as e:
-                print(f"Error parsing Tier data on create: {e}")
+        except Exception as e:
+            print(f"Error processing Tier data: {e}")
+
+    def _process_attachment(self, project, attachment_file, title=None, file_type=None):
+        if not attachment_file:
+            return
+        try:
+            # Determine file type from extension if not given
+            filename = attachment_file.name.lower()
+            if not file_type or file_type == "other":
+                if filename.endswith(".zip") or filename.endswith(".rar") or filename.endswith(".7z"):
+                    file_type = "zip"
+                elif filename.endswith(".pdf"):
+                    file_type = "pdf"
+                elif filename.endswith(".stl") or filename.endswith(".step") or filename.endswith(".stp"):
+                    file_type = "stl"
+                elif filename.endswith(".hex"):
+                    file_type = "hex"
+                elif filename.endswith(".bin"):
+                    file_type = "bin"
+                elif "gerber" in filename:
+                    file_type = "gerber"
+                else:
+                    file_type = "other"
+
+            # Format file size (e.g. "2.4 MB" or "350 KB")
+            size_bytes = attachment_file.size
+            if size_bytes > 1024 * 1024:
+                formatted_size = f"{size_bytes / (1024 * 1024):.1f} MB"
+            elif size_bytes > 1024:
+                formatted_size = f"{size_bytes / 1024:.0f} KB"
+            else:
+                formatted_size = f"{size_bytes} B"
+
+            ProjectAttachment.objects.create(
+                project=project,
+                title=title or attachment_file.name,
+                file=attachment_file,
+                file_type=file_type,
+                file_size=formatted_size
+            )
+        except Exception as e:
+            print(f"Error processing attachment: {e}")
+
+    def create(self, validated_data):
+        image = validated_data.pop("image", None)
+        video_url = validated_data.pop("video_url", None)
+        model_url = validated_data.pop("model_url", None)
+        bom_data = validated_data.pop("bom_data", None) or validated_data.pop("bom_items_data", None)
+        tiers_data = validated_data.pop("tiers_data", None) or validated_data.pop("tiers_list", None)
+        attachment_file = validated_data.pop("attachment_file", None)
+        attachment_title = validated_data.pop("attachment_title", None)
+        attachment_type = validated_data.pop("attachment_type", None)
+
+        project = Project.objects.create(**validated_data)
+
+        if image:
+            ProjectImage.objects.create(project=project, image=image)
+
+        if video_url:
+            ProjectVideo.objects.create(project=project, video_url=video_url)
+
+        if model_url:
+            ProjectModel3D.objects.create(project=project, model_url=model_url)
+
+        if attachment_file:
+            self._process_attachment(project, attachment_file, attachment_title, attachment_type)
+
+        if bom_data:
+            self._process_bom(project, bom_data)
+
+        if tiers_data:
+            self._process_tiers(project, tiers_data)
         else:
             # Create default digital tier
             ProjectTier.objects.create(
@@ -327,6 +440,46 @@ class ProjectSerializer(serializers.ModelSerializer):
             )
 
         return project
+
+    def update(self, instance, validated_data):
+        image = validated_data.pop("image", None)
+        video_url = validated_data.pop("video_url", None)
+        model_url = validated_data.pop("model_url", None)
+        bom_data = validated_data.pop("bom_data", None) or validated_data.pop("bom_items_data", None)
+        tiers_data = validated_data.pop("tiers_data", None) or validated_data.pop("tiers_list", None)
+        attachment_file = validated_data.pop("attachment_file", None)
+        attachment_title = validated_data.pop("attachment_title", None)
+        attachment_type = validated_data.pop("attachment_type", None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if image:
+            ProjectImage.objects.create(project=instance, image=image)
+
+        if video_url is not None:
+            if video_url.strip():
+                ProjectVideo.objects.update_or_create(project=instance, defaults={"video_url": video_url})
+            else:
+                ProjectVideo.objects.filter(project=instance).delete()
+
+        if model_url is not None:
+            if model_url.strip():
+                ProjectModel3D.objects.update_or_create(project=instance, defaults={"model_url": model_url})
+            else:
+                ProjectModel3D.objects.filter(project=instance).delete()
+
+        if attachment_file:
+            self._process_attachment(instance, attachment_file, attachment_title, attachment_type)
+
+        if bom_data is not None:
+            self._process_bom(instance, bom_data)
+
+        if tiers_data is not None:
+            self._process_tiers(instance, tiers_data)
+
+        return instance
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

@@ -37,8 +37,13 @@
           <a href="/marketplace/" class="nav-link {% if '/marketplace' in request.path %}active{% endif %}">Marketplace</a>
           <a href="/categories/" class="nav-link {% if '/categories' in request.path %}active{% endif %}">Categories</a>
           <a href="/bounties/" class="nav-link {% if '/bounties' in request.path %}active{% endif %}">Bounties</a>
-          <a href="/about/" class="nav-link {% if '/about' in request.path or '/how-it-works' in request.path %}active{% endif %}">How It Works</a>
-          <a href="/dashboard/" class="nav-link {% if '/dashboard' in request.path %}active{% endif %}">Dashboard</a>
+          <a href="/project-requests/" class="nav-link {% if '/project-requests' in request.path or '/requests' in request.path %}active{% endif %}">
+            Inquiries
+            <span id="nav-inquiries-badge" class="nav-badge" style="display: none;">0</span>
+          </a>
+          <a href="/dashboard/" class="nav-link {% if '/dashboard' in request.path %}active{% endif %}">
+            Orders &amp; Dashboard
+          </a>
           {% if user.is_staff or user.is_superuser %}
             <a href="/admin-panel/" class="nav-link {% if '/admin-panel' in request.path %}active{% endif %}" style="color: #00ff88;">Admin Panel</a>
           {% endif %}
@@ -46,10 +51,10 @@
       </div>
 
       <div class="header-actions">
-        <!-- Quick Search -->
-        <a href="/marketplace/" class="btn-icon" title="Search Projects">
+        <!-- Quick Search Trigger -->
+        <button type="button" onclick="window.openSearchModal()" class="btn-icon" title="Search Projects (Ctrl+K)">
           <span class="material-symbols-outlined">search</span>
-        </a>
+        </button>
 
         <!-- Saved / Favorites -->
         <a href="/favorites/" class="btn-icon" id="header-favorites-btn" title="Saved Projects">
@@ -120,16 +125,33 @@
       <a href="/marketplace/" class="mobile-nav-link">Marketplace <span class="material-symbols-outlined">chevron_right</span></a>
       <a href="/categories/" class="mobile-nav-link">Categories <span class="material-symbols-outlined">chevron_right</span></a>
       <a href="/bounties/" class="mobile-nav-link">Bounties &amp; Commissions <span class="material-symbols-outlined">chevron_right</span></a>
-      <a href="/about/" class="mobile-nav-link">How It Works <span class="material-symbols-outlined">chevron_right</span></a>
-      <a href="/dashboard/" class="mobile-nav-link">Dashboard <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/project-requests/" class="mobile-nav-link">Inquiries <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/dashboard/" class="mobile-nav-link">Dashboard &amp; Orders <span class="material-symbols-outlined">chevron_right</span></a>
       <a href="/favorites/" class="mobile-nav-link">Saved Projects <span class="material-symbols-outlined">chevron_right</span></a>
-      <a href="/requests/" class="mobile-nav-link">Inquiries &amp; Orders <span class="material-symbols-outlined">chevron_right</span></a>
       <a href="/profile/" class="mobile-nav-link">Profile <span class="material-symbols-outlined">chevron_right</span></a>
       {% if user.is_staff or user.is_superuser %}
         <a href="/admin-panel/" class="mobile-nav-link" style="color: #00ff88;">Admin Panel <span class="material-symbols-outlined">chevron_right</span></a>
       {% endif %}
     </div>
     <div data-mobile-auth style="padding: 16px 20px;"></div>
+  </div>
+
+  <!-- Search Modal Popup -->
+  <div id="search-modal" class="search-modal-backdrop" onclick="if(event.target === this) window.closeSearchModal();">
+    <div class="search-modal-card">
+      <div class="search-modal-header">
+        <span class="material-symbols-outlined" style="color: var(--accent-cyan);">search</span>
+        <input type="text" id="search-modal-input" class="search-modal-input" placeholder="Search projects by MCU, protocol, category, or title..." autocomplete="off">
+        <button type="button" onclick="window.closeSearchModal()" class="btn-icon" style="color: var(--text-muted);">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div id="search-modal-results" class="search-modal-results">
+        <div style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+          Type anything to search hardware builds, microcontrollers, and CAD files...
+        </div>
+      </div>
+    </div>
   </div>
 
   <main class="main-content">
@@ -167,7 +189,7 @@
           <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem;">
             <a href="/create-project/" class="text-link">Share a Project</a>
             <a href="/dashboard/" class="text-link">Creator Dashboard</a>
-            <a href="/about/" class="text-link">How It Works</a>
+            <a href="/bounties/" class="text-link">Community Bounties</a>
           </div>
         </div>
 
@@ -176,16 +198,17 @@
           <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem;">
             <a href="/profile/" class="text-link">My Profile</a>
             <a href="/favorites/" class="text-link">Saved Projects</a>
-            <a href="/requests/" class="text-link">Inquiries &amp; Orders</a>
+            <a href="/project-requests/" class="text-link">Inquiries &amp; Orders</a>
           </div>
         </div>
       </div>
 
       <div style="border-top: 1px solid var(--border-subtle); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 0.82rem; color: var(--text-muted);">
         <div>&copy; 2026 IoT Hive. All rights reserved.</div>
-        <div style="display: flex; gap: 16px;">
-          <span>Smart Hardware Made Simple</span>
-        </div>
+        <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+			<a href="/privacy-policy/" class="text-link">Privacy Policy</a>
+			<span>Smart Hardware Made Simple</span>
+		</div>
       </div>
     </div>
   </footer>
@@ -201,6 +224,107 @@
       const drawer = document.getElementById('mobile-drawer');
       if (drawer) drawer.classList.toggle('open');
     };
+
+    window.openSearchModal = function() {
+      const modal = document.getElementById('search-modal');
+      const input = document.getElementById('search-modal-input');
+      if (modal) {
+        modal.classList.add('open');
+        setTimeout(() => { if (input) input.focus(); }, 50);
+      }
+    };
+    window.closeSearchModal = function() {
+      const modal = document.getElementById('search-modal');
+      if (modal) modal.classList.remove('open');
+    };
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        window.closeSearchModal();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        window.openSearchModal();
+      }
+    });
+
+    let searchDebounceTimer = null;
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('search-modal-input');
+      const resultsContainer = document.getElementById('search-modal-results');
+      if (searchInput && resultsContainer) {
+        searchInput.addEventListener('input', function() {
+          clearTimeout(searchDebounceTimer);
+          const q = searchInput.value.trim();
+          if (!q) {
+            resultsContainer.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">Type anything to search hardware builds, microcontrollers, and CAD files...</div>';
+            return;
+          }
+          resultsContainer.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-muted);"><span class="material-symbols-outlined" style="animation: spin 1s infinite linear;">sync</span> Searching...</div>';
+          searchDebounceTimer = setTimeout(async () => {
+            try {
+              const res = await fetch(`/api/projects/?search=${encodeURIComponent(q)}`);
+              if (!res.ok) throw new Error('Search failed');
+              const data = await res.json();
+              const projects = Array.isArray(data) ? data : (data.results || []);
+              if (!projects || projects.length === 0) {
+                resultsContainer.innerHTML = `<div style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">No hardware projects found for "<strong>${q}</strong>".</div>`;
+                return;
+              }
+              resultsContainer.innerHTML = projects.map(p => {
+                const img = p.primary_image || (p.images && p.images[0] ? p.images[0].image : '/static/images/placeholder-project.png');
+                const mcu = p.microcontroller ? `<span class="badge" style="font-size: 11px; padding: 2px 6px;">${p.microcontroller}</span>` : '';
+                return `
+                  <a href="/project/${p.id}/" class="search-result-item" onclick="window.closeSearchModal()">
+                    <div class="search-result-thumb">
+                      <img src="${img}" alt="${p.title}" onerror="this.src='/static/images/placeholder-project.png'">
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.title}</div>
+                      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; display: flex; align-items: center; gap: 8px;">
+                        <span>by ${p.seller_name || 'Maker'}</span>
+                        ${mcu}
+                      </div>
+                    </div>
+                    <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan); font-size: 0.95rem;">
+                      ${p.price > 0 ? (p.currency || 'LKR') + ' ' + Number(p.price).toLocaleString() : 'Free'}
+                    </div>
+                  </a>
+                `;
+              }).join('');
+            } catch (err) {
+              resultsContainer.innerHTML = '<div style="padding: 30px; text-align: center; color: #ff5357;">Error querying projects. Please try again.</div>';
+            }
+          }, 250);
+        });
+      }
+
+      // Background notification sync for Inquiries and Orders
+      async function updateNavBadges() {
+        const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+        if (!token) return;
+        try {
+          const inqRes = await fetch('/api/requests/', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (inqRes.ok) {
+            const inqs = await inqRes.json();
+            const inqList = Array.isArray(inqs) ? inqs : (inqs.results || []);
+            const unreadInquiries = inqList.filter(i => i.status === 'pending').length;
+            const inqBadge = document.getElementById('nav-inquiries-badge');
+            if (inqBadge) {
+              if (unreadInquiries > 0) {
+                inqBadge.textContent = unreadInquiries;
+                inqBadge.style.display = 'inline-flex';
+              } else {
+                inqBadge.style.display = 'none';
+              }
+            }
+          }
+        } catch(e) {}
+      }
+      updateNavBadges();
+      setInterval(updateNavBadges, 15000);
+    });
   </script>
     <!-- Prism Code Highlighting Engines -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>

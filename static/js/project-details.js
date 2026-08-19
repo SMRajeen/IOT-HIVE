@@ -32,8 +32,29 @@
     return `Rs. ${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
+  function getYouTubeEmbedUrl(url) {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    if (match && match[2].length === 11) {
+      return `https://www.youtube-nocookie.com/embed/${match[2]}`;
+    }
+    return url.includes('embed/') ? url : null;
+  }
+
+  function getAttachmentIcon(fileType, fileName) {
+    const type = (fileType || '').toLowerCase();
+    const name = (fileName || '').toLowerCase();
+    if (type.includes('pdf') || name.endsWith('.pdf')) return 'picture_as_pdf';
+    if (type.includes('cad') || type.includes('stl') || name.endsWith('.stl') || name.endsWith('.step') || name.endsWith('.stp')) return 'view_in_ar';
+    if (type.includes('firmware') || name.endsWith('.hex') || name.endsWith('.bin') || name.endsWith('.ino')) return 'memory';
+    if (type.includes('zip') || name.endsWith('.zip') || name.endsWith('.rar') || name.endsWith('.7z')) return 'folder_zip';
+    return 'download';
+  }
+
   function renderStars(rating) {
-    const r = Math.round(Number(rating || 5));
+    if (!rating) return '';
+    const r = Math.round(Number(rating));
     let stars = '';
     for (let i = 1; i <= 5; i++) {
       stars += `<span class="material-symbols-outlined" style="font-size: 16px; color: ${i <= r ? '#ffb700' : 'var(--border-medium)'};">star</span>`;
@@ -119,7 +140,8 @@
     const difficulty = (project.difficulty || 'intermediate').toUpperCase();
     const buildTime = project.estimated_build_time || '1-2 Hours';
     const reviews = project.reviews || [];
-    const avgRating = project.average_rating || 5.0;
+    const avgRating = project.average_rating ? Number(project.average_rating).toFixed(1) : null;
+    const canManage = isOwner || (currentUser && (currentUser.is_staff || currentUser.is_superuser));
 
     container.innerHTML = `
       <!-- Breadcrumb & Header Bar -->
@@ -133,11 +155,15 @@
         </div>
 
         <div class="flex items-center gap-2">
-          ${isOwner ? `
-            <a href="/create-project/" class="btn btn-secondary btn-sm">
-              <span class="material-symbols-outlined">add</span>
-              New Project
+          ${canManage ? `
+            <a href="/create-project/?edit=${project.id}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+              Edit Project
             </a>
+            <button onclick="window.handleDeleteProject()" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; color: #ff5357;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+              Delete
+            </button>
           ` : `
             <button id="favorite-btn" onclick="window.toggleFavorite()" class="btn btn-secondary btn-sm">
               <span class="material-symbols-outlined" id="fav-icon">bookmark_border</span>
@@ -162,12 +188,17 @@
               <span class="tag-mono" style="background: rgba(0,229,255,0.1); color: var(--primary); border: 1px solid rgba(0,229,255,0.3);">
                 ${auth.escapeHtml(project.category_name || 'Electronics')}
               </span>
-              <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; font-family: var(--font-mono); color: #ffb700;">
-                <span class="material-symbols-outlined" style="font-size: 16px;">star</span>
-                <strong>${avgRating}</strong>
-                <span style="color: var(--text-muted);">(${reviews.length} reviews)</span>
-              </div>
+              ${avgRating ? `
+                <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; font-family: var(--font-mono); color: #ffb700;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">star</span>
+                  <strong>${avgRating}</strong>
+                  <span style="color: var(--text-muted);">(${reviews.length} review${reviews.length === 1 ? '' : 's'})</span>
+                </div>
+              ` : `
+                <span style="color: var(--text-muted); font-size: 0.82rem; font-family: var(--font-mono);">No reviews yet</span>
+              `}
               <span class="tag-mono" style="color: var(--text-muted);">${project.views || 0} views</span>
+              ${project.status === 'draft' ? `<span class="badge" style="background: rgba(255, 183, 0, 0.15); color: #ffb700; border: 1px solid rgba(255, 183, 0, 0.3);">DRAFT</span>` : ''}
             </div>
 
             <h1 style="font-size: 2.2rem; margin: 0 0 10px; line-height: 1.2;">${auth.escapeHtml(project.title)}</h1>
@@ -498,24 +529,34 @@
             </div>
           ` : files.map(f => {
             const url = api.resolveUrl(f.file_url || f.file);
+            const icon = getAttachmentIcon(f.file_type, f.file_name || f.title);
+            const isPdf = (f.file_type || '').toLowerCase().includes('pdf') || (f.file_name || '').toLowerCase().endsWith('.pdf');
             return `
-              <div class="attachment-card">
+              <div class="attachment-card" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: var(--bg-surface-low); border: 1px solid var(--border-subtle); border-radius: 10px; margin-bottom: 10px;">
                 <div style="display: flex; align-items: center; gap: 14px;">
-                  <div class="attachment-icon-box">
-                    <span class="material-symbols-outlined">download</span>
+                  <div class="attachment-icon-box" style="width: 42px; height: 42px; border-radius: 8px; background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.3); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                    <span class="material-symbols-outlined">${icon}</span>
                   </div>
                   <div>
-                    <strong style="font-size: 0.95rem; color: var(--text-primary);">${auth.escapeHtml(f.title || 'Hardware File')}</strong>
-                    <div style="display: flex; gap: 8px; font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
-                      <span class="tag-mono" style="font-size: 0.7rem; padding: 1px 6px;">${(f.file_type || 'zip').toUpperCase()}</span>
+                    <strong style="font-size: 0.95rem; color: var(--text-primary);">${auth.escapeHtml(f.title || f.file_name || 'Hardware Asset')}</strong>
+                    <div style="display: flex; gap: 8px; font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; align-items: center;">
+                      <span class="tag-mono" style="font-size: 0.7rem; padding: 1px 6px;">${(f.file_type || 'RAW').toUpperCase()}</span>
                       ${f.file_size ? `<span>${auth.escapeHtml(f.file_size)}</span>` : ''}
                     </div>
                   </div>
                 </div>
-                <a href="${url}" download class="btn btn-secondary btn-sm">
-                  <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
-                  Download
-                </a>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  ${isPdf ? `
+                    <a href="${url}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                      <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+                      View PDF
+                    </a>
+                  ` : ''}
+                  <a href="${url}" download class="btn btn-primary btn-sm">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
+                    Download
+                  </a>
+                </div>
               </div>
             `;
           }).join('')}
@@ -528,7 +569,7 @@
     // ============================================================
     if (activeTab === 'reviews') {
       const reviews = project.reviews || [];
-      const avgRating = project.average_rating || 5.0;
+      const avgRating = project.average_rating ? Number(project.average_rating).toFixed(1) : null;
       const makesCount = project.community_makes_count || 0;
 
       // Extract build photos for community gallery
@@ -540,9 +581,9 @@
           <!-- Rating Stats Banner -->
           <div class="review-stats-banner">
             <div>
-              <div class="review-score-big">${avgRating}</div>
+              <div class="review-score-big">${avgRating || '—'}</div>
               <div class="star-rating-row" style="margin: 4px 0 6px;">
-                ${renderStars(avgRating)}
+                ${renderStars(avgRating || 0)}
               </div>
               <div style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
                 Based on ${reviews.length} review${reviews.length === 1 ? '' : 's'}
@@ -648,8 +689,9 @@
     }
 
     if (activeTab === 'media') {
-      const vid = project.video?.video_url;
-      const model3d = project.model_3d?.model_url;
+      const rawVid = project.video?.video_url || project.video_url;
+      const embedUrl = getYouTubeEmbedUrl(rawVid);
+      const model3d = project.model_3d?.model_url || project.model_url;
 
       return `
         <div class="card-cyber" style="padding: 28px; background: var(--bg-surface-container); border-radius: var(--radius-xl);">
@@ -658,11 +700,11 @@
             3D CAD &amp; Video Demonstrations
           </h3>
 
-          ${vid ? `
+          ${embedUrl ? `
             <div style="margin-bottom: 24px;">
               <h4 style="font-size: 0.95rem; margin-bottom: 8px; color: var(--text-muted); font-family: var(--font-mono);">VIDEO WALKTHROUGH</h4>
               <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; border: 1px solid var(--border-medium);">
-                <iframe src="${auth.escapeHtml(vid.replace('watch?v=', 'embed/'))}" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe>
+                <iframe src="${auth.escapeHtml(embedUrl)}" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
               </div>
             </div>
           ` : ''}
@@ -676,7 +718,7 @@
             </div>
           ` : ''}
 
-          ${!vid && !model3d ? `
+          ${!embedUrl && !model3d ? `
             <div style="padding: 32px; text-align: center; color: var(--text-muted);">
               <span class="material-symbols-outlined" style="font-size: 36px; margin-bottom: 8px;">videocam_off</span>
               <p>No video walkthrough or 3D models attached to this project.</p>
@@ -690,6 +732,22 @@
   }
 
   // --- Window Global Handlers ---
+
+  window.handleDeleteProject = async () => {
+    if (!currentProject) return;
+    if (!confirm(`Are you sure you want to permanently delete "${currentProject.title}"? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await api.projects.delete(currentProject.id);
+      if (window.showToast) showToast('Project deleted successfully.', 'success');
+      setTimeout(() => {
+        window.location.href = '/marketplace/';
+      }, 700);
+    } catch (e) {
+      if (window.showToast) showToast(e.message || 'Failed to delete project.', 'error');
+    }
+  };
 
   window.selectHardwareTier = (idx) => {
     selectedTierIndex = idx;

@@ -5,24 +5,38 @@
 {% block page_id %}requests{% endblock %}
 
 {% block content %}
-<div class="app-container" style="padding-top: var(--space-8); max-width: 880px;">
+<div class="app-container" style="padding-top: var(--space-8); max-width: 960px;">
   
-  <div class="card-cyber" style="padding: 28px 24px; margin-bottom: var(--space-8); background: var(--bg-surface-container);">
+  <div class="card-cyber" style="padding: 28px 24px; margin-bottom: 20px; background: var(--bg-surface-container);">
     <div class="badge-hud" style="margin-bottom: 6px;">
-      <span class="dot"></span>
-      <span class="label">COMMUNICATIONS &amp; ORDERS</span>
+      <span class="dot" style="background: var(--accent-cyan);"></span>
+      <span class="label">INQUIRIES &amp; CUSTOM REQUESTS</span>
     </div>
-    <h1 style="font-size: 1.85rem; margin: 0;">Project Inquiries &amp; Orders</h1>
-    <p style="color: var(--text-muted); margin-top: 4px; font-size: 0.95rem;">
-      View messages received from interested buyers or purchase blueprints and hardware from makers.
+    <h1 style="font-size: 1.85rem; margin: 0 0 6px;">Project Inquiries &amp; Communications</h1>
+    <p style="color: var(--text-muted); margin: 0; font-size: 0.95rem;">
+      Manage communications between hardware buyers and makers, answer technical questions, and negotiate custom builds.
     </p>
+
+    <!-- Tabs Navigation -->
+    <div style="display: flex; gap: 12px; margin-top: 20px; border-top: 1px solid var(--border-subtle); padding-top: 16px;">
+      <button type="button" id="tab-received-btn" class="btn btn-primary btn-sm" onclick="window.switchInquiryTab('received')">
+        <span class="material-symbols-outlined" style="font-size: 16px;">move_to_inbox</span>
+        Received Inquiries
+        <span id="badge-received-count" class="badge" style="background: rgba(0, 229, 255, 0.2); color: var(--accent-cyan); font-size: 11px; padding: 1px 6px;">0</span>
+      </button>
+      <button type="button" id="tab-sent-btn" class="btn btn-secondary btn-sm" onclick="window.switchInquiryTab('sent')">
+        <span class="material-symbols-outlined" style="font-size: 16px;">outbox</span>
+        Sent Inquiries
+        <span id="badge-sent-count" class="badge" style="background: rgba(255, 255, 255, 0.1); color: var(--text-muted); font-size: 11px; padding: 1px 6px;">0</span>
+      </button>
+    </div>
   </div>
 
-  <!-- Requests List -->
+  <!-- Inquiries List Container -->
   <div id="requests-list-container">
     <div style="padding: 48px; text-align: center; color: var(--text-muted);">
       <span class="material-symbols-outlined spin" style="font-size: 32px; color: var(--primary);">sync</span>
-      <p style="margin-top: 8px;">Loading inquiries and orders...</p>
+      <p style="margin-top: 8px;">Loading inquiries...</p>
     </div>
   </div>
 

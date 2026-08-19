@@ -26,6 +26,8 @@ class ApiClient {
 
   resolveUrl(value) {
     if (!value) return '';
+    if (typeof value !== 'string') return value;
+    if (value.startsWith('http://') || value.startsWith('https://')) return value;
     try {
       return new URL(value, window.location.origin).href;
     } catch {
@@ -129,6 +131,14 @@ class ApiClient {
       method: 'PATCH',
       body: data instanceof FormData ? data : JSON.stringify(data)
     }),
+    deleteAccount: (password) => this.request('auth/delete-account/', {
+      method: 'POST',
+      body: JSON.stringify({ password })
+    }),
+    socialLogin: (socialData) => this.request('auth/social-login/', {
+      method: 'POST',
+      body: JSON.stringify(socialData)
+    }),
     passwordResetRequest: (email) => this.request('auth/password-reset/', {
       method: 'POST',
       body: JSON.stringify({ email })
@@ -193,9 +203,15 @@ class ApiClient {
   // --- Inquiries & Requests Endpoints ---
   requests = {
     list: () => this.request('requests/'),
+    sent: () => this.request('requests/sent/'),
+    received: () => this.request('requests/received/'),
     create: (projectId, message) => this.request('requests/', {
       method: 'POST',
-      body: JSON.stringify({ project: projectId, message })
+      body: JSON.stringify({ project: projectId, requirements: message, message: message })
+    }),
+    reply: (id, replyText) => this.request(`requests/${id}/reply/`, {
+      method: 'POST',
+      body: JSON.stringify({ reply: replyText })
     }),
     updateStatus: (id, status) => this.request(`requests/${id}/`, {
       method: 'PATCH',
@@ -235,10 +251,20 @@ class ApiClient {
       const query = new URLSearchParams(params).toString();
       return this.request(`bounties/${query ? '?' + query : ''}`);
     },
+    stats: () => this.request('bounties/stats/'),
+    myBounties: () => this.request('bounties/my-bounties/'),
+    awardedBounties: () => this.request('bounties/awarded-bounties/'),
     get: (id) => this.request(`bounties/${id}/`),
     create: (data) => this.request('bounties/', {
       method: 'POST',
       body: data instanceof FormData ? data : JSON.stringify(data)
+    }),
+    updateStatus: (bountyId, status) => this.request(`bounties/${bountyId}/update-status/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status })
+    }),
+    delete: (id) => this.request(`bounties/${id}/`, {
+      method: 'DELETE'
     }),
     submitProposal: (bountyId, data) => this.request(`bounties/${bountyId}/submit_proposal/`, {
       method: 'POST',

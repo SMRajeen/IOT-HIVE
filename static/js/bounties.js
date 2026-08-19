@@ -20,6 +20,7 @@
   const categoryPills = document.getElementById('bounty-category-pills');
 
   let activeCategory = 'all';
+  let activeScope = 'all'; // 'all', 'my', 'awarded'
   let currentUser = null;
   let allBounties = [];
   let currentBounty = null;
@@ -30,11 +31,29 @@
     return `Rs. ${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
+  window.switchBountyScope = (scope) => {
+    activeScope = scope;
+    document.querySelectorAll('.bounty-tab-btn').forEach(btn => {
+      btn.className = 'btn btn-secondary btn-sm bounty-tab-btn';
+    });
+    const activeBtn = document.getElementById(`bounty-tab-${scope}`);
+    if (activeBtn) activeBtn.className = 'btn btn-primary btn-sm bounty-tab-btn';
+    loadBounties();
+  };
+
   function renderBountyCard(bounty) {
     const isOwner = currentUser && bounty.client === currentUser.id;
     const clientName = bounty.client_name || bounty.client_username || 'Client';
     const statusClass = `bounty-status-${bounty.status}`;
-    const statusLabel = bounty.status === 'open' ? 'Open for Bids' : (bounty.status === 'in_progress' ? 'Awarded / In Progress' : 'Completed');
+    const statusLabels = {
+      open: 'Open for Bids',
+      in_progress: 'In Progress',
+      completed: 'Completed',
+      delivered: 'Delivered',
+      inactive: 'Inactive',
+      closed: 'Closed'
+    };
+    const statusLabel = statusLabels[bounty.status] || bounty.status.toUpperCase();
 
     return `
       <div class="bounty-card">
@@ -90,12 +109,30 @@
           <div style="display: flex; align-items: center; gap: 8px;">
             <button onclick="window.openBountyDetailModal(${bounty.id})" class="btn btn-secondary btn-sm">
               <span class="material-symbols-outlined" style="font-size: 16px;">description</span>
-              Specs &amp; Bids (${bounty.proposals_count || 0})
+              Specs &amp; Bids (${bounty.proposals_count || (bounty.proposals ? bounty.proposals.length : 0)})
             </button>
           </div>
         </div>
       </div>
     `;
+  }
+
+  async function loadBountyStats() {
+    try {
+      const stats = await api.bounties.stats();
+      if (stats) {
+        const kpiActive = document.getElementById('kpi-active-bounties');
+        if (kpiActive) kpiActive.textContent = stats.active_bounties || 0;
+
+        const kpiPool = document.getElementById('kpi-bounty-pool');
+        if (kpiPool) kpiPool.textContent = formatLKR(stats.escrow_commission_pool || 0);
+
+        const kpiMakers = document.getElementById('kpi-makers-count');
+        if (kpiMakers) kpiMakers.textContent = stats.verified_makers || 0;
+      }
+    } catch (e) {
+      console.warn('Failed to load bounty stats', e);
+    }
   }
 
   async function loadBounties() {
@@ -117,29 +154,31 @@
     if (sort === 'deadline') params.ordering = 'deadline';
 
     try {
-      const data = await api.bounties.list(params);
+      let data;
+      if (activeScope === 'my') {
+        data = await api.bounties.myBounties();
+      } else if (activeScope === 'awarded') {
+        data = await api.bounties.awardedBounties();
+      } else {
+        data = await api.bounties.list(params);
+      }
+
       allBounties = Array.isArray(data) ? data : (data.results || []);
 
-      // Calculate KPI metrics
-      const activeCount = allBounties.filter(b => b.status === 'open').length;
-      let totalPool = 0;
-      allBounties.forEach(b => totalPool += Number(b.budget || 0));
-
-      const kpiActive = document.getElementById('kpi-active-bounties');
-      if (kpiActive) kpiActive.textContent = activeCount;
-
-      const kpiPool = document.getElementById('kpi-bounty-pool');
-      if (kpiPool) kpiPool.textContent = formatLKR(totalPool);
-
-      const kpiMakers = document.getElementById('kpi-makers-count');
-      if (kpiMakers) kpiMakers.textContent = '48+';
+      loadBountyStats();
 
       if (allBounties.length === 0) {
+        const scopeMsg = activeScope === 'my' 
+          ? 'You have not posted any hardware commission bounties yet.'
+          : (activeScope === 'awarded' 
+              ? 'You have no bounties awarded or currently in-progress.'
+              : 'Be the first to post a custom hardware commission requirement!');
+
         grid.innerHTML = `
           <div class="card-cyber" style="grid-column: 1 / -1; padding: 48px 24px; text-align: center;">
             <span class="material-symbols-outlined" style="font-size: 40px; color: var(--text-muted); margin-bottom: 8px;">radar</span>
             <h3>No Bounties Found</h3>
-            <p style="color: var(--text-muted); margin-bottom: 16px;">Be the first to post a custom hardware commission requirement!</p>
+            <p style="color: var(--text-muted); margin-bottom: 16px;">${scopeMsg}</p>
             <button onclick="window.openCreateBountyModal()" class="btn btn-primary">
               <span class="material-symbols-outlined">post_add</span> Post a Bounty
             </button>
@@ -254,14 +293,26 @@
       const bounty = await api.bounties.get(bountyId);
       currentBounty = bounty;
       const isOwner = currentUser && bounty.client === currentUser.id;
+      const isStaff = currentUser && (currentUser.is_staff || currentUser.is_superuser);
       const proposals = bounty.proposals || [];
 
-      // Check if current maker already submitted a proposal
+      // Check if current maker already submitted a proposal or is awarded
       const myProposal = currentUser ? proposals.find(p => p.maker === currentUser.id) : null;
+      const isAwardedMaker = myProposal && myProposal.status === 'accepted';
+      const canManageStatus = isOwner || isAwardedMaker || isStaff;
+
+      const statusLabels = {
+        open: 'Open for Bids',
+        in_progress: 'In Progress',
+        completed: 'Completed',
+        delivered: 'Delivered',
+        inactive: 'Inactive',
+        closed: 'Closed'
+      };
 
       container.innerHTML = `
-        <div style="margin-bottom: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px;">
+        <div style="margin-bottom: 20px; padding-right: 40px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; flex-wrap: wrap;">
             <div class="badge-hud">
               <span class="dot"></span>
               <span class="label">BOUNTY SPECIFICATION</span>
@@ -270,7 +321,7 @@
           </div>
           <h2 style="font-size: 1.5rem; margin: 0 0 6px; color: var(--text-primary);">${auth.escapeHtml(bounty.title)}</h2>
           <div style="font-size: 0.82rem; color: var(--text-muted); font-family: var(--font-mono);">
-            Client: <strong>${auth.escapeHtml(bounty.client_name || bounty.client_username)}</strong> &bull; Deadline: ${bounty.deadline_days} Days
+            Client: <strong>${auth.escapeHtml(bounty.client_name || bounty.client_username)}</strong> &bull; Deadline: ${bounty.deadline_days} Days &bull; Status: <strong style="color: var(--primary); text-transform: uppercase;">${statusLabels[bounty.status] || bounty.status}</strong>
           </div>
         </div>
 
@@ -312,6 +363,25 @@
           </div>
         </div>
 
+        <!-- Status Management Strip for Owner / Awarded Maker -->
+        ${canManageStatus ? `
+          <div class="card-cyber" style="padding: 14px 18px; margin-bottom: 20px; background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <span class="text-xs" style="font-family: var(--font-mono); color: var(--primary); font-weight: bold;">STATUS CONTROLS:</span>
+                <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">Update project milestone</span>
+              </div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                ${bounty.status !== 'in_progress' ? `<button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'in_progress')" class="btn btn-secondary btn-xs">In Progress</button>` : ''}
+                ${bounty.status !== 'completed' ? `<button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'completed')" class="btn btn-secondary btn-xs">Completed</button>` : ''}
+                ${bounty.status !== 'delivered' ? `<button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'delivered')" class="btn btn-primary btn-xs">Delivered</button>` : ''}
+                ${isOwner && bounty.status !== 'inactive' ? `<button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'inactive')" class="btn btn-ghost btn-xs">Pause (Inactive)</button>` : ''}
+                ${isOwner && bounty.status === 'inactive' ? `<button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'open')" class="btn btn-secondary btn-xs">Reopen</button>` : ''}
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
         <!-- Proposals / Bids Section -->
         <div style="margin-bottom: 24px;">
           <h4 style="font-size: 1.05rem; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
@@ -322,8 +392,10 @@
           </h4>
 
           ${proposals.length === 0 ? `
-            <div style="padding: 24px; text-align: center; color: var(--text-muted); background: var(--bg-surface-low); border-radius: var(--radius-md);">
-              No proposals submitted yet. Be the first maker to bid!
+            <div style="padding: 28px; text-align: center; color: var(--text-muted); background: var(--bg-surface-low); border-radius: var(--radius-md);">
+              <span class="material-symbols-outlined" style="font-size: 32px; color: var(--text-muted); margin-bottom: 4px;">assignment</span>
+              <p style="margin: 4px 0 0;">No Proposals Submitted Yet.</p>
+              <p style="font-size: 0.82rem; margin: 4px 0 0; color: var(--text-muted);">Verified makers will review requirements and submit pricing bids.</p>
             </div>
           ` : proposals.map(p => {
             const isAccepted = p.status === 'accepted';
@@ -436,11 +508,17 @@
           `)
         ) : ''}
 
-        ${isOwner ? `
-          <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-            <button onclick="window.closeBountyDetailModal()" class="btn btn-secondary">Close</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; border-top: 1px solid var(--border-subtle); padding-top: 16px;">
+          <div>
+            ${(isOwner || isStaff) ? `
+              <button onclick="window.handleDeleteBounty(${bounty.id})" class="btn btn-ghost btn-sm" style="color: #ff5357;">
+                <span class="material-symbols-outlined" style="font-size: 15px;">delete</span>
+                Delete Bounty
+              </button>
+            ` : ''}
           </div>
-        ` : ''}
+          <button onclick="window.closeBountyDetailModal()" class="btn btn-secondary">Close</button>
+        </div>
       `;
     } catch (e) {
       container.innerHTML = `
@@ -448,6 +526,29 @@
           Error loading bounty details.
         </div>
       `;
+    }
+  };
+
+  window.handleUpdateBountyStatus = async (bountyId, status) => {
+    try {
+      await api.bounties.updateStatus(bountyId, status);
+      if (window.showToast) showToast(`Bounty status updated to ${status}.`, 'success');
+      await window.openBountyDetailModal(bountyId);
+      await loadBounties();
+    } catch (err) {
+      if (window.showToast) showToast(err.message || 'Failed to update status.', 'error');
+    }
+  };
+
+  window.handleDeleteBounty = async (bountyId) => {
+    if (!confirm('Are you sure you want to permanently delete this hardware bounty?')) return;
+    try {
+      await api.bounties.delete(bountyId);
+      if (window.showToast) showToast('Bounty deleted successfully.', 'success');
+      window.closeBountyDetailModal();
+      await loadBounties();
+    } catch (err) {
+      if (window.showToast) showToast(err.message || 'Failed to delete bounty.', 'error');
     }
   };
 

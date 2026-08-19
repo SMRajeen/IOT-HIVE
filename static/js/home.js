@@ -203,7 +203,10 @@ async function loadHomeFeatured() {
 
     container.innerHTML = projects.slice(0, 6).map(p => {
       const img = p.images && p.images.length > 0 ? (API.resolveUrl ? API.resolveUrl(p.images[0].image) : p.images[0].image) : '';
-      const price = p.is_free ? 'Free' : formatLKR(p.price);
+      const price = p.is_free ? 'Free / Open' : formatLKR(p.price);
+      const creator = p.seller_name || p.seller_username || 'Maker';
+      const avgRating = p.average_rating ? Number(p.average_rating).toFixed(1) : null;
+      const reviewsCount = p.review_count || 0;
 
       return `
         <div class="card-cyber project-node-card" onclick="location.href='/project/${p.id}/'" style="cursor: pointer; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-surface-container);">
@@ -218,9 +221,21 @@ async function loadHomeFeatured() {
             <div class="tag-mono" style="position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 4px;">
               ${p.category_name || 'Hardware'}
             </div>
+            ${p.featured ? `<div style="position: absolute; top: 12px; right: 12px; background: var(--primary); color: #000; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono);">FEATURED</div>` : ''}
           </div>
 
           <div style="padding: 20px; display: flex; flex-direction: column; flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 0.8rem; color: var(--text-muted);">By ${creator}</span>
+              ${avgRating ? `
+                <div style="display: flex; align-items: center; gap: 3px; font-size: 0.78rem; font-family: var(--font-mono); color: #ffb700;">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">star</span>
+                  <strong>${avgRating}</strong>
+                  ${reviewsCount > 0 ? `<span style="color: var(--text-muted);">(${reviewsCount})</span>` : ''}
+                </div>
+              ` : ''}
+            </div>
+
             <h3 style="font-size: 1.15rem; margin: 0 0 8px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.title}</h3>
             <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; height: 42px; overflow: hidden; margin: 0 0 16px 0;">
               ${p.short_description || ''}

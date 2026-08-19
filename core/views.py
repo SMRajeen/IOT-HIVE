@@ -42,3 +42,6 @@ def admin_panel_view(request):
 
 def bounties_view(request):
     return render(request, "frontend/bounties.html")
+
+def privacy_policy_view(request):
+    return render(request, "frontend/privacy-policy.html")

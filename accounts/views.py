@@ -43,23 +43,36 @@ def csrf_token(request):
     })
 
 
+def _generate_unique_username(last_name, first_name="", email=""):
+    """Auto-generates a unique username derived from last name with collision fallback."""
+    base = slugify(last_name or "").replace("-", "")
+    if not base:
+        base = slugify(first_name or "").replace("-", "")
+    if not base and email:
+        base = slugify(email.split("@")[0]).replace("-", "")
+    if not base:
+        base = "maker"
+    
+    base = base.lower()
+    username = base
+    counter = 1
+    while User.objects.filter(username__iexact=username).exists():
+        username = f"{base}-{counter}"
+        counter += 1
+    return username
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @throttle_classes([AuthAnonRateThrottle])
 def register(request):
     data = _get_request_data(request)
-    username = data.get("username", "").strip()
-    email = data.get("email", "").strip()
-    password = data.get("password", "")
     first_name = data.get("first_name", "").strip()
     last_name = data.get("last_name", "").strip()
+    email = data.get("email", "").strip()
+    password = data.get("password", "")
     role = data.get("role", "both")
-
-    if not username:
-        return Response(
-            {"detail": "Please enter a username."},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    username = data.get("username", "").strip()
 
     if not email:
         return Response(
@@ -79,15 +92,18 @@ def register(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    if User.objects.filter(username__iexact=username).exists():
-        return Response(
-            {"detail": "This username is already taken. Please choose another one."},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
     if User.objects.filter(email__iexact=email).exists():
         return Response(
             {"detail": "An account with this email already exists."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Auto-generate unique username if not manually specified
+    if not username:
+        username = _generate_unique_username(last_name, first_name, email)
+    elif User.objects.filter(username__iexact=username).exists():
+        return Response(
+            {"detail": "This username is already taken. Please choose another one."},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -288,16 +304,31 @@ def profile_view(request):
     first_name = data.get("first_name")
     last_name = data.get("last_name")
     email = data.get("email")
+    username = data.get("username")
     bio = data.get("bio")
     location = data.get("location")
     website = data.get("website")
     role = data.get("role")
+
+    if username is not None and username.strip():
+        new_username = slugify(username.strip()).replace("_", "-") or username.strip().lower()
+        if User.objects.filter(username__iexact=new_username).exclude(pk=user.pk).exists():
+            return Response(
+                {"detail": "This username is already in use by another maker. Please pick another."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        user.username = new_username
 
     if first_name is not None:
         user.first_name = first_name.strip()
     if last_name is not None:
         user.last_name = last_name.strip()
     if email is not None and email.strip():
+        if User.objects.filter(email__iexact=email.strip()).exclude(pk=user.pk).exists():
+            return Response(
+                {"detail": "This email address is already associated with another account."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         user.email = email.strip()
     user.save()
 
@@ -324,7 +355,6 @@ def profile_view(request):
     if notify_sms_chat is not None:
         profile.notify_sms_chat = str(notify_sms_chat).lower() in ["true", "1", "yes"]
 
-
     if "avatar" in request.FILES:
         profile.avatar = request.FILES["avatar"]
 
@@ -336,3 +366,68 @@ def profile_view(request):
             "user": UserSerializer(user).data,
         }
     )
+
+
+@api_view(["POST", "DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    """Permanently delete user account and all associated data."""
+    user = request.user
+    data = _get_request_data(request)
+    password = data.get("password", "")
+
+    if user.has_usable_password():
+        if not password or not user.check_password(password):
+            return Response(
+                {"detail": "Incorrect password. Please verify your current password to delete your account."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    username = user.username
+    logout(request)
+    user.delete()
+
+    return Response(
+        {"message": f"Your account @{username} and profile have been permanently deleted."},
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def social_login(request):
+    """Google and Facebook OAuth token / credential login handler."""
+    data = _get_request_data(request)
+    provider = data.get("provider", "google").lower()
+    email = data.get("email", "").strip()
+    first_name = data.get("first_name", "").strip()
+    last_name = data.get("last_name", "").strip()
+
+    if not email:
+        return Response(
+            {"detail": f"{provider.capitalize()} authentication failed: Email address is required."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    user = User.objects.filter(email__iexact=email).first()
+    if not user:
+        gen_username = _generate_unique_username(last_name, first_name, email)
+        user = User.objects.create_user(
+            username=gen_username,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+        )
+        user.set_unusable_password()
+        user.save()
+        UserProfile.objects.create(user=user, role="both")
+
+    login(request, user)
+
+    return Response(
+        {
+            "message": f"Successfully signed in with {provider.capitalize()}.",
+            "user": UserSerializer(user).data,
+        }
+    )
+
