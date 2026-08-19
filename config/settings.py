@@ -32,10 +32,16 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+
+    'cloudinary',
+    'cloudinary_storage',
+
     'rest_framework',
     'corsheaders',
+
     'core',
     'accounts',
     'marketplace',
@@ -128,11 +134,23 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+    'PREFIX': '',
+}
 
+STORAGES = {
+    'default': {
+        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+    },
+}
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -159,10 +177,7 @@ REST_FRAMEWORK = {
 DEFAULT_CURRENCY = 'LKR'
 
 # PayHere (Sri Lanka's Central Bank Approved Payment Gateway)
-PAYHERE_MERCHANT_ID = os.environ.get('PAYHERE_MERCHANT_ID', '1220000') # Sandbox Merchant ID
-PAYHERE_MERCHANT_SECRET = os.environ.get('PAYHERE_MERCHANT_SECRET', '4OTcyNDk2OTczNDM0MjI2MDM2MDIxMTY3MjI4NDI1')
-PAYHERE_SANDBOX_MODE = os.environ.get('PAYHERE_SANDBOX_MODE', 'True').lower() in ('true', '1', 'yes')
-PAYHERE_CHECKOUT_URL = 'https://sandbox.payhere.lk/pay/checkout' if PAYHERE_SANDBOX_MODE else 'https://www.payhere.lk/pay/checkout'
+
 
 # ============================================================
 # SMS Gateway Configuration (Notify.lk / Twilio / Console)
