@@ -465,7 +465,7 @@
       const ordersSubtitle = document.getElementById('dashboard-orders-subtitle');
       const makerProBanner = document.getElementById('maker-pro-banner');
 
-            if (role === 'buyer') {
+      if (role === 'buyer') {
         activeOrdersTab = 'purchases';
         if (greeting) greeting.textContent = `Welcome to Buyer Hub, ${currentUser.first_name || currentUser.username}!`;
         if (hudLabel) hudLabel.textContent = 'BUYER HUB • SRI LANKA';
@@ -473,7 +473,6 @@
         if (ordersTitle) ordersTitle.innerHTML = '<span class="material-symbols-outlined text-primary">local_shipping</span> My Hardware Orders &amp; Tracking';
         if (ordersSubtitle) ordersSubtitle.textContent = 'Track your package shipments, courier tracking numbers, and view digital blueprint download access.';
         if (makerProBanner) makerProBanner.style.display = 'none';
-
         if (topActions) {
           topActions.innerHTML = `
             <a href="/bounties/" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
@@ -486,14 +485,12 @@
             </a>
           `;
         }
-
       } else if (role === 'seller') {
         activeOrdersTab = 'sales';
         if (greeting) greeting.textContent = `Creator Studio • ${currentUser.first_name || currentUser.username}`;
         if (hudLabel) hudLabel.textContent = 'CREATOR STUDIO • SRI LANKA';
         if (subtitle) subtitle.textContent = 'Manage hardware blueprints, track views, process Sri Lanka shipments, and view order receipts.';
         if (makerProBanner) makerProBanner.style.display = 'block';
-
         if (topActions) {
           topActions.innerHTML = `
             <a href="/create-project/" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
@@ -502,37 +499,12 @@
             </a>
           `;
         }
-
-      } else if (role === 'admin') {
-        // Admin
-        activeOrdersTab = 'sales';
-
-        if (greeting) greeting.textContent = `Welcome, ${currentUser.first_name || currentUser.username}!`;
-        if (hudLabel) hudLabel.textContent = 'ADMIN DASHBOARD • SRI LANKA';
-        if (subtitle) subtitle.textContent = 'Manage IoT HIVE projects, users, orders, and marketplace operations.';
-
-        // Admin should NOT see Maker Pro banner
-        if (makerProBanner) makerProBanner.style.display = 'none';
-
-        if (topActions) {
-          topActions.innerHTML = `
-            <a href="/create-project/" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
-              <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
-              Post Project
-            </a>
-            <a href="/marketplace/" class="btn btn-secondary btn-sm">Marketplace</a>
-          `;
-        }
-
       } else {
-        // Both
-        activeOrdersTab = 'sales';
-
+        // Both or Admin
         if (greeting) greeting.textContent = `Welcome, ${currentUser.first_name || currentUser.username}!`;
         if (hudLabel) hudLabel.textContent = 'CREATOR & BUYER HUB • SRI LANKA';
         if (subtitle) subtitle.textContent = 'Manage your published hardware, track sales revenue, process shipments, and view purchased devices.';
         if (makerProBanner) makerProBanner.style.display = 'block';
-
         if (topActions) {
           topActions.innerHTML = `
             <a href="/create-project/" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
@@ -542,7 +514,9 @@
             <a href="/marketplace/" class="btn btn-secondary btn-sm">Marketplace</a>
           `;
         }
-      } catch (e) {
+      }
+
+    } catch (e) {
       window.location.href = '/login/?next=/dashboard/';
       return;
     }
