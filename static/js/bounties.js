@@ -295,6 +295,8 @@
       const isOwner = currentUser && bounty.client === currentUser.id;
       const isStaff = currentUser && (currentUser.is_staff || currentUser.is_superuser);
       const proposals = bounty.proposals || [];
+      const awardedProposal = proposals.find(p => p.status === 'accepted');
+      const hasAwardedMaker = !!awardedProposal;
 
       // Check if current maker already submitted a proposal or is awarded
       const myProposal = currentUser ? proposals.find(p => p.maker === currentUser.id) : null;
@@ -363,20 +365,47 @@
           </div>
         </div>
 
-        <!-- Status Management Strip for Owner / Awarded Maker -->
+        <!-- Status Management Strip -->
         ${canManageStatus ? `
           <div class="card-cyber" style="padding: 14px 18px; margin-bottom: 20px; background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.2);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
               <div>
                 <span class="text-xs" style="font-family: var(--font-mono); color: var(--primary); font-weight: bold;">STATUS CONTROLS:</span>
-                <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">Update project milestone</span>
+                <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">
+                  ${hasAwardedMaker ? 'Update project milestone' : 'Manage bounty state'}
+                </span>
               </div>
-              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                ${bounty.status !== 'in_progress' ? `<button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'in_progress')" class="btn btn-secondary btn-xs">In Progress</button>` : ''}
-                ${bounty.status !== 'completed' ? `<button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'completed')" class="btn btn-secondary btn-xs">Completed</button>` : ''}
-                ${bounty.status !== 'delivered' ? `<button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'delivered')" class="btn btn-primary btn-xs">Delivered</button>` : ''}
-                ${isOwner && bounty.status !== 'inactive' ? `<button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'inactive')" class="btn btn-ghost btn-xs">Pause (Inactive)</button>` : ''}
-                ${isOwner && bounty.status === 'inactive' ? `<button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'open')" class="btn btn-secondary btn-xs">Reopen</button>` : ''}
+              <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                ${hasAwardedMaker ? `
+                  <button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'in_progress')" class="btn ${bounty.status === 'in_progress' ? 'btn-primary' : 'btn-secondary'} btn-xs" ${bounty.status === 'in_progress' ? 'style="font-weight: 700;"' : ''}>
+                    ${bounty.status === 'in_progress' ? '<span class="material-symbols-outlined" style="font-size: 13px;">check</span> ' : ''}In Progress
+                  </button>
+                  <button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'completed')" class="btn ${bounty.status === 'completed' ? 'btn-primary' : 'btn-secondary'} btn-xs" ${bounty.status === 'completed' ? 'style="font-weight: 700;"' : ''}>
+                    ${bounty.status === 'completed' ? '<span class="material-symbols-outlined" style="font-size: 13px;">check</span> ' : ''}Completed
+                  </button>
+                  <button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'delivered')" class="btn ${bounty.status === 'delivered' ? 'btn-primary' : 'btn-secondary'} btn-xs" ${bounty.status === 'delivered' ? 'style="font-weight: 700;"' : ''}>
+                    ${bounty.status === 'delivered' ? '<span class="material-symbols-outlined" style="font-size: 13px;">check</span> ' : ''}Delivered
+                  </button>
+                  ${isOwner ? `
+                    <button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, '${bounty.status === 'inactive' ? 'in_progress' : 'inactive'}')" class="btn btn-ghost btn-xs">
+                      ${bounty.status === 'inactive' ? 'Resume' : 'Pause'}
+                    </button>
+                  ` : ''}
+                ` : `
+                  ${isOwner ? `
+                    ${bounty.status === 'inactive' ? `
+                      <button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'open')" class="btn btn-secondary btn-xs">
+                        <span class="material-symbols-outlined" style="font-size: 13px;">play_arrow</span> Reopen for Bids
+                      </button>
+                    ` : `
+                      <button type="button" onclick="window.handleUpdateBountyStatus(${bounty.id}, 'inactive')" class="btn btn-ghost btn-xs">
+                        <span class="material-symbols-outlined" style="font-size: 13px;">pause</span> Pause Bounty
+                      </button>
+                    `}
+                  ` : `
+                    <span class="tag-mono" style="font-size: 0.75rem;">Awaiting proposal acceptance</span>
+                  `}
+                `}
               </div>
             </div>
           </div>

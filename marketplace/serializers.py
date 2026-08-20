@@ -399,25 +399,51 @@ class ProjectSerializer(serializers.ModelSerializer):
             print(f"Error processing attachment: {e}")
 
     def create(self, validated_data):
-        image = validated_data.pop("image", None)
-        video_url = validated_data.pop("video_url", None)
-        model_url = validated_data.pop("model_url", None)
-        bom_data = validated_data.pop("bom_data", None) or validated_data.pop("bom_items_data", None)
-        tiers_data = validated_data.pop("tiers_data", None) or validated_data.pop("tiers_list", None)
-        attachment_file = validated_data.pop("attachment_file", None)
-        attachment_title = validated_data.pop("attachment_title", None)
-        attachment_type = validated_data.pop("attachment_type", None)
+        request = self.context.get("request")
+        initial = getattr(self, "initial_data", {}) or {}
+
+        image = validated_data.pop("image", None) or (request.FILES.get("image") if request else None)
+        video_url = validated_data.pop("video_url", None) or initial.get("video_url")
+        model_url = validated_data.pop("model_url", None) or initial.get("model_url")
+        
+        bom_data = (
+            validated_data.pop("bom_data", None)
+            or validated_data.pop("bom_items_data", None)
+            or initial.get("bom_data")
+            or initial.get("bom_items")
+            or initial.get("bom_items_data")
+        )
+        tiers_data = (
+            validated_data.pop("tiers_data", None)
+            or validated_data.pop("tiers_list", None)
+            or initial.get("tiers_data")
+            or initial.get("tiers")
+            or initial.get("tiers_list")
+        )
+        attachment_file = (
+            validated_data.pop("attachment_file", None)
+            or initial.get("attachment_file")
+            or (request.FILES.get("attachment_file") if request else None)
+        )
+        attachment_title = (
+            validated_data.pop("attachment_title", None)
+            or initial.get("attachment_title")
+        )
+        attachment_type = (
+            validated_data.pop("attachment_type", None)
+            or initial.get("attachment_type")
+        )
 
         project = Project.objects.create(**validated_data)
 
         if image:
             ProjectImage.objects.create(project=project, image=image)
 
-        if video_url:
-            ProjectVideo.objects.create(project=project, video_url=video_url)
+        if video_url and str(video_url).strip():
+            ProjectVideo.objects.create(project=project, video_url=str(video_url).strip())
 
-        if model_url:
-            ProjectModel3D.objects.create(project=project, model_url=model_url)
+        if model_url and str(model_url).strip():
+            ProjectModel3D.objects.create(project=project, model_url=str(model_url).strip())
 
         if attachment_file:
             self._process_attachment(project, attachment_file, attachment_title, attachment_type)
@@ -442,14 +468,40 @@ class ProjectSerializer(serializers.ModelSerializer):
         return project
 
     def update(self, instance, validated_data):
-        image = validated_data.pop("image", None)
-        video_url = validated_data.pop("video_url", None)
-        model_url = validated_data.pop("model_url", None)
-        bom_data = validated_data.pop("bom_data", None) or validated_data.pop("bom_items_data", None)
-        tiers_data = validated_data.pop("tiers_data", None) or validated_data.pop("tiers_list", None)
-        attachment_file = validated_data.pop("attachment_file", None)
-        attachment_title = validated_data.pop("attachment_title", None)
-        attachment_type = validated_data.pop("attachment_type", None)
+        request = self.context.get("request")
+        initial = getattr(self, "initial_data", {}) or {}
+
+        image = validated_data.pop("image", None) or (request.FILES.get("image") if request else None)
+        video_url = validated_data.pop("video_url", None) or initial.get("video_url")
+        model_url = validated_data.pop("model_url", None) or initial.get("model_url")
+        
+        bom_data = (
+            validated_data.pop("bom_data", None)
+            or validated_data.pop("bom_items_data", None)
+            or initial.get("bom_data")
+            or initial.get("bom_items")
+            or initial.get("bom_items_data")
+        )
+        tiers_data = (
+            validated_data.pop("tiers_data", None)
+            or validated_data.pop("tiers_list", None)
+            or initial.get("tiers_data")
+            or initial.get("tiers")
+            or initial.get("tiers_list")
+        )
+        attachment_file = (
+            validated_data.pop("attachment_file", None)
+            or initial.get("attachment_file")
+            or (request.FILES.get("attachment_file") if request else None)
+        )
+        attachment_title = (
+            validated_data.pop("attachment_title", None)
+            or initial.get("attachment_title")
+        )
+        attachment_type = (
+            validated_data.pop("attachment_type", None)
+            or initial.get("attachment_type")
+        )
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -459,14 +511,14 @@ class ProjectSerializer(serializers.ModelSerializer):
             ProjectImage.objects.create(project=instance, image=image)
 
         if video_url is not None:
-            if video_url.strip():
-                ProjectVideo.objects.update_or_create(project=instance, defaults={"video_url": video_url})
+            if str(video_url).strip():
+                ProjectVideo.objects.update_or_create(project=instance, defaults={"video_url": str(video_url).strip()})
             else:
                 ProjectVideo.objects.filter(project=instance).delete()
 
         if model_url is not None:
-            if model_url.strip():
-                ProjectModel3D.objects.update_or_create(project=instance, defaults={"model_url": model_url})
+            if str(model_url).strip():
+                ProjectModel3D.objects.update_or_create(project=instance, defaults={"model_url": str(model_url).strip()})
             else:
                 ProjectModel3D.objects.filter(project=instance).delete()
 
@@ -483,11 +535,14 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    project = ProjectSerializer(read_only=True)
+    project = ProjectListSerializer(read_only=True)
+    project_details = ProjectListSerializer(source="project", read_only=True)
+    project_id = serializers.IntegerField(source="project.id", read_only=True)
 
     class Meta:
         model = Favorite
-        fields = ["id", "project", "created_at"]
+        fields = ["id", "project", "project_id", "project_details", "created_at"]
+
 
 
 class ProjectRequestSerializer(serializers.ModelSerializer):

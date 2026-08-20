@@ -47,38 +47,47 @@
       }
 
       grid.innerHTML = favs.map(fav => {
-        const project = fav.project_details || {};
-        const img = project.images?.[0]?.image ? api.resolveUrl(project.images[0].image) : '';
-        const price = project.is_free ? 'Free' : `$${Number(project.price || 0).toFixed(2)}`;
+        const project = (fav.project_details && typeof fav.project_details === 'object')
+          ? fav.project_details
+          : ((fav.project && typeof fav.project === 'object') ? fav.project : {});
+
+        const pId = project.id || fav.project_id || (typeof fav.project === 'number' ? fav.project : null);
+        const pTitle = project.title || 'Hardware Build';
+        const pCategory = project.category_name || 'Hardware';
+        const pDesc = project.short_description || 'Smart electronics blueprint and circuit design.';
+        const pImages = project.images || [];
+        const img = pImages[0]?.image ? api.resolveUrl(pImages[0].image) : '';
+        const rawPrice = project.price || 0;
+        const price = project.is_free ? 'Free' : `Rs. ${Number(rawPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
         return `
           <div class="card-cyber" style="display: flex; flex-direction: column;">
-            <div style="position: relative; height: 180px; background: #000; border-radius: 6px; overflow: hidden; cursor: pointer;" onclick="location.href='/project/${project.id || fav.project}/'">
+            <div style="position: relative; height: 180px; background: #000; border-radius: 6px; overflow: hidden; cursor: pointer;" onclick="location.href='/project/${pId}/'">
               ${img
-                ? `<img src="${img}" alt="${auth.escapeHtml(project.title || 'Project')}" style="width: 100%; height: 100%; object-fit: cover;">`
+                ? `<img src="${img}" alt="${auth.escapeHtml(pTitle)}" style="width: 100%; height: 100%; object-fit: cover;">`
                 : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:var(--bg-surface-high); color:var(--text-muted);"><span class="material-symbols-outlined" style="font-size:40px; color:var(--primary);">memory</span></div>`
               }
               <div class="tag-mono" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.75); padding: 4px 8px; border-radius: 4px;">
-                ${auth.escapeHtml(project.category_name || 'Hardware')}
+                ${auth.escapeHtml(pCategory)}
               </div>
             </div>
 
             <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
               <div>
                 <h3 style="font-size: 1.05rem; margin-bottom: 6px; line-height: 1.3;">
-                  <a href="/project/${project.id || fav.project}/" style="color: var(--text-primary); text-decoration: none;">
-                    ${auth.escapeHtml(project.title || 'Untitled Project')}
+                  <a href="/project/${pId}/" style="color: var(--text-primary); text-decoration: none;">
+                    ${auth.escapeHtml(pTitle)}
                   </a>
                 </h3>
                 <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.4; margin-bottom: 12px;">
-                  ${auth.escapeHtml(project.short_description || '')}
+                  ${auth.escapeHtml(pDesc)}
                 </p>
               </div>
 
               <div class="flex items-center justify-between" style="border-top: 1px solid var(--border-subtle); padding-top: 12px; margin-top: auto;">
-                <span class="font-bold font-mono text-primary">${price}</span>
+                <span class="font-bold font-mono" style="color: var(--primary); font-size: 1.05rem;">${price}</span>
                 <div class="flex items-center gap-2">
-                  <a href="/project/${project.id || fav.project}/" class="btn btn-secondary btn-sm">View</a>
+                  <a href="/project/${pId}/" class="btn btn-secondary btn-sm">View</a>
                   <button class="btn btn-ghost btn-sm" onclick="window.removeFavorite(${fav.id})" title="Remove from favorites" style="color: var(--status-warning);">
                     <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                   </button>

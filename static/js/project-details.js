@@ -34,10 +34,11 @@
 
   function getYouTubeEmbedUrl(url) {
     if (!url) return null;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = String(url).match(regExp);
     if (match && match[2].length === 11) {
-      return `https://www.youtube-nocookie.com/embed/${match[2]}`;
+      const origin = window.location.origin || '';
+      return `https://www.youtube.com/embed/${match[2]}?rel=0&modestbranding=1&origin=${encodeURIComponent(origin)}`;
     }
     return url.includes('embed/') ? url : null;
   }
@@ -702,9 +703,20 @@
 
           ${embedUrl ? `
             <div style="margin-bottom: 24px;">
-              <h4 style="font-size: 0.95rem; margin-bottom: 8px; color: var(--text-muted); font-family: var(--font-mono);">VIDEO WALKTHROUGH</h4>
-              <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; border: 1px solid var(--border-medium);">
-                <iframe src="${auth.escapeHtml(embedUrl)}" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h4 style="font-size: 0.95rem; margin: 0; color: var(--text-muted); font-family: var(--font-mono);">VIDEO WALKTHROUGH</h4>
+                ${rawVid ? `
+                  <a href="${auth.escapeHtml(rawVid)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-xs" style="display: inline-flex; align-items: center; gap: 4px; color: #ff5357;">
+                    <span class="material-symbols-outlined" style="font-size: 14px;">smart_display</span> Watch on YouTube &rarr;
+                  </a>
+                ` : ''}
+              </div>
+              <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; border: 1px solid var(--border-medium); background: #000;">
+                <iframe src="${auth.escapeHtml(embedUrl)}" 
+                        style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border:0;" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen
+                        referrerpolicy="strict-origin-when-cross-origin"></iframe>
               </div>
             </div>
           ` : ''}

@@ -201,7 +201,8 @@
         });
       }
     });
-    formData.append('bom_items', JSON.stringify(bomItems));
+    formData.set('bom_data', JSON.stringify(bomItems));
+    formData.set('bom_items', JSON.stringify(bomItems));
 
     // Collect Multi-Tier Offerings
     const tiers = [];
@@ -246,7 +247,8 @@
       });
     }
 
-    formData.append('tiers', JSON.stringify(tiers));
+    formData.set('tiers_data', JSON.stringify(tiers));
+    formData.set('tiers', JSON.stringify(tiers));
 
     try {
       let result;

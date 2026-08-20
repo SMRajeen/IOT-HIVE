@@ -465,7 +465,27 @@
       const ordersSubtitle = document.getElementById('dashboard-orders-subtitle');
       const makerProBanner = document.getElementById('maker-pro-banner');
 
-      if (role === 'buyer') {
+      const isAdmin = currentUser.is_staff || currentUser.is_superuser || currentUser.role === 'admin';
+
+      if (isAdmin) {
+        activeOrdersTab = 'sales';
+        if (greeting) greeting.textContent = `Administrator Dashboard • ${currentUser.first_name || currentUser.username}`;
+        if (hudLabel) hudLabel.textContent = 'ADMIN & CREATOR HUB • SRI LANKA';
+        if (subtitle) subtitle.textContent = 'Manage hardware blueprints, review system operations, track shipments, and view order receipts.';
+        if (makerProBanner) makerProBanner.style.display = 'none';
+        if (topActions) {
+          topActions.innerHTML = `
+            <a href="/admin-panel/" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; color: #00ff88; border-color: rgba(0, 255, 136, 0.35);">
+              <span class="material-symbols-outlined" style="font-size: 18px;">admin_panel_settings</span>
+              Admin Panel
+            </a>
+            <a href="/create-project/" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+              <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+              Post Project
+            </a>
+          `;
+        }
+      } else if (role === 'buyer') {
         activeOrdersTab = 'purchases';
         if (greeting) greeting.textContent = `Welcome to Buyer Hub, ${currentUser.first_name || currentUser.username}!`;
         if (hudLabel) hudLabel.textContent = 'BUYER HUB • SRI LANKA';
@@ -500,7 +520,7 @@
           `;
         }
       } else {
-        // Both or Admin
+        // Both (Buyer & Seller)
         if (greeting) greeting.textContent = `Welcome, ${currentUser.first_name || currentUser.username}!`;
         if (hudLabel) hudLabel.textContent = 'CREATOR & BUYER HUB • SRI LANKA';
         if (subtitle) subtitle.textContent = 'Manage your published hardware, track sales revenue, process shipments, and view purchased devices.';
