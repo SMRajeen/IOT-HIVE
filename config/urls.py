@@ -34,10 +34,15 @@ urlpatterns = [
     path("register/", core_views.register_view, name="register"),
     path("admin-panel/", core_views.admin_panel_view, name="admin-panel"),
     path("privacy-policy/", core_views.privacy_policy_view, name="privacy-policy"),
+    path("promo/", core_views.promo_view, name="promo"),
 ]
 
+from django.urls import re_path
+from django.views.static import serve
+
 if settings.DEBUG:
-    urlpatterns += static(
-        settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT
-    )
+    urlpatterns += [
+        re_path(r'^projects/(?P<path>.*)$', serve, {'document_root': settings.BASE_DIR / 'projects'}),
+        re_path(r'^profiles/(?P<path>.*)$', serve, {'document_root': settings.BASE_DIR / 'profiles'}),
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.BASE_DIR / 'media'}),
+    ]

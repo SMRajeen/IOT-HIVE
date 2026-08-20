@@ -1,0 +1,1112 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+
+{% block title %}IoT HIVE - Cinematic Commercial &amp; Social Video Studio{% endblock %}
+
+{% block extra_css %}
+<style>
+  .promo-studio-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 30px 20px 80px;
+  }
+
+  .studio-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .studio-header h1 {
+    font-size: 2.3rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #00ff88 0%, #00e5ff 50%, #ffffff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .stage-outer-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .canvas-stage-wrapper {
+    position: relative;
+    background: #060913;
+    border: 1px solid rgba(0, 229, 255, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(0, 229, 255, 0.15);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .aspect-16-9 {
+    width: 100%;
+    max-width: 980px;
+    aspect-ratio: 16 / 9;
+  }
+
+  .aspect-9-16 {
+    width: 100%;
+    max-width: 440px;
+    aspect-ratio: 9 / 16;
+  }
+
+  .aspect-1-1 {
+    width: 100%;
+    max-width: 620px;
+    aspect-ratio: 1 / 1;
+  }
+
+  #commercial-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: pointer;
+  }
+
+  /* Control Panel */
+  .studio-controls-bar {
+    background: var(--bg-surface-container);
+    border: 1px solid var(--border-medium);
+    border-radius: 16px;
+    padding: 18px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 36px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .timeline-bar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .timeline-slider {
+    flex: 1;
+    accent-color: var(--primary);
+    cursor: pointer;
+    height: 6px;
+  }
+
+  .scene-pill-group {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .scene-pill {
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    border-radius: 20px;
+    background: var(--bg-surface-high);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .scene-pill.active, .scene-pill:hover {
+    background: rgba(0, 229, 255, 0.15);
+    border-color: var(--primary);
+    color: var(--primary);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+  }
+
+  .voiceover-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    color: #00ff88;
+  }
+
+  .voice-wave {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 12px;
+  }
+
+  .voice-wave span {
+    display: block;
+    width: 2px;
+    height: 100%;
+    background: #00ff88;
+    border-radius: 1px;
+    animation: waveBounce 0.8s infinite ease-in-out;
+  }
+  .voice-wave span:nth-child(2) { animation-delay: 0.15s; height: 60%; }
+  .voice-wave span:nth-child(3) { animation-delay: 0.3s; height: 80%; }
+  .voice-wave span:nth-child(4) { animation-delay: 0.45s; height: 40%; }
+
+  @keyframes waveBounce {
+    0%, 100% { transform: scaleY(0.3); }
+    50% { transform: scaleY(1); }
+  }
+
+  .record-pulse {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: #ff0055;
+    border-radius: 50%;
+    animation: recordBlink 1s infinite;
+  }
+
+  @keyframes recordBlink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.8); }
+  }
+
+  .asset-card {
+    background: var(--bg-surface-container);
+    border: 1px solid var(--border-medium);
+    border-radius: 14px;
+    padding: 20px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .asset-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="promo-studio-container">
+  
+  <div class="studio-header">
+    <div class="tag-mono" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; background: rgba(0, 229, 255, 0.1); border-color: rgba(0, 229, 255, 0.3); color: var(--primary);">
+      <span class="material-symbols-outlined" style="font-size: 16px;">smart_toy</span>
+      AI FEMALE VOICE &bull; LIVE INTERACTIVE WEBSITE COMMERCIAL
+    </div>
+    <h1>IoT HIVE Commercial Video Creator</h1>
+    <p style="color: var(--text-muted); max-width: 720px; margin: 0 auto; font-size: 0.95rem;">
+      High-converting video ad featuring real website simulation, interactive cursor clicks, dynamic Bill of Materials breakdown, and synced AI female voice narration.
+    </p>
+  </div>
+
+  <!-- Stage -->
+  <div class="stage-outer-wrap">
+    <div id="stage-wrapper" class="canvas-stage-wrapper aspect-16-9">
+      <canvas id="commercial-canvas" width="1920" height="1080"></canvas>
+    </div>
+  </div>
+
+  <!-- Studio Controls -->
+  <div class="studio-controls-bar">
+    
+    <!-- Timeline & Playback -->
+    <div class="timeline-bar-wrapper">
+      <button id="btn-play-pause" class="btn btn-primary btn-sm" style="min-width: 110px; justify-content: center;">
+        <span class="material-symbols-outlined" id="play-icon" style="font-size: 18px;">play_arrow</span>
+        <span id="play-text">Play Video</span>
+      </button>
+      
+      <input type="range" id="timeline-slider" class="timeline-slider" min="0" max="42" step="0.05" value="0">
+      
+      <span id="time-display" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted); min-width: 90px; text-align: right;">
+        00:00 / 00:42
+      </span>
+
+      <!-- Voiceover indicator -->
+      <div class="voiceover-status-badge">
+        <div class="voice-wave" id="voice-wave-anim">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <span id="voice-status-text">Female Voice Ready</span>
+      </div>
+    </div>
+
+    <!-- Scene Selector Pills -->
+    <div class="scene-pill-group">
+      <button class="scene-pill active" onclick="window.seekToScene(0)">1. The Problem (0s)</button>
+      <button class="scene-pill" onclick="window.seekToScene(8)">2. The Solution (8s)</button>
+      <button class="scene-pill" onclick="window.seekToScene(16)">3. Live BOM &amp; Tiers (16s)</button>
+      <button class="scene-pill" onclick="window.seekToScene(26)">4. Bounties &amp; Chat (26s)</button>
+      <button class="scene-pill" onclick="window.seekToScene(34)">5. CTA Outro (34s)</button>
+    </div>
+
+    <!-- Format & Recording Options -->
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+      
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <!-- Format Picker -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono);">ASPECT:</span>
+          <select id="format-select" class="input-cyber" style="padding: 5px 10px; font-size: 0.82rem; background: var(--bg-surface-high);">
+            <option value="16-9">16:9 Landscape (YouTube / LinkedIn / Twitter)</option>
+            <option value="9-16">9:16 Vertical Reel (Instagram / TikTok / Shorts)</option>
+            <option value="1-1">1:1 Square (Instagram Feed / FB)</option>
+          </select>
+        </div>
+
+        <!-- Voice Switcher / Preview -->
+        <button id="btn-test-voice" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 5px 12px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">record_voice_over</span>
+          Test Female Voice
+        </button>
+      </div>
+
+      <!-- 1-Click Video Recording -->
+      <button id="btn-record-video" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #ff0055, #ff5500); border: none; box-shadow: 0 0 20px rgba(255, 0, 85, 0.4); padding: 8px 18px;">
+        <span class="material-symbols-outlined" style="font-size: 18px;">videocam</span>
+        <span id="record-btn-label">Record &amp; Download Video File</span>
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- Script & Transcript Breakdown -->
+  <div class="card-cyber" style="padding: 24px; background: var(--bg-surface-container); border-radius: 14px; margin-bottom: 30px;">
+    <h3 style="font-size: 1.15rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--primary);">
+      <span class="material-symbols-outlined">script</span>
+      Commercial Narration Script (42 Seconds)
+    </h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; font-size: 0.85rem;">
+      <div style="padding: 12px; background: var(--bg-surface-low); border-radius: 8px; border-left: 3px solid #ff0055;">
+        <strong style="color: #ff0055; font-family: var(--font-mono);">0:00 - 0:08 (The Problem)</strong>
+        <p style="margin: 4px 0 0; color: var(--text-secondary);">"Have you ever spent weeks building an IoT project, only to get stuck on messy schematics, missing parts lists, or unverified code?"</p>
+      </div>
+      <div style="padding: 12px; background: var(--bg-surface-low); border-radius: 8px; border-left: 3px solid #00ff88;">
+        <strong style="color: #00ff88; font-family: var(--font-mono);">0:08 - 0:16 (The Solution)</strong>
+        <p style="margin: 4px 0 0; color: var(--text-secondary);">"Meet IoT HIVE — the hardware marketplace where verified makers share production-ready blueprints, schematics, and firmware."</p>
+      </div>
+      <div style="padding: 12px; background: var(--bg-surface-low); border-radius: 8px; border-left: 3px solid #00e5ff;">
+        <strong style="color: #00e5ff; font-family: var(--font-mono);">0:16 - 0:26 (Live Interaction)</strong>
+        <p style="margin: 4px 0 0; color: var(--text-secondary);">"Inspect the interactive Bill of Materials with live pricing in Rupees, download Gerber files, or order an assembled unit with 100% Escrow Protection."</p>
+      </div>
+      <div style="padding: 12px; background: var(--bg-surface-low); border-radius: 8px; border-left: 3px solid #ffb700;">
+        <strong style="color: #ffb700; font-family: var(--font-mono);">0:26 - 0:34 (Bounties)</strong>
+        <p style="margin: 4px 0 0; color: var(--text-secondary);">"Need custom engineering? Post a hardware bounty and connect directly with top electronics makers through secure real-time messaging."</p>
+      </div>
+      <div style="padding: 12px; background: var(--bg-surface-low); border-radius: 8px; border-left: 3px solid #00ff88;">
+        <strong style="color: #00ff88; font-family: var(--font-mono);">0:34 - 0:42 (Call to Action)</strong>
+        <p style="margin: 4px 0 0; color: var(--text-secondary);">"Stop building from scratch. Visit iot-hive.onrender.com and launch your next hardware innovation today!"</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Static Marketing Artwork Assets -->
+  <div>
+    <h3 style="font-size: 1.15rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
+      <span class="material-symbols-outlined">perm_media</span>
+      Downloadable Promotional Graphics
+    </h3>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+      <div class="asset-card">
+        <div style="aspect-ratio: 16/9; background: #0c1020; border-radius: 8px; overflow: hidden; margin-bottom: 12px;">
+          <img src="/static/images/hero_robot.png" onerror="this.src='/static/images/favicon.png'" alt="IoT HIVE Banner" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <strong style="font-size: 0.92rem; color: var(--text-primary); display: block; margin-bottom: 4px;">Landscape 4K Promo Banner (16:9)</strong>
+        <a href="/static/images/hero_robot.png" download="IoT-HIVE-Banner-16x9.png" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: center;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">download</span> Download Banner
+        </a>
+      </div>
+
+      <div class="asset-card">
+        <div style="aspect-ratio: 16/9; background: #0c1020; border-radius: 8px; overflow: hidden; margin-bottom: 12px;">
+          <video src="/static/images/hero-robot.mp4" autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+        </div>
+        <strong style="font-size: 0.92rem; color: var(--text-primary); display: block; margin-bottom: 4px;">Hardware 3D Cyber Motion (MP4)</strong>
+        <a href="/static/images/hero-robot.mp4" download="IoT-HIVE-Cyber-Hero.mp4" class="btn btn-primary btn-sm" style="width: 100%; justify-content: center;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">download</span> Download MP4 Clip
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(() => {
+  'use strict';
+
+  const canvas = document.getElementById('commercial-canvas');
+  const ctx = canvas.getContext('2d');
+  const stageWrapper = document.getElementById('stage-wrapper');
+  const playBtn = document.getElementById('btn-play-pause');
+  const playIcon = document.getElementById('play-icon');
+  const playText = document.getElementById('play-text');
+  const timelineSlider = document.getElementById('timeline-slider');
+  const timeDisplay = document.getElementById('time-display');
+  const formatSelect = document.getElementById('format-select');
+  const recordBtn = document.getElementById('btn-record-video');
+  const testVoiceBtn = document.getElementById('btn-test-voice');
+  const voiceStatusText = document.getElementById('voice-status-text');
+  const voiceWaveAnim = document.getElementById('voice-wave-anim');
+
+  const TOTAL_DURATION = 42; // 42 seconds commercial
+  let currentTime = 0;
+  let isPlaying = false;
+  let isRecording = false;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let audioContext = null;
+  let synthGain = null;
+
+  // Commercial Script Segments with Timestamps
+  const scriptSegments = [
+    { start: 0, end: 8, text: "Have you ever spent weeks trying to build an IoT project, only to get stuck on messy schematics, missing component lists, or unverified code?", scene: 1 },
+    { start: 8, end: 16, text: "Meet IoT HIVE — the premier hardware and smart electronics community marketplace. Where verified makers share production-ready blueprints, schematics, and firmware.", scene: 2 },
+    { start: 16, end: 26, text: "Let's explore a project! With one click, inspect the full interactive Bill of Materials with live pricing in Sri Lankan Rupees, download Gerber files, or order an assembled unit with 100% Escrow Protection.", scene: 3 },
+    { start: 26, end: 34, text: "Need custom engineering? Post a hardware bounty and connect directly with top makers through secure real-time messaging.", scene: 4 },
+    { start: 34, end: 42, text: "Stop building from scratch. Visit iot-hive.onrender.com and launch your next hardware innovation today!", scene: 5 }
+  ];
+
+  let currentSegmentIndex = -1;
+
+  // Female Voice Synthesis Engine
+  let synth = window.speechSynthesis;
+  let selectedVoice = null;
+
+  function loadBestFemaleVoice() {
+    if (!synth) return;
+    const voices = synth.getVoices();
+    // Prioritize natural female voices
+    selectedVoice = voices.find(v => (v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Jenny') || v.name.includes('Aria') || v.name.includes('Google US English')) && v.lang.startsWith('en'))
+      || voices.find(v => v.lang.startsWith('en') && !v.name.includes('Male') && !v.name.includes('David'))
+      || voices[0];
+    
+    if (selectedVoice) {
+      voiceStatusText.textContent = `Voice: ${selectedVoice.name.substring(0, 16)}`;
+    }
+  }
+
+  if (synth) {
+    loadBestFemaleVoice();
+    if (synth.onvoiceschanged !== undefined) {
+      synth.onvoiceschanged = loadBestFemaleVoice;
+    }
+  }
+
+  function speakNarration(text) {
+    if (!synth) return;
+    synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    if (selectedVoice) utterance.voice = selectedVoice;
+    utterance.rate = 1.05;
+    utterance.pitch = 1.15; // Pleasant natural female pitch
+    synth.speak(utterance);
+  }
+
+  testVoiceBtn.addEventListener('click', () => {
+    speakNarration("Hello! Welcome to IoT HIVE. Where hardware makers build, share, and monetize smart electronics.");
+  });
+
+  // Cyber Synth Background Ambience
+  function initAudioSynth() {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      synthGain = audioContext.createGain();
+      synthGain.gain.setValueAtTime(0.04, audioContext.currentTime);
+      synthGain.connect(audioContext.destination);
+    }
+  }
+
+  function playSynthChord(freq = 220, dur = 1.2) {
+    if (!audioContext || audioContext.state !== 'running') return;
+    try {
+      const osc = audioContext.createOscillator();
+      const g = audioContext.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+      g.gain.setValueAtTime(0.04, audioContext.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + dur);
+      osc.connect(g);
+      g.connect(synthGain);
+      osc.start();
+      osc.stop(audioContext.currentTime + dur);
+    } catch(e) {}
+  }
+
+  // Simulated Mouse Cursor State
+  const cursor = { x: 960, y: 540, targetX: 960, targetY: 540, clickAnim: 0 };
+
+  // Aspect Ratio Switcher
+  formatSelect.addEventListener('change', (e) => {
+    const val = e.target.value;
+    stageWrapper.className = `canvas-stage-wrapper aspect-${val}`;
+    if (val === '16-9') {
+      canvas.width = 1920;
+      canvas.height = 1080;
+    } else if (val === '9-16') {
+      canvas.width = 1080;
+      canvas.height = 1920;
+    } else {
+      canvas.width = 1080;
+      canvas.height = 1080;
+    }
+  });
+
+  // Scene Seeker
+  window.seekToScene = (time) => {
+    currentTime = time;
+    timelineSlider.value = time;
+    currentSegmentIndex = -1;
+    updatePills(time);
+    if (isPlaying) {
+      triggerSegmentVoice(time);
+    }
+  };
+
+  function updatePills(t) {
+    const pills = document.querySelectorAll('.scene-pill');
+    const bounds = [0, 8, 16, 26, 34, 42];
+    pills.forEach((p, idx) => {
+      if (t >= bounds[idx] && t < bounds[idx + 1]) {
+        p.classList.add('active');
+      } else {
+        p.classList.remove('active');
+      }
+    });
+  }
+
+  function triggerSegmentVoice(t) {
+    const segIdx = scriptSegments.findIndex(s => t >= s.start && t < s.end);
+    if (segIdx !== -1 && segIdx !== currentSegmentIndex) {
+      currentSegmentIndex = segIdx;
+      speakNarration(scriptSegments[segIdx].text);
+      playSynthChord(220 + segIdx * 55, 1.5);
+    }
+  }
+
+  // ============================================================
+  // DRAWING ENGINE
+  // ============================================================
+  function renderFrame(t) {
+    const w = canvas.width;
+    const h = canvas.height;
+    const isVertical = h > w;
+
+    // Background Canvas Fill
+    ctx.fillStyle = '#060913';
+    ctx.fillRect(0, 0, w, h);
+
+    // Subtle Cyber Grid
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.06)';
+    ctx.lineWidth = 1;
+    const gs = 50;
+    const offsetY = (t * 25) % gs;
+    for (let x = 0; x < w; x += gs) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    for (let y = offsetY; y < h; y += gs) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+
+    // Top Brand Bar Simulation
+    drawSimulatedHeader(w, h, t);
+
+    // ========================================================
+    // SCENE 1: THE PROBLEM (0s - 8s)
+    // ========================================================
+    if (t < 8) {
+      // Frustrated Hardware Development Scenario
+      const alertPulse = Math.sin(t * 6) * 0.15 + 0.85;
+      
+      // Warning Glow Box
+      ctx.save();
+      const boxW = Math.min(w * 0.85, 1000);
+      const boxH = 420 * (h / 1080);
+      const bx = (w - boxW) / 2;
+      const by = h * 0.28;
+
+      ctx.fillStyle = 'rgba(255, 0, 85, 0.08)';
+      ctx.strokeStyle = `rgba(255, 0, 85, ${alertPulse})`;
+      ctx.lineWidth = 2;
+      roundRect(ctx, bx, by, boxW, boxH, 18, true, true);
+
+      // Warning Icon
+      ctx.font = `${64 * (w / 1920)}px system-ui`;
+      ctx.textAlign = 'center';
+      ctx.fillText('⚠️', w / 2, by + 85);
+
+      // Main Headline
+      ctx.font = `800 ${44 * (w / 1920)}px system-ui, sans-serif`;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('HARDWARE DEVELOPMENT IS HARD', w / 2, by + 160);
+
+      // Problem Bullets
+      const issues = [
+        '❌ Broken schematics and untested Gerber files',
+        '❌ Missing component lists and supplier pricing',
+        '❌ Unreliable freelancer deliveries without escrow protection'
+      ];
+      ctx.font = `500 ${22 * (w / 1920)}px system-ui, sans-serif`;
+      ctx.fillStyle = 'rgba(255, 200, 200, 0.9)';
+      issues.forEach((iss, i) => {
+        ctx.fillText(iss, w / 2, by + 225 + (i * 42));
+      });
+
+      // Cursor roaming aimlessly in confusion
+      cursor.targetX = w / 2 + Math.sin(t * 3) * 200;
+      cursor.targetY = by + 200 + Math.cos(t * 2) * 80;
+      ctx.restore();
+    }
+
+    // ========================================================
+    // SCENE 2: THE BREAKTHROUGH SOLUTION (8s - 16s)
+    // ========================================================
+    else if (t >= 8 && t < 16) {
+      const localT = t - 8;
+      ctx.save();
+      
+      // Hexagonal Glowing Logo
+      drawHexagon(w / 2, h * 0.26, 75 * (w / 1920), 'rgba(0, 255, 136, 0.2)', '#00ff88', localT * 0.5);
+      ctx.font = `bold ${36 * (w / 1920)}px monospace`;
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.fillText('⬢', w / 2, h * 0.26 + 12);
+
+      // Headline
+      ctx.font = `900 ${56 * (w / 1920)}px system-ui, sans-serif`;
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = '#00e5ff';
+      ctx.shadowBlur = 25;
+      ctx.fillText('IoT HIVE', w / 2, h * 0.38);
+
+      ctx.shadowBlur = 0;
+      ctx.font = `600 ${26 * (w / 1920)}px system-ui, sans-serif`;
+      ctx.fillStyle = '#00ff88';
+      ctx.fillText('THE HARDWARE & ELECTRONICS COMMUNITY MARKETPLACE', w / 2, h * 0.44);
+
+      // Feature Badges
+      const badges = [
+        { title: 'KiCad & Gerber Schematics', icon: '📐' },
+        { title: 'Verified Maker Code', icon: '⚡' },
+        { title: 'Sri Lanka Escrow Protection', icon: '🛡️' }
+      ];
+
+      const bW = 340 * (w / 1920);
+      const bH = 140 * (h / 1080);
+      badges.forEach((bg, idx) => {
+        const cx = (w / 2) + (idx - 1) * (bW + 30);
+        const cy = h * 0.65;
+        ctx.fillStyle = 'rgba(10, 25, 45, 0.85)';
+        ctx.strokeStyle = idx === 1 ? '#00ff88' : '#00e5ff';
+        ctx.lineWidth = 2;
+        roundRect(ctx, cx - bW / 2, cy - bH / 2, bW, bH, 14, true, true);
+
+        ctx.font = `${32 * (w / 1920)}px system-ui`;
+        ctx.fillText(bg.icon, cx, cy - 15);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${18 * (w / 1920)}px system-ui`;
+        ctx.fillText(bg.title, cx, cy + 28);
+      });
+
+      // Cursor moving to 'Explore Marketplace' button
+      cursor.targetX = w / 2;
+      cursor.targetY = h * 0.85;
+      drawSimulatedButton(ctx, w / 2, h * 0.85, 260 * (w / 1920), 54 * (h / 1080), 'Explore Marketplace →', '#00e5ff', true);
+      ctx.restore();
+    }
+
+    // ========================================================
+    // SCENE 3: LIVE INTERACTION - BOM & MULTI-TIERS (16s - 26s)
+    // ========================================================
+    else if (t >= 16 && t < 26) {
+      const localT = t - 16;
+      ctx.save();
+
+      // Top Simulated Project Header
+      ctx.font = `800 ${36 * (w / 1920)}px system-ui, sans-serif`;
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'left';
+      const startX = w * 0.1;
+      ctx.fillText('ESP32 Autonomous Indoor Smart Garden System', startX, h * 0.18);
+
+      ctx.font = `500 ${18 * (w / 1920)}px monospace`;
+      ctx.fillStyle = '#00ff88';
+      ctx.fillText('✓ Verified Maker • Category: Smart Agriculture • Microcontroller: ESP32-WROOM-32D', startX, h * 0.22);
+
+      // Active Tabs Bar
+      const tabs = ['Overview', 'Bill of Materials (6)', 'Firmware & Code', 'Blueprints & Files (3)'];
+      const activeTabIdx = localT < 5 ? 1 : 3;
+      tabs.forEach((tb, i) => {
+        const tabX = startX + (i * 190 * (w / 1920));
+        const tabY = h * 0.28;
+        const isActive = i === activeTabIdx;
+        ctx.fillStyle = isActive ? 'rgba(0, 229, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)';
+        ctx.strokeStyle = isActive ? '#00e5ff' : 'transparent';
+        ctx.lineWidth = 1.5;
+        roundRect(ctx, tabX, tabY, 175 * (w / 1920), 38 * (h / 1080), 8, true, true);
+        ctx.fillStyle = isActive ? '#00e5ff' : 'rgba(255, 255, 255, 0.6)';
+        ctx.font = `600 ${14 * (w / 1920)}px system-ui`;
+        ctx.textAlign = 'center';
+        ctx.fillText(tb, tabX + (87 * (w / 1920)), tabY + (24 * (h / 1080)));
+      });
+
+      // Left Column: Interactive BOM Table Simulation
+      const tableW = w * 0.52;
+      const tableH = 440 * (h / 1080);
+      const tableX = startX;
+      const tableY = h * 0.35;
+
+      ctx.fillStyle = 'rgba(12, 18, 30, 0.9)';
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.3)';
+      roundRect(ctx, tableX, tableY, tableW, tableH, 12, true, true);
+
+      // Table Headers
+      ctx.fillStyle = 'rgba(0, 229, 255, 0.15)';
+      roundRect(ctx, tableX, tableY, tableW, 40 * (h / 1080), 12, true, false);
+      ctx.font = `bold ${14 * (w / 1920)}px monospace`;
+      ctx.fillStyle = '#00e5ff';
+      ctx.textAlign = 'left';
+      ctx.fillText('COMPONENT / MPN', tableX + 20, tableY + 25);
+      ctx.fillText('QTY', tableX + tableW * 0.55, tableY + 25);
+      ctx.fillText('UNIT (LKR)', tableX + tableW * 0.72, tableY + 25);
+
+      // Rows
+      const bomRows = [
+        { name: 'ESP32 NodeMCU Module', qty: 1, cost: 'Rs. 1,850.00' },
+        { name: 'Capacitive Soil Moisture V1.2', qty: 2, cost: 'Rs. 650.00' },
+        { name: '5V Submersible Water Pump', qty: 1, cost: 'Rs. 890.00' },
+        { name: '0.96" I2C OLED Display SSD1306', qty: 1, cost: 'Rs. 1,150.00' },
+        { name: 'Optocoupler Relay Module 5V', qty: 1, cost: 'Rs. 420.00' }
+      ];
+
+      bomRows.forEach((r, idx) => {
+        const rowY = tableY + 45 + (idx * 55 * (h / 1080));
+        ctx.fillStyle = idx % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'transparent';
+        ctx.fillRect(tableX, rowY, tableW, 50 * (h / 1080));
+
+        ctx.font = `600 ${16 * (w / 1920)}px system-ui`;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(r.name, tableX + 20, rowY + 30);
+
+        ctx.font = `bold ${15 * (w / 1920)}px monospace`;
+        ctx.fillStyle = '#00ff88';
+        ctx.fillText(`${r.qty}x`, tableX + tableW * 0.57, rowY + 30);
+
+        ctx.fillStyle = '#00e5ff';
+        ctx.fillText(r.cost, tableX + tableW * 0.72, rowY + 30);
+      });
+
+      // Total Line
+      ctx.fillStyle = 'rgba(0, 255, 136, 0.15)';
+      roundRect(ctx, tableX, tableY + tableH - 50, tableW, 50, 8, true, false);
+      ctx.font = `bold ${18 * (w / 1920)}px monospace`;
+      ctx.fillStyle = '#00ff88';
+      ctx.fillText('ESTIMATED PARTS TOTAL: Rs. 5,610.00 LKR', tableX + 20, tableY + tableH - 18);
+
+      // Right Column: Multi-Tier Sidebar Purchase Card
+      const sideW = w * 0.26;
+      const sideH = tableH;
+      const sideX = tableX + tableW + 30;
+      const sideY = tableY;
+
+      ctx.fillStyle = 'rgba(15, 22, 38, 0.95)';
+      ctx.strokeStyle = '#00ff88';
+      ctx.lineWidth = 2;
+      roundRect(ctx, sideX, sideY, sideW, sideH, 14, true, true);
+
+      ctx.font = `bold ${14 * (w / 1920)}px monospace`;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.fillText('HARDWARE TIERS', sideX + 20, sideY + 30);
+
+      // Tier Cards
+      const tiers = [
+        { name: '1. Digital Blueprint', price: 'Rs. 2,500', active: localT < 5 },
+        { name: '2. DIY Parts Kit', price: 'Rs. 9,500', active: localT >= 5 && localT < 8 },
+        { name: '3. Assembled Unit', price: 'Rs. 18,000', active: localT >= 8 }
+      ];
+
+      tiers.forEach((tr, i) => {
+        const ty = sideY + 50 + (i * 90 * (h / 1080));
+        ctx.fillStyle = tr.active ? 'rgba(0, 255, 136, 0.15)' : 'rgba(255, 255, 255, 0.04)';
+        ctx.strokeStyle = tr.active ? '#00ff88' : 'rgba(255, 255, 255, 0.1)';
+        roundRect(ctx, sideX + 15, ty, sideW - 30, 75 * (h / 1080), 8, true, true);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${15 * (w / 1920)}px system-ui`;
+        ctx.fillText(tr.name, sideX + 28, ty + 30);
+
+        ctx.fillStyle = '#00ff88';
+        ctx.font = `bold ${18 * (w / 1920)}px monospace`;
+        ctx.fillText(tr.price, sideX + 28, ty + 56);
+      });
+
+      // Checkout Button
+      drawSimulatedButton(ctx, sideX + sideW / 2, sideY + sideH - 45, sideW - 40, 48 * (h / 1080), 'Order with 100% Escrow 🔒', '#00ff88', true);
+
+      // Cursor animated clicks
+      if (localT < 4) {
+        cursor.targetX = tableX + 200;
+        cursor.targetY = tableY + 120;
+      } else if (localT < 7) {
+        cursor.targetX = sideX + sideW / 2;
+        cursor.targetY = sideY + 180;
+      } else {
+        cursor.targetX = sideX + sideW / 2;
+        cursor.targetY = sideY + sideH - 45;
+      }
+      ctx.restore();
+    }
+
+    // ========================================================
+    // SCENE 4: BOUNTIES & LIVE CHAT (26s - 34s)
+    // ========================================================
+    else if (t >= 26 && t < 34) {
+      ctx.save();
+      ctx.font = `800 ${48 * (w / 1920)}px system-ui, sans-serif`;
+      ctx.fillStyle = '#ffb700';
+      ctx.textAlign = 'center';
+      ctx.fillText('CUSTOM HARDWARE BOUNTIES', w / 2, h * 0.2);
+
+      ctx.font = `400 ${22 * (w / 1920)}px system-ui, sans-serif`;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.fillText('Post your custom electronics requirement • Certified makers bid & deliver', w / 2, h * 0.26);
+
+      // Live Bounty Card
+      const bcW = Math.min(w * 0.75, 860);
+      const bcH = 340 * (h / 1080);
+      const bcX = (w - bcW) / 2;
+      const bcY = h * 0.35;
+
+      ctx.fillStyle = 'rgba(15, 20, 35, 0.95)';
+      ctx.strokeStyle = '#ffb700';
+      ctx.lineWidth = 2;
+      roundRect(ctx, bcX, bcY, bcW, bcH, 16, true, true);
+
+      // Bounty details
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#ffb700';
+      ctx.font = `bold ${14 * (w / 1920)}px monospace`;
+      ctx.fillText('ACTIVE BOUNTY #4092 • 4 PROPOSALS', bcX + 30, bcY + 45);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `bold ${28 * (w / 1920)}px system-ui`;
+      ctx.fillText('ESP32 LoRa Long-Range Soil Sensor Mesh Network', bcX + 30, bcY + 90);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+      ctx.font = `${18 * (w / 1920)}px system-ui`;
+      ctx.fillText('Budget: Rs. 75,000 LKR • Delivery: 2 Weeks • Escrow Funded', bcX + 30, bcY + 135);
+
+      // Live Maker Bid
+      ctx.fillStyle = 'rgba(0, 255, 136, 0.12)';
+      ctx.strokeStyle = '#00ff88';
+      roundRect(ctx, bcX + 30, bcY + 175, bcW - 60, 100 * (h / 1080), 10, true, true);
+
+      ctx.fillStyle = '#00ff88';
+      ctx.font = `bold ${16 * (w / 1920)}px system-ui`;
+      ctx.fillText('✓ Top Proposal: Maker "Kasun Electronics" (5.0 ★)', bcX + 50, bcY + 215);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `${16 * (w / 1920)}px system-ui`;
+      ctx.fillText('"I have pre-tested SX1278 LoRa schematics ready. Will deliver PCB + C++ code in 5 days."', bcX + 50, bcY + 248);
+
+      cursor.targetX = bcX + bcW - 120;
+      cursor.targetY = bcY + 225;
+      ctx.restore();
+    }
+
+    // ========================================================
+    // SCENE 5: CALL TO ACTION OUTRO (34s - 42s)
+    // ========================================================
+    else {
+      ctx.save();
+      ctx.textAlign = 'center';
+
+      // Big Hex Emblem Pulse
+      const pulse = Math.sin(t * 4) * 15 + 120;
+      drawHexagon(w / 2, h * 0.32, pulse * (w / 1920), 'rgba(0, 255, 136, 0.15)', '#00ff88', t * 0.3);
+
+      ctx.font = `900 ${72 * (w / 1920)}px system-ui, sans-serif`;
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = '#00ff88';
+      ctx.shadowBlur = 30;
+      ctx.fillText('JOIN IoT HIVE TODAY', w / 2, h * 0.35);
+
+      ctx.shadowBlur = 0;
+      ctx.font = `700 ${32 * (w / 1920)}px monospace`;
+      ctx.fillStyle = '#00e5ff';
+      ctx.fillText('BUILD • SHARE • MONETIZE HARDWARE', w / 2, h * 0.46);
+
+      // URL Pill
+      const pillW = 560 * (w / 1920);
+      const pillH = 70 * (h / 1080);
+      ctx.fillStyle = 'rgba(0, 255, 136, 0.2)';
+      ctx.strokeStyle = '#00ff88';
+      ctx.lineWidth = 3;
+      roundRect(ctx, w / 2 - pillW / 2, h * 0.58, pillW, pillH, 35, true, true);
+
+      ctx.font = `bold ${34 * (w / 1920)}px system-ui`;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('iot-hive.onrender.com', w / 2, h * 0.58 + pillH * 0.65);
+
+      ctx.font = `500 ${20 * (w / 1920)}px system-ui`;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.fillText('Sri Lanka\'s First Open-Hardware & IoT Escrow Marketplace', w / 2, h * 0.76);
+      ctx.restore();
+    }
+
+    // Subtitle / Closed Caption Bar (Karaoke Style)
+    drawSubtitles(ctx, w, h, t);
+
+    // Smooth Cursor Physics & Draw
+    cursor.x += (cursor.targetX - cursor.x) * 0.12;
+    cursor.y += (cursor.targetY - cursor.y) * 0.12;
+    drawSimulatedCursor(ctx, cursor.x, cursor.y, t);
+  }
+
+  function drawSimulatedHeader(w, h, t) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(6, 10, 20, 0.9)';
+    ctx.fillRect(0, 0, w, 65 * (h / 1080));
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.15)';
+    ctx.beginPath();
+    ctx.moveTo(0, 65 * (h / 1080));
+    ctx.lineTo(w, 65 * (h / 1080));
+    ctx.stroke();
+
+    // Logo
+    ctx.font = `bold ${22 * (w / 1920)}px monospace`;
+    ctx.fillStyle = '#00ff88';
+    ctx.textAlign = 'left';
+    ctx.fillText('⬢ IoT HIVE', 30, 42 * (h / 1080));
+
+    // Nav Links
+    ctx.font = `600 ${15 * (w / 1920)}px system-ui`;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    const navs = ['Marketplace', 'Categories', 'Bounties', 'How It Works'];
+    navs.forEach((nv, idx) => {
+      ctx.fillText(nv, 200 + (idx * 130 * (w / 1920)), 42 * (h / 1080));
+    });
+
+    // Right Action
+    ctx.fillStyle = '#00e5ff';
+    ctx.fillText('+ Publish Project', w - 180, 42 * (h / 1080));
+    ctx.restore();
+  }
+
+  function drawSubtitles(ctx, w, h, t) {
+    const seg = scriptSegments.find(s => t >= s.start && t < s.end);
+    if (!seg) return;
+
+    ctx.save();
+    const barW = Math.min(w * 0.9, 1200);
+    const barH = 54 * (h / 1080);
+    const bx = (w - barW) / 2;
+    const by = h - barH - 25;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.82)';
+    ctx.strokeStyle = 'rgba(0, 255, 136, 0.4)';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, bx, by, barW, barH, 12, true, true);
+
+    ctx.font = `600 ${18 * (w / 1920)}px system-ui`;
+    ctx.fillStyle = '#00ff88';
+    ctx.textAlign = 'center';
+    ctx.fillText(`🎙️ ${seg.text}`, w / 2, by + barH * 0.65);
+    ctx.restore();
+  }
+
+  function drawSimulatedCursor(ctx, x, y, t) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Glowing Neon Cursor Ring
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 10, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Cursor Arrow
+    ctx.fillStyle = '#00ff88';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, 16);
+    ctx.lineTo(5, 12);
+    ctx.lineTo(12, 12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawSimulatedButton(ctx, x, y, w, h, text, color, active) {
+    ctx.save();
+    ctx.fillStyle = active ? color : 'rgba(255, 255, 255, 0.1)';
+    roundRect(ctx, x - w / 2, y - h / 2, w, h, 8, true, false);
+    ctx.font = `bold ${16 * (canvas.width / 1920)}px system-ui`;
+    ctx.fillStyle = active ? '#000000' : '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.fillText(text, x, y + 6);
+    ctx.restore();
+  }
+
+  function drawHexagon(x, y, radius, fillColor, strokeColor, angle = 0) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const a = (i * Math.PI) / 3;
+      const hx = radius * Math.cos(a);
+      const hy = radius * Math.sin(a);
+      if (i === 0) ctx.moveTo(hx, hy);
+      else ctx.lineTo(hx, hy);
+    }
+    ctx.closePath();
+    if (fillColor) {
+      ctx.fillStyle = fillColor;
+      ctx.fill();
+    }
+    if (strokeColor) {
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
+  }
+
+  // Animation Loop
+  let lastTimestamp = performance.now();
+  function animate(now) {
+    const dt = (now - lastTimestamp) / 1000;
+    lastTimestamp = now;
+
+    if (isPlaying) {
+      currentTime += dt;
+      if (currentTime >= TOTAL_DURATION) {
+        currentTime = 0;
+        currentSegmentIndex = -1;
+      }
+      timelineSlider.value = currentTime;
+      updatePills(currentTime);
+      triggerSegmentVoice(currentTime);
+    }
+
+    const mins = Math.floor(currentTime / 60).toString().padStart(2, '0');
+    const secs = Math.floor(currentTime % 60).toString().padStart(2, '0');
+    timeDisplay.textContent = `${mins}:${secs} / 00:42`;
+
+    renderFrame(currentTime);
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+
+  // Play / Pause Toggle
+  playBtn.addEventListener('click', () => {
+    initAudioSynth();
+    isPlaying = !isPlaying;
+    playIcon.textContent = isPlaying ? 'pause' : 'play_arrow';
+    playText.textContent = isPlaying ? 'Pause Video' : 'Play Video';
+    
+    if (isPlaying) {
+      triggerSegmentVoice(currentTime);
+    } else {
+      if (synth) synth.cancel();
+    }
+  });
+
+  timelineSlider.addEventListener('input', (e) => {
+    currentTime = parseFloat(e.target.value);
+    currentSegmentIndex = -1;
+    updatePills(currentTime);
+    if (isPlaying) {
+      triggerSegmentVoice(currentTime);
+    }
+  });
+
+  // 1-Click Video Recording with Audio Sync
+  recordBtn.addEventListener('click', () => {
+    if (isRecording) {
+      if (mediaRecorder) mediaRecorder.stop();
+      return;
+    }
+
+    initAudioSynth();
+    currentTime = 0;
+    currentSegmentIndex = -1;
+    isPlaying = true;
+    isRecording = true;
+    recordedChunks = [];
+    playIcon.textContent = 'pause';
+    playText.textContent = 'Pause Video';
+
+    triggerSegmentVoice(0);
+
+    const stream = canvas.captureStream(60); // 60fps capture
+    const options = { mimeType: 'video/webm;codecs=vp9' };
+    
+    try {
+      mediaRecorder = new MediaRecorder(stream, options);
+    } catch(e) {
+      mediaRecorder = new MediaRecorder(stream);
+    }
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      isRecording = false;
+      recordBtn.innerHTML = '<span class="material-symbols-outlined">videocam</span> Record & Download Video File';
+      recordBtn.style.background = 'linear-gradient(135deg, #ff0055, #ff5500)';
+      
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `IoT-HIVE-Commercial-${formatSelect.value}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    mediaRecorder.start();
+    recordBtn.innerHTML = '<span class="record-pulse"></span> Recording Commercial (0 - 42s)... Click to Finish';
+    recordBtn.style.background = '#ff0055';
+
+    setTimeout(() => {
+      if (isRecording && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+      }
+    }, TOTAL_DURATION * 1000);
+  });
+
+})();
+</script>
+{% endblock %}

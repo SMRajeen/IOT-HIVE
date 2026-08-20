@@ -45,3 +45,6 @@ def bounties_view(request):
 
 def privacy_policy_view(request):
     return render(request, "frontend/privacy-policy.html")
+
+def promo_view(request):
+    return render(request, "frontend/promo.html")
