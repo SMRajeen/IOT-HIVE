@@ -5,14 +5,18 @@ from django.utils.text import slugify
 import os
 from django.core.files.storage import default_storage
 
-try:
-    if os.getenv("CLOUDINARY_CLOUD_NAME"):
-        from cloudinary_storage.storage import RawMediaCloudinaryStorage
-        raw_storage = RawMediaCloudinaryStorage()
-    else:
-        raw_storage = default_storage
-except Exception:
-    raw_storage = default_storage
+def get_raw_storage():
+    try:
+        from django.conf import settings
+        if os.getenv("CLOUDINARY_CLOUD_NAME") or os.getenv("CLOUDINARY_URL") or getattr(settings, "CLOUDINARY_CLOUD_NAME", None):
+            from cloudinary_storage.storage import RawMediaCloudinaryStorage
+            return RawMediaCloudinaryStorage()
+    except Exception:
+        pass
+    return default_storage
+
+
+raw_storage = get_raw_storage()
 
 
 class Category(models.Model):
