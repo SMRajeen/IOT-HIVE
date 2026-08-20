@@ -112,28 +112,31 @@
     </div>
   </header>
 
+  <!-- Mobile Drawer Backdrop -->
+  <div id="mobile-drawer-backdrop" class="mobile-drawer-backdrop" onclick="window.toggleMobileDrawer(false)"></div>
+
   <!-- Mobile Drawer -->
   <div id="mobile-drawer" class="mobile-drawer">
     <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
       <span class="brand-text" style="font-size: 1.1rem;">IoT <span>HIVE</span></span>
-      <button onclick="window.toggleMobileDrawer()" class="btn-icon">
+      <button onclick="window.toggleMobileDrawer(false)" class="btn-icon" aria-label="Close Menu">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
-    <div data-mobile-nav-links style="padding: 12px 0;">
-      <a href="/" class="mobile-nav-link">Home <span class="material-symbols-outlined">chevron_right</span></a>
-      <a href="/marketplace/" class="mobile-nav-link">Marketplace <span class="material-symbols-outlined">chevron_right</span></a>
-      <a href="/categories/" class="mobile-nav-link">Categories <span class="material-symbols-outlined">chevron_right</span></a>
-      <a href="/bounties/" class="mobile-nav-link">Bounties &amp; Commissions <span class="material-symbols-outlined">chevron_right</span></a>
-      <a href="/project-requests/" class="mobile-nav-link">Inquiries <span class="material-symbols-outlined">chevron_right</span></a>
-      <a href="/dashboard/" class="mobile-nav-link">Dashboard &amp; Orders <span class="material-symbols-outlined">chevron_right</span></a>
-      <a href="/favorites/" class="mobile-nav-link">Saved Projects <span class="material-symbols-outlined">chevron_right</span></a>
-      <a href="/profile/" class="mobile-nav-link">Profile <span class="material-symbols-outlined">chevron_right</span></a>
+    <div data-mobile-nav-links style="padding: 8px 0;">
+      <a href="/" class="mobile-nav-link" onclick="window.toggleMobileDrawer(false)">Home <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/marketplace/" class="mobile-nav-link" onclick="window.toggleMobileDrawer(false)">Marketplace <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/categories/" class="mobile-nav-link" onclick="window.toggleMobileDrawer(false)">Categories <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/bounties/" class="mobile-nav-link" onclick="window.toggleMobileDrawer(false)">Bounties &amp; Commissions <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/project-requests/" class="mobile-nav-link" onclick="window.toggleMobileDrawer(false)">Inquiries <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/dashboard/" class="mobile-nav-link" onclick="window.toggleMobileDrawer(false)">Dashboard &amp; Orders <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/favorites/" class="mobile-nav-link" onclick="window.toggleMobileDrawer(false)">Saved Projects <span class="material-symbols-outlined">chevron_right</span></a>
+      <a href="/profile/" class="mobile-nav-link" onclick="window.toggleMobileDrawer(false)">Profile <span class="material-symbols-outlined">chevron_right</span></a>
       {% if user.is_staff or user.is_superuser %}
-        <a href="/admin-panel/" class="mobile-nav-link" style="color: #00ff88;">Admin Panel <span class="material-symbols-outlined">chevron_right</span></a>
+        <a href="/admin-panel/" class="mobile-nav-link" style="color: #00ff88;" onclick="window.toggleMobileDrawer(false)">Admin Panel <span class="material-symbols-outlined">chevron_right</span></a>
       {% endif %}
     </div>
-    <div data-mobile-auth style="padding: 16px 20px;"></div>
+    <div data-mobile-auth style="padding: 16px 20px; border-top: 1px solid var(--border-subtle); margin-top: auto;"></div>
   </div>
 
   <!-- Search Modal Popup -->
@@ -220,9 +223,14 @@
   <script src="{% static 'js/auth.js' %}?v=2.1"></script>
   <script src="{% static 'js/chat.js' %}?v=2.1"></script>
   <script>
-    window.toggleMobileDrawer = function() {
+    window.toggleMobileDrawer = function(forceState) {
       const drawer = document.getElementById('mobile-drawer');
-      if (drawer) drawer.classList.toggle('open');
+      const backdrop = document.getElementById('mobile-drawer-backdrop');
+      if (!drawer) return;
+      const shouldOpen = typeof forceState === 'boolean' ? forceState : !drawer.classList.contains('open');
+      drawer.classList.toggle('open', shouldOpen);
+      if (backdrop) backdrop.classList.toggle('open', shouldOpen);
+      document.body.style.overflow = shouldOpen ? 'hidden' : '';
     };
 
     window.openSearchModal = function() {

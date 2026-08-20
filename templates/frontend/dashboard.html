@@ -67,7 +67,7 @@
       </div>
       <div class="kpi-value" id="kpi-inquiries">0</div>
       <div class="kpi-change neutral">
-        <a href="/requests/" style="color: var(--primary); text-decoration: underline;">View Inquiries &rarr;</a>
+        <a href="/project-requests/" style="color: var(--primary); text-decoration: underline;">View Inquiries &rarr;</a>
       </div>
     </div>
 
@@ -76,12 +76,12 @@
   <!-- Maker Pro SaaS Subscription & Take-Rate Tier Banner -->
   <div class="card-cyber" id="maker-pro-banner" style="padding: 22px 26px; margin-bottom: var(--space-8); background: linear-gradient(135deg, rgba(255, 170, 0, 0.08) 0%, rgba(0, 255, 136, 0.04) 100%); border: 1px solid rgba(255, 170, 0, 0.3); border-radius: 12px;">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-      <div style="display: flex; gap: 16px; align-items: center;">
-        <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255, 170, 0, 0.15); border: 1px solid #ffaa00; display: flex; align-items: center; justify-content: center; color: #ffaa00;">
+      <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255, 170, 0, 0.15); border: 1px solid #ffaa00; display: flex; align-items: center; justify-content: center; color: #ffaa00; flex-shrink: 0;">
           <span class="material-symbols-outlined" style="font-size: 28px;">workspace_premium</span>
         </div>
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+        <div style="min-width: 220px; flex: 1;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px; flex-wrap: wrap;">
             <h3 style="margin: 0; font-size: 1.15rem; color: #fff;">Maker Pro Subscription &bull; SaaS Recurring Revenue</h3>
             <span class="tag-mono" style="background: rgba(255,170,0,0.2); color: #ffaa00; border-color: rgba(255,170,0,0.4); font-size: 0.72rem;">0% COMMISSION TIER</span>
           </div>
@@ -98,7 +98,7 @@
   </div>
 
   <!-- Hardware Orders & Shipping Fulfillment Section -->
-  <div class="card-cyber" style="padding: 28px; margin-bottom: var(--space-8);">
+  <div class="card-cyber" style="padding: 24px; margin-bottom: var(--space-8);">
     <div class="flex items-center justify-between" style="margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
       <div>
         <h3 id="dashboard-orders-title" style="font-size: 1.3rem; margin: 0 0 4px; display: flex; align-items: center; gap: 8px;">
@@ -109,7 +109,7 @@
       </div>
 
       <!-- Tab Switcher -->
-      <div class="flex items-center gap-2" id="dashboard-orders-tabs">
+      <div class="flex items-center gap-2 flex-wrap" id="dashboard-orders-tabs">
         <button type="button" id="tab-orders-sales-btn" class="btn btn-secondary btn-sm active" onclick="window.switchOrdersTab('sales')">
           <span class="material-symbols-outlined" style="font-size: 16px;">sell</span>
           Creator Sales (<span id="sales-count-badge">0</span>)
@@ -121,8 +121,8 @@
       </div>
     </div>
 
-    <div style="overflow-x: auto;">
-      <table class="table-cyber">
+    <div class="table-responsive-wrapper">
+      <table class="table-cyber" style="width: 100%; min-width: 650px;">
         <thead>
           <tr id="orders-table-headers">
             <th>Order ID</th>
@@ -146,14 +146,14 @@
   </div>
 
   <!-- Projects Management Table -->
-  <div id="dashboard-projects-section" class="card-cyber" style="padding: 28px; margin-bottom: var(--space-8);">
-    <div class="flex items-center justify-between" style="margin-bottom: 20px;">
+  <div id="dashboard-projects-section" class="card-cyber" style="padding: 24px; margin-bottom: var(--space-8);">
+    <div class="flex items-center justify-between flex-wrap gap-2" style="margin-bottom: 20px;">
       <h3 style="font-size: 1.25rem; margin: 0;">My Published Projects</h3>
       <a href="/create-project/" class="btn btn-ghost btn-sm">+ Add Project</a>
     </div>
 
-    <div style="overflow-x: auto;">
-      <table class="table-cyber">
+    <div class="table-responsive-wrapper">
+      <table class="table-cyber" style="width: 100%; min-width: 550px;">
         <thead>
           <tr>
             <th>Project Title</th>
@@ -178,12 +178,12 @@
 </div>
 
 <!-- Maker Pro SaaS Subscription Modal (Investor Revenue Showcase) -->
-<div id="maker-pro-modal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
-  <div class="card-cyber" style="max-width: 680px; width: 100%; padding: 32px; background: var(--bg-surface-container); border: 1px solid rgba(255, 170, 0, 0.4); border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,0.9); position: relative; max-height: 90vh; overflow-y: auto;">
+<div id="maker-pro-modal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 16px;">
+  <div class="card-cyber modal-box" style="max-width: 680px; width: 100%; padding: 28px; background: var(--bg-surface-container); border: 1px solid rgba(255, 170, 0, 0.4); border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,0.9); position: relative; max-height: 90vh; overflow-y: auto;">
     
     <div class="flex items-center justify-between" style="margin-bottom: 20px;">
       <div class="flex items-center gap-3">
-        <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 170, 0, 0.15); border: 1px solid #ffaa00; display: flex; align-items: center; justify-content: center; color: #ffaa00;">
+        <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 170, 0, 0.15); border: 1px solid #ffaa00; display: flex; align-items: center; justify-content: center; color: #ffaa00; flex-shrink: 0;">
           <span class="material-symbols-outlined">workspace_premium</span>
         </div>
         <div>
@@ -196,7 +196,7 @@
       </button>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 24px;">
+    <div class="form-row-2" style="gap: 18px; margin-bottom: 24px;">
       
       <!-- Free Plan -->
       <div style="padding: 20px; background: var(--bg-surface-high); border: 1px solid var(--border-medium); border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;">

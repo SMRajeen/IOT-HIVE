@@ -39,7 +39,7 @@
           <input type="text" name="title" class="input-cyber" placeholder="e.g. ESP32 Autonomous Indoor Smart Garden System" required>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div class="form-row-3">
           <!-- Category -->
           <div class="input-group">
             <label class="input-label">Primary Category *</label>
@@ -94,7 +94,7 @@
           Offer physical hardware kits or fully assembled devices shipped to buyers in Sri Lanka.
         </p>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
+        <div class="form-row-2">
           <!-- Tier 2: DIY Kit -->
           <div style="padding: 16px; background: var(--bg-surface-low); border-radius: 10px; border: 1px solid var(--border-subtle);">
             <div style="font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; color: var(--text-primary);">
@@ -132,7 +132,7 @@
           3. Hardware &amp; Connectivity Specs
         </h3>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div class="form-row-2">
           <!-- Microcontroller -->
           <div class="input-group">
             <label class="input-label">Microcontroller / Core Board *</label>
@@ -146,7 +146,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-row-2">
           <!-- Difficulty -->
           <div class="input-group">
             <label class="input-label">Difficulty Level</label>
@@ -168,7 +168,7 @@
 
       <!-- Section 4: Interactive Bill of Materials (BOM) Builder -->
       <div style="margin-bottom: 28px; border-top: 1px solid var(--border-subtle); padding-top: 24px;">
-        <div class="flex items-center justify-between" style="margin-bottom: 14px;">
+        <div class="flex items-center justify-between flex-wrap gap-2" style="margin-bottom: 14px;">
           <div>
             <h3 style="font-size: 1.15rem; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; color: var(--primary);">
               <span class="material-symbols-outlined">list_alt</span>
@@ -182,8 +182,8 @@
           </button>
         </div>
 
-        <div style="overflow-x: auto; margin-bottom: 12px;">
-          <table class="bom-table" style="font-size: 0.88rem;">
+        <div class="table-responsive-wrapper" style="margin-bottom: 12px;">
+          <table class="bom-table" style="font-size: 0.88rem; width: 100%; min-width: 600px;">
             <thead>
               <tr>
                 <th style="min-width: 170px;">Component Name *</th>
@@ -215,18 +215,15 @@
           5. Firmware &amp; Source Code
         </h3>
 
-        <div style="display: grid; grid-template-columns: 200px 1fr; gap: 16px; margin-bottom: 14px;">
-          <div class="input-group">
-            <label class="input-label">Language</label>
-            <select name="source_code_language" class="input-cyber" style="background: var(--bg-surface-low);">
-              <option value="cpp" selected>C / C++ (Arduino)</option>
-              <option value="python">Python / MicroPython</option>
-              <option value="rust">Rust</option>
-              <option value="c">Pure C</option>
-              <option value="json">JSON / Config</option>
-            </select>
-          </div>
-          <div></div>
+        <div class="input-group" style="max-width: 240px; margin-bottom: 14px;">
+          <label class="input-label">Language</label>
+          <select name="source_code_language" class="input-cyber" style="background: var(--bg-surface-low);">
+            <option value="cpp" selected>C / C++ (Arduino)</option>
+            <option value="python">Python / MicroPython</option>
+            <option value="rust">Rust</option>
+            <option value="c">Pure C</option>
+            <option value="json">JSON / Config</option>
+          </select>
         </div>
 
         <div class="input-group">
@@ -242,7 +239,7 @@
           6. Blueprints &amp; Media
         </h3>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div class="form-row-2">
           <!-- Cover Image -->
           <div class="input-group">
             <label class="input-label">Project Cover Photo (.png, .jpg, .webp)</label>
@@ -256,7 +253,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div class="form-row-2">
           <div class="input-group">
             <label class="input-label">Attachment Title (Optional)</label>
             <input type="text" name="attachment_title" class="input-cyber" placeholder="e.g. PCB Gerber & Schematics Package v1.0">
@@ -274,7 +271,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-row-2">
           <!-- Video Demo URL -->
           <div class="input-group">
             <label class="input-label">YouTube Demo URL</label>

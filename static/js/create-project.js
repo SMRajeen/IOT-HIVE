@@ -123,10 +123,10 @@
         document.querySelector('select[name="source_code_language"]').value = project.source_code_language || 'cpp';
       }
       if (document.querySelector('input[name="video_url"]') && project.video) {
-        document.querySelector('input[name="video_url"]').value = project.video.youtube_url || '';
+        document.querySelector('input[name="video_url"]').value = project.video.video_url || project.video.youtube_url || '';
       }
       if (document.querySelector('input[name="model_url"]') && project.model_3d) {
-        document.querySelector('input[name="model_url"]').value = project.model_3d.embed_url || '';
+        document.querySelector('input[name="model_url"]').value = project.model_3d.model_url || project.model_3d.embed_url || '';
       }
 
       // Load Tiers

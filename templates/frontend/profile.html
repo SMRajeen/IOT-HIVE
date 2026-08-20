@@ -76,18 +76,18 @@
         <div id="profile-edit-alert" style="display: none; margin-bottom: 18px;"></div>
 
         <!-- Avatar Picture Upload -->
-        <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 24px; padding: 18px; background: var(--bg-surface-low); border-radius: 12px; border: 1px dashed var(--border-medium);">
-          <div id="edit-avatar-preview" style="width: 72px; height: 72px; border-radius: 50%; background: var(--bg-surface-high); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+        <div class="flex items-center gap-4 flex-wrap" style="margin-bottom: 24px; padding: 18px; background: var(--bg-surface-low); border-radius: 12px; border: 1px dashed var(--border-medium);">
+          <div id="edit-avatar-preview" style="width: 72px; height: 72px; border-radius: 50%; background: var(--bg-surface-high); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
             <span class="material-symbols-outlined" style="font-size: 36px; color: var(--primary);">person</span>
           </div>
-          <div style="flex: 1;">
+          <div style="flex: 1; min-width: 200px;">
             <label class="input-label" style="margin-bottom: 4px;">Profile Photo</label>
             <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0 0 10px 0;">Upload a JPG, PNG, or WebP profile picture (Max 5MB).</p>
             <input type="file" id="avatar-file-input" name="avatar" accept="image/*" class="input-cyber" style="padding: 8px;">
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;">
+        <div class="form-row-2">
           <div class="input-group">
             <label class="input-label">Username *</label>
             <input type="text" name="username" class="input-cyber" required placeholder="e.g. maker_john" style="font-family: var(--font-mono);">
@@ -98,7 +98,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;">
+        <div class="form-row-2">
           <div class="input-group">
             <label class="input-label">First Name</label>
             <input type="text" name="first_name" class="input-cyber" placeholder="e.g. Alex">
@@ -109,7 +109,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;">
+        <div class="form-row-2">
           <div class="input-group">
             <label class="input-label">Mobile Phone (For Order Notifications)</label>
             <input type="text" name="phone_number" class="input-cyber" placeholder="e.g. +94710509154 or 0710509154" style="font-family: var(--font-mono);">
@@ -130,7 +130,7 @@
           <textarea name="bio" class="input-cyber" rows="3" placeholder="Tell the community about your embedded hardware experience, microcontrollers, sensor engineering, or robotics projects..." style="resize: vertical;"></textarea>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 24px;">
+        <div class="form-row-2">
           <div class="input-group">
             <label class="input-label">Location</label>
             <input type="text" name="location" class="input-cyber" placeholder="e.g. Colombo, Sri Lanka">

@@ -826,6 +826,30 @@ def payhere_notify_view(request):
             order.status = "paid"
             order.payhere_payment_id = payment_id
             order.save()
+
+            try:
+                notify_order_created(order)
+            except Exception:
+                pass
+
+            try:
+                buyer_name = order.buyer.get_full_name() or order.buyer.username
+                seller_name = order.seller.get_full_name() or order.seller.username if order.seller else "Maker"
+                project_title = order.project.title if order.project else "Hardware Project"
+                tier_name = order.tier.name if order.tier else "Digital Blueprint"
+                send_order_notification(
+                    buyer_email=order.buyer.email,
+                    seller_email=order.seller.email if order.seller else "",
+                    buyer_name=buyer_name,
+                    seller_name=seller_name,
+                    project_title=project_title,
+                    tier_name=tier_name,
+                    amount=str(order.amount),
+                    transaction_id=order.transaction_id
+                )
+            except Exception:
+                pass
+
             return Response({"status": "Payment Verified & Completed"})
         else:
             order.status = "failed"
