@@ -2,9 +2,17 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
-from cloudinary_storage.storage import RawMediaCloudinaryStorage
+import os
+from django.core.files.storage import default_storage
 
-raw_storage = RawMediaCloudinaryStorage()
+try:
+    if os.getenv("CLOUDINARY_CLOUD_NAME"):
+        from cloudinary_storage.storage import RawMediaCloudinaryStorage
+        raw_storage = RawMediaCloudinaryStorage()
+    else:
+        raw_storage = default_storage
+except Exception:
+    raw_storage = default_storage
 
 
 class Category(models.Model):

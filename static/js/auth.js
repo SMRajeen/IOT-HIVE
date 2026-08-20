@@ -98,6 +98,8 @@ async function requireAuth(redirectNext = '') {
   return user;
 }
 
+let lastRenderedNavState = null;
+
 /**
  * Update Header Navigation based on current user session & role
  */
@@ -110,6 +112,12 @@ async function loadAuthNav() {
 
   const user = await getCurrentUser();
   const currentPath = window.location.pathname;
+  const navStateKey = `${user?.id || 'anon'}_${user?.role || ''}_${user?.username || ''}_${currentPath}`;
+
+  if (lastRenderedNavState === navStateKey && desktopNav && desktopNav.children.length > 0) {
+    return;
+  }
+  lastRenderedNavState = navStateKey;
 
   if (user && user.username) {
     // User is logged in

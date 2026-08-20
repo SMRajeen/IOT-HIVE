@@ -93,11 +93,39 @@
       }
     ];
 
+    const isOwner = currentUser && (currentProject.seller === currentUser.id || currentProject.seller_id === currentUser.id);
+
     return tiers.map((tier, idx) => {
       const isSelected = idx === selectedTierIndex;
       const isPhysical = tier.requires_shipping || tier.tier_type === 'kit' || tier.tier_type === 'assembled';
       const icon = tier.tier_type === 'assembled' ? 'precision_manufacturing' : (tier.tier_type === 'kit' ? 'inventory_2' : 'terminal');
       const badge = tier.tier_type === 'assembled' ? 'ASSEMBLED UNIT' : (tier.tier_type === 'kit' ? 'DIY PARTS KIT' : 'DIGITAL BLUEPRINT');
+
+      if (isOwner) {
+        return `
+          <div class="card-cyber" 
+               style="padding: 14px 16px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-surface-low);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="material-symbols-outlined" style="font-size: 20px; color: var(--primary);">${icon}</span>
+                <strong style="font-size: 0.95rem; color: var(--text-primary);">${auth.escapeHtml(tier.name)}</strong>
+              </div>
+              <span class="font-mono font-bold" style="color: var(--primary); font-size: 1.05rem;">
+                ${tier.price == 0 ? 'Free' : formatLKR(tier.price)}
+              </span>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.8rem; margin: 4px 0 6px; line-height: 1.4;">
+              ${auth.escapeHtml(tier.description || '')}
+            </p>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span class="hardware-chip" style="font-size: 0.68rem; padding: 2px 6px;">${badge}</span>
+              <span class="text-xs" style="color: var(--text-muted); font-size: 0.72rem;">
+                ${isPhysical ? '&bull; Physical shipment' : '&bull; Digital access'}
+              </span>
+            </div>
+          </div>
+        `;
+      }
 
       return `
         <div class="card-cyber tier-option-card ${isSelected ? 'tier-selected' : ''}" 
@@ -179,10 +207,10 @@
       </div>
 
       <!-- Main Layout: 2 Columns (Content 70% | Sidebar 30%) -->
-      <div class="project-layout-grid">
+      <div class="project-layout-grid" style="display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; align-items: start; width: 100%;">
         
         <!-- Left Column: Specs, Cover, Tabs & Content -->
-        <div class="project-main-col">
+        <div class="project-main-col" style="min-width: 0; width: 100%;">
           <!-- Title & Rating Header -->
           <div style="margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
@@ -582,9 +610,11 @@
           <!-- Rating Stats Banner -->
           <div class="review-stats-banner">
             <div>
-              <div class="review-score-big">${avgRating || '—'}</div>
+              <div class="review-score-big" style="color: ${avgRating ? '#ffb700' : 'var(--text-muted)'}; font-size: ${avgRating ? '2.8rem' : '1.8rem'};">
+                ${avgRating ? avgRating : 'N/A'}
+              </div>
               <div class="star-rating-row" style="margin: 4px 0 6px;">
-                ${renderStars(avgRating || 0)}
+                ${avgRating ? renderStars(avgRating) : '<span style="color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono);">No ratings yet</span>'}
               </div>
               <div style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
                 Based on ${reviews.length} review${reviews.length === 1 ? '' : 's'}
