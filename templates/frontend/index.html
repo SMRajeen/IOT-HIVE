@@ -26,16 +26,68 @@
         </p>
 
         <div id="home-hero-actions" class="hero-actions" style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 36px;">
-          <a href="/marketplace/" class="btn btn-primary btn-lg">
-            <span class="material-symbols-outlined">explore</span>
-            Explore Projects
-          </a>
-          <a href="/create-project/" class="btn btn-secondary btn-lg">
-            <span class="material-symbols-outlined">add_circle</span>
-            Share a Project
-          </a>
+          {% if user.is_authenticated and user.profile.role == 'buyer' %}
+            <a href="/marketplace/" class="btn btn-primary btn-lg">
+              <span class="material-symbols-outlined">explore</span>
+              Explore Projects
+            </a>
+            <a href="/bounties/" class="btn btn-secondary btn-lg">
+              <span class="material-symbols-outlined">post_add</span>
+              Post a Hardware Bounty
+            </a>
+          {% elif user.is_authenticated and user.profile.role == 'seller' %}
+            <a href="/create-project/" class="btn btn-primary btn-lg">
+              <span class="material-symbols-outlined">add_circle</span>
+              Post a Project
+            </a>
+            <a href="/dashboard/" class="btn btn-secondary btn-lg">
+              <span class="material-symbols-outlined">dashboard</span>
+              Creator Dashboard
+            </a>
+            <a href="/bounties/" class="btn btn-ghost btn-lg">
+              <span class="material-symbols-outlined">radar</span>
+              Browse Bounties to Bid
+            </a>
+          {% elif user.is_authenticated %}
+            <a href="/marketplace/" class="btn btn-primary btn-lg">
+              <span class="material-symbols-outlined">explore</span>
+              Explore Projects
+            </a>
+            <a href="/create-project/" class="btn btn-secondary btn-lg">
+              <span class="material-symbols-outlined">add_circle</span>
+              Post Project
+            </a>
+            <a href="/bounties/" class="btn btn-ghost btn-lg">
+              <span class="material-symbols-outlined">post_add</span>
+              Bounties
+            </a>
+          {% else %}
+            <a href="/marketplace/" class="btn btn-primary btn-lg">
+              <span class="material-symbols-outlined">explore</span>
+              Explore Projects
+            </a>
+            <a href="/create-project/" class="btn btn-secondary btn-lg">
+              <span class="material-symbols-outlined">add_circle</span>
+              Share a Project
+            </a>
+          {% endif %}
         </div>
-        <div id="home-role-hint" style="display: none; margin-top: -24px; margin-bottom: 24px;"></div>
+
+        <div id="home-role-hint" style="{% if user.is_authenticated and user.profile.role %}display: block;{% else %}display: none;{% endif %} margin-top: -24px; margin-bottom: 24px;">
+          {% if user.is_authenticated and user.profile.role == 'buyer' %}
+            <span style="font-size: 0.82rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px;">
+              <span class="badge-role badge-role-buyer">Buyer Mode</span>
+              <span>&bull; Discovering blueprints &amp; custom builds.</span>
+              <a href="/profile/" class="text-link" style="color: #00b4d8; margin-left: 4px;">Switch to Seller or Both &rarr;</a>
+            </span>
+          {% elif user.is_authenticated and user.profile.role == 'seller' %}
+            <span style="font-size: 0.82rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px;">
+              <span class="badge-role badge-role-seller">Seller Mode</span>
+              <span>&bull; Ready to monetize circuits &amp; firmware.</span>
+              <a href="/profile/" class="text-link" style="color: #00ff88; margin-left: 4px;">Change in Profile &rarr;</a>
+            </span>
+          {% endif %}
+        </div>
 
         <!-- Simple Community Highlights -->
         <div class="hero-stats-strip">
@@ -165,14 +217,46 @@
 <section style="padding: 60px 0 80px;">
   <div class="app-container">
     <div id="home-cta-card" class="card-cyber" style="padding: 48px 32px; text-align: center; background: radial-gradient(circle at 50% 30%, rgba(255,0,51,0.12), var(--bg-surface-container) 70%);">
-      <h2 id="home-cta-title" style="font-size: 2rem; margin-bottom: 12px;">Ready to Start Your Next Project?</h2>
-      <p id="home-cta-desc" style="color: var(--text-secondary); max-width: 520px; margin: 0 auto 24px; font-size: 1rem;">
-        Join our maker community today. Share your electronics builds or discover projects to create at home.
-      </p>
-      <div id="home-cta-actions" style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
-        <a href="/register/" class="btn btn-primary btn-lg">Create Free Account</a>
-        <a href="/marketplace/" class="btn btn-secondary btn-lg">Browse Projects</a>
-      </div>
+      {% if user.is_authenticated and user.profile.role == 'buyer' %}
+        <h2 id="home-cta-title" style="font-size: 2rem; margin-bottom: 12px;">Looking for Custom Hardware or Blueprints?</h2>
+        <p id="home-cta-desc" style="color: var(--text-secondary); max-width: 520px; margin: 0 auto 24px; font-size: 1rem;">
+          Discover top-rated IoT projects, order assembled units, or post a custom bounty for our verified makers to build for you.
+        </p>
+        <div id="home-cta-actions" style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+          <a href="/marketplace/" class="btn btn-primary btn-lg">Browse Projects</a>
+          <a href="/bounties/" class="btn btn-secondary btn-lg">Post a Bounty</a>
+        </div>
+      {% elif user.is_authenticated and user.profile.role == 'seller' %}
+        <h2 id="home-cta-title" style="font-size: 2rem; margin-bottom: 12px;">Ready to Monetize Your Hardware Creations?</h2>
+        <p id="home-cta-desc" style="color: var(--text-secondary); max-width: 520px; margin: 0 auto 24px; font-size: 1rem;">
+          Upload your circuit diagrams, bill of materials, and firmware to start earning from digital blueprints and shipped hardware kits.
+        </p>
+        <div id="home-cta-actions" style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+          <a href="/create-project/" class="btn btn-primary btn-lg">
+            <span class="material-symbols-outlined">rocket_launch</span>
+            Publish New Project
+          </a>
+          <a href="/dashboard/" class="btn btn-secondary btn-lg">Open Creator Dashboard</a>
+        </div>
+      {% elif user.is_authenticated %}
+        <h2 id="home-cta-title" style="font-size: 2rem; margin-bottom: 12px;">Explore Open-Source Hardware Blueprints</h2>
+        <p id="home-cta-desc" style="color: var(--text-secondary); max-width: 520px; margin: 0 auto 24px; font-size: 1rem;">
+          Discover verified schematics, source code, and bill of materials, or publish your own IoT devices to the community.
+        </p>
+        <div id="home-cta-actions" style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+          <a href="/marketplace/" class="btn btn-primary btn-lg">Browse Projects</a>
+          <a href="/dashboard/" class="btn btn-secondary btn-lg">View Dashboard</a>
+        </div>
+      {% else %}
+        <h2 id="home-cta-title" style="font-size: 2rem; margin-bottom: 12px;">Ready to Start Your Next Project?</h2>
+        <p id="home-cta-desc" style="color: var(--text-secondary); max-width: 520px; margin: 0 auto 24px; font-size: 1rem;">
+          Join our maker community today. Share your electronics builds or discover projects to create at home.
+        </p>
+        <div id="home-cta-actions" style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+          <a href="/register/" class="btn btn-primary btn-lg">Create Free Account</a>
+          <a href="/marketplace/" class="btn btn-secondary btn-lg">Browse Projects</a>
+        </div>
+      {% endif %}
     </div>
   </div>
 </section>
