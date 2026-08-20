@@ -133,6 +133,12 @@ class Project(models.Model):
         return self.reviews.count()
 
     @property
+    def bom_items_count(self):
+        if hasattr(self, '_bom_count'):
+            return self._bom_count
+        return self.bom_items.count()
+
+    @property
     def community_makes_count(self):
         if hasattr(self, '_makes_count'):
             return self._makes_count

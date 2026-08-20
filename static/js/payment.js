@@ -52,8 +52,8 @@ class PaymentGateway {
             <span id="payment-tier-label" class="hardware-chip" style="font-size: 0.72rem;">DIGITAL BLUEPRINT</span>
           </div>
 
-          <!-- Itemized Breakdown: Platform Take-Rate & Maker Settlement -->
-          <div style="background: var(--bg-surface-low); border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; border-left: 3px solid var(--primary); margin-top: 8px;">
+          <!-- Itemized Breakdown: Base Price + 8% Escrow Fee = Total Bill -->
+          <div style="background: var(--bg-surface-low); border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; border-left: 3px solid var(--primary); margin-top: 8px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: var(--text-muted);">
               <span>Hardware / Blueprint Item</span>
               <span id="fee-item-base" class="font-mono">Rs. 0.00</span>
@@ -61,13 +61,13 @@ class PaymentGateway {
             <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: var(--primary);">
               <span style="display: flex; align-items: center; gap: 4px;">
                 <span class="material-symbols-outlined" style="font-size: 14px;">verified_user</span>
-                IoT HIVE Escrow Protection (8%)
+                IoT HIVE Escrow &amp; SafePay (8%)
               </span>
-              <span id="fee-platform-cut" class="font-mono">Rs. 0.00</span>
+              <span id="fee-platform-cut" class="font-mono">+Rs. 0.00</span>
             </div>
-            <div style="display: flex; justify-content: space-between; color: var(--text-muted);">
-              <span>Net Maker Payout</span>
-              <span id="fee-maker-net" class="font-mono" style="color: var(--status-success); font-weight: 600;">Rs. 0.00</span>
+            <div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border-medium); padding-top: 6px; margin-top: 6px; font-weight: 700; color: var(--text-primary);">
+              <span>Total Amount Payable</span>
+              <span id="fee-total-bill" class="font-mono" style="color: var(--primary); font-size: 1.05rem;">Rs. 0.00</span>
             </div>
           </div>
         </div>
@@ -247,25 +247,29 @@ class PaymentGateway {
 
     // Populate Info
     const currency = data.currency || 'LKR';
-    const amount = Number(data.price || 0);
-    const amountStr = currency === 'LKR' ? `Rs. ${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : `$${amount.toFixed(2)} USD`;
+    const baseAmount = Number(data.price || 0);
+    const platformCut = Math.round(baseAmount * 0.08 * 100) / 100;
+    const totalPayable = Math.round((baseAmount + platformCut) * 100) / 100;
+    this.checkoutData.totalPayable = totalPayable;
+
+    const baseStr = currency === 'LKR' ? `Rs. ${baseAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : `$${baseAmount.toFixed(2)} USD`;
+    const cutStr = currency === 'LKR' ? `+Rs. ${platformCut.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : `+$${platformCut.toFixed(2)}`;
+    const totalStr = currency === 'LKR' ? `Rs. ${totalPayable.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : `$${totalPayable.toFixed(2)} USD`;
 
     document.getElementById('payment-project-title').textContent = data.title || 'Hardware Blueprint';
-    document.getElementById('payment-project-price').textContent = amountStr;
+    document.getElementById('payment-project-price').textContent = totalStr;
     document.getElementById('payment-maker-name').textContent = `@${data.maker || 'creator'}`;
     document.getElementById('payment-tier-label').textContent = (data.tierName || (data.tierType || 'Digital Blueprint')).toUpperCase();
-    document.getElementById('card-pay-btn-label').textContent = amountStr;
+    document.getElementById('card-pay-btn-label').textContent = totalStr;
 
-    // Calculate Itemized Platform Take-Rate & Maker Settlement
-    const platformCut = Math.round(amount * 0.08 * 100) / 100;
-    const makerNet = Math.max(0, amount - platformCut);
+    // Calculate Itemized Platform Take-Rate & Total Bill (Escrow increases total)
     const feeItemBaseEl = document.getElementById('fee-item-base');
     const feePlatformCutEl = document.getElementById('fee-platform-cut');
-    const feeMakerNetEl = document.getElementById('fee-maker-net');
+    const feeTotalBillEl = document.getElementById('fee-total-bill');
 
-    if (feeItemBaseEl) feeItemBaseEl.textContent = amountStr;
-    if (feePlatformCutEl) feePlatformCutEl.textContent = `Rs. ${platformCut.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-    if (feeMakerNetEl) feeMakerNetEl.textContent = `Rs. ${makerNet.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    if (feeItemBaseEl) feeItemBaseEl.textContent = baseStr;
+    if (feePlatformCutEl) feePlatformCutEl.textContent = cutStr;
+    if (feeTotalBillEl) feeTotalBillEl.textContent = totalStr;
 
     // Toggle Shipping form if physical tier
     const isPhysical = data.requiresShipping || data.tierType === 'kit' || data.tierType === 'assembled';
@@ -403,9 +407,9 @@ class PaymentGateway {
       alertBox.style.display = 'block';
     } finally {
       btn.disabled = false;
-      const amount = Number(this.checkoutData.price || 0);
+      const totalAmount = Number(this.checkoutData.totalPayable || this.checkoutData.price || 0);
       const cur = this.checkoutData.currency || 'LKR';
-      btn.innerHTML = `<span class="material-symbols-outlined">payments</span> Pay ${cur === 'LKR' ? `Rs. ${amount.toFixed(2)}` : `$${amount.toFixed(2)}`}`;
+      btn.innerHTML = `<span class="material-symbols-outlined">payments</span> Pay ${cur === 'LKR' ? `Rs. ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `$${totalAmount.toFixed(2)}`}`;
     }
   }
 

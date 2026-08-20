@@ -111,20 +111,39 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if self.action == "list":
-            queryset = Project.objects.filter(status="published")
+            queryset = Project.objects.filter(status="published").select_related(
+                "seller", "category"
+            ).prefetch_related(
+                "images"
+            ).annotate(
+                _avg_rating=Avg('reviews__rating'),
+                _review_count=Count('reviews', distinct=True),
+                _bom_count=Count('bom_items', distinct=True),
+            )
         elif user.is_authenticated:
             if user.is_staff or user.is_superuser:
                 queryset = Project.objects.all()
             else:
                 queryset = Project.objects.filter(Q(status="published") | Q(seller=user))
+            queryset = queryset.select_related(
+                "seller", "category", "video", "model_3d"
+            ).prefetch_related(
+                "tiers", "bom_items", "attachments", "images", "reviews__user"
+            ).annotate(
+                _avg_rating=Avg('reviews__rating'),
+                _review_count=Count('reviews', distinct=True),
+                _bom_count=Count('bom_items', distinct=True),
+            )
         else:
-            queryset = Project.objects.filter(status="published")
-
-        queryset = queryset.select_related(
-            "seller", "category", "video", "model_3d"
-        ).prefetch_related(
-            "tiers", "bom_items", "attachments", "images", "reviews__user"
-        )
+            queryset = Project.objects.filter(status="published").select_related(
+                "seller", "category", "video", "model_3d"
+            ).prefetch_related(
+                "tiers", "bom_items", "attachments", "images", "reviews__user"
+            ).annotate(
+                _avg_rating=Avg('reviews__rating'),
+                _review_count=Count('reviews', distinct=True),
+                _bom_count=Count('bom_items', distinct=True),
+            )
 
         category = self.request.query_params.get("category")
         if category and category != "all":
@@ -868,12 +887,23 @@ def direct_card_charge_view(request):
     card_number = str(request.data.get("card_number", "")).replace(" ", "")
     card_last4 = card_number[-4:] if len(card_number) >= 4 else "4444"
 
-    project = Project.objects.filter(id=project_id).first()
+    if not project_id or not str(project_id).isdigit():
+        return Response({"detail": "Valid Project ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    project = Project.objects.filter(id=int(project_id)).first()
     if not project:
         return Response({"detail": "Project not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    tier = project.tiers.filter(id=tier_id).first() if tier_id else project.tiers.first()
-    amount = tier.price if tier else project.price
+    tier = None
+    if tier_id and str(tier_id).isdigit():
+        tier = project.tiers.filter(id=int(tier_id)).first()
+    if not tier:
+        tier = project.tiers.first()
+
+    base_amount = float(tier.price if tier else project.price or 0.0)
+    # 8% Escrow & SafePay Protection Fee increases the total bill amount
+    escrow_fee = round(base_amount * 0.08, 2) if base_amount > 0 else 0.0
+    total_amount = round(base_amount + escrow_fee, 2)
     currency = (tier.currency if tier else "LKR") or "LKR"
 
     order_id = f"HIVE-CARD-{uuid.uuid4().hex[:8].upper()}"
@@ -884,10 +914,10 @@ def direct_card_charge_view(request):
         tier_type=tier.tier_type if tier else "digital",
         buyer=user,
         seller=project.seller,
-        amount=amount,
+        amount=total_amount,
         currency=currency,
         status="paid",
-        payment_method=request.data.get("card_brand", "Visa / Mastercard"),
+        payment_method=request.data.get("payment_method", "Visa / Mastercard"),
         payment_gateway="direct_card",
         transaction_id=order_id,
         card_last4=card_last4,
@@ -900,18 +930,24 @@ def direct_card_charge_view(request):
     )
 
     try:
+        notify_order_created(order)
+    except Exception:
+        pass
+
+    try:
         buyer_name = user.get_full_name() or user.username
-        seller_name = project.seller.get_full_name() or project.seller.username
+        seller_name = (project.seller.get_full_name() or project.seller.username) if project.seller else "Maker"
+        seller_email = project.seller.email if project.seller else ""
         project_title = project.title
         tier_name = tier.name if tier else "Digital Blueprint"
         send_order_notification(
             buyer_email=user.email,
-            seller_email=project.seller.email,
+            seller_email=seller_email,
             buyer_name=buyer_name,
             seller_name=seller_name,
             project_title=project_title,
             tier_name=tier_name,
-            amount=str(amount),
+            amount=f"{total_amount:,.2f}",
             transaction_id=order_id
         )
     except Exception:
@@ -919,7 +955,7 @@ def direct_card_charge_view(request):
 
     return Response({
         "success": True,
-        "message": f"Payment of {currency} {amount:,.2f} confirmed!",
+        "message": f"Payment of {currency} {total_amount:,.2f} confirmed!",
         "order": OrderSerializer(order).data
     })
 

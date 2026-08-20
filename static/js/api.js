@@ -149,17 +149,35 @@ class ApiClient {
     }),
   };
 
-  // --- Category Endpoints ---
+  // --- Category Endpoints with In-Memory Caching ---
+  _categoriesCache = null;
+  _categoriesCacheTime = 0;
+
   categories = {
-    list: () => this.request('categories/'),
+    list: async () => {
+      const now = Date.now();
+      if (this._categoriesCache && (now - this._categoriesCacheTime) < 60000) {
+        return this._categoriesCache;
+      }
+      const data = await this.request('categories/');
+      this._categoriesCache = data;
+      this._categoriesCacheTime = now;
+      return data;
+    },
     get: (slug) => this.request(`categories/${slug}/`),
-    create: (data) => this.request('categories/', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
-    delete: (slugOrId) => this.request(`categories/${slugOrId}/`, {
-      method: 'DELETE'
-    }),
+    create: (data) => {
+      this._categoriesCache = null;
+      return this.request('categories/', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+    },
+    delete: (slugOrId) => {
+      this._categoriesCache = null;
+      return this.request(`categories/${slugOrId}/`, {
+        method: 'DELETE'
+      });
+    },
   };
 
   // --- Projects Endpoints ---

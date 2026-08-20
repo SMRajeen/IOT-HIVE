@@ -5,10 +5,31 @@ Sender: iothive221@gmail.com
 """
 
 import logging
+import threading
 from django.conf import settings
 from django.core.mail import send_mail
 
 logger = logging.getLogger(__name__)
+
+
+def _async_send_mail(subject, message, recipient_list):
+    """Worker function to send mail in a background daemon thread to prevent request blocking."""
+    def _worker():
+        try:
+            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", f"IoT HIVE <{getattr(settings, 'EMAIL_HOST_USER', 'rajeenm2003@gmail.com')}>")
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=from_email,
+                recipient_list=recipient_list,
+                fail_silently=False,
+            )
+            logger.info("Successfully sent email to %s with subject '%s'", recipient_list, subject)
+        except Exception as e:
+            logger.error("Failed to send email to %s: %s", recipient_list, e)
+
+    thread = threading.Thread(target=_worker, daemon=True)
+    thread.start()
 
 
 def send_inquiry_notification(recipient_email, recipient_name, sender_name, project_title, message_text):
@@ -34,18 +55,8 @@ Best regards,
 The IoT-HIVE Team
 https://iot-hive.onrender.com/
 """
-    try:
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "IoT HIVE <iothive221@gmail.com>"),
-            recipient_list=[recipient_email],
-            fail_silently=True,
-        )
-        return True
-    except Exception as e:
-        logger.warning("Failed to send inquiry email notification: %s", e)
-        return False
+    _async_send_mail(subject, message, [recipient_email])
+    return True
 
 
 def send_inquiry_reply_notification(recipient_email, recipient_name, sender_name, project_title, reply_text):
@@ -69,18 +80,8 @@ https://iot-hive.onrender.com/project-requests/
 Best regards,
 The IoT-HIVE Team
 """
-    try:
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "IoT HIVE <iothive221@gmail.com>"),
-            recipient_list=[recipient_email],
-            fail_silently=True,
-        )
-        return True
-    except Exception as e:
-        logger.warning("Failed to send reply email notification: %s", e)
-        return False
+    _async_send_mail(subject, message, [recipient_email])
+    return True
 
 
 def send_order_notification(buyer_email, seller_email, buyer_name, seller_name, project_title, tier_name, amount, transaction_id):
@@ -105,16 +106,7 @@ https://iot-hive.onrender.com/dashboard/
 Best regards,
 The IoT-HIVE Team
 """
-        try:
-            send_mail(
-                subject=buyer_subj,
-                message=buyer_msg,
-                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "IoT HIVE <iothive221@gmail.com>"),
-                recipient_list=[buyer_email],
-                fail_silently=True,
-            )
-        except Exception as e:
-            logger.warning("Failed to send buyer order email: %s", e)
+        _async_send_mail(buyer_subj, buyer_msg, [buyer_email])
 
     # 2. Notify Seller
     if seller_email:
@@ -135,51 +127,28 @@ https://iot-hive.onrender.com/dashboard/
 Best regards,
 The IoT-HIVE Team
 """
-        try:
-            send_mail(
-                subject=seller_subj,
-                message=seller_msg,
-                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "IoT HIVE <iothive221@gmail.com>"),
-                recipient_list=[seller_email],
-                fail_silently=True,
-            )
-        except Exception as e:
-            logger.warning("Failed to send seller order email: %s", e)
+        _async_send_mail(seller_subj, seller_msg, [seller_email])
 
 
 def send_bounty_awarded_notification(maker_email, maker_name, client_name, bounty_title, budget):
-    """Notify maker when their proposal is accepted and bounty is awarded."""
+    """Notify winning maker when their proposal is accepted."""
     if not maker_email:
         return False
 
-    subject = f"[IoT-HIVE] Congratulations! You were awarded the bounty: {bounty_title}"
+    subject = f"[IoT-HIVE] Proposal Accepted! You have been awarded: {bounty_title}"
     message = f"""Hello {maker_name},
 
-Congratulations! Client {client_name} has accepted your proposal and awarded you the hardware commission for:
+Congratulations! Your hardware proposal for "{bounty_title}" has been accepted by {client_name}!
 
-"{bounty_title}"
-Budget: Rs. {budget}
+Bounty Details:
+- Allocated Budget: Rs. {budget}
+- Client: {client_name}
 
-Next Steps:
-1. Contact the client via Maker Live Chat.
-2. Begin prototype fabrication and development.
-3. Update progress milestones (In Progress -> Completed -> Delivered).
-
-View bounty details:
+You can now start collaborating directly with the client. Access bounty milestones and live messaging here:
 https://iot-hive.onrender.com/bounties/
 
 Best regards,
 The IoT-HIVE Team
 """
-    try:
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "IoT HIVE <iothive221@gmail.com>"),
-            recipient_list=[maker_email],
-            fail_silently=True,
-        )
-        return True
-    except Exception as e:
-        logger.warning("Failed to send bounty awarded email: %s", e)
-        return False
+    _async_send_mail(subject, message, [maker_email])
+    return True

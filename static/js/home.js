@@ -29,17 +29,17 @@ async function loadHomeRoleActions() {
     if (role === 'seller') {
       if (heroActions) {
         heroActions.innerHTML = `
-          <a href="/create-project/" class="btn btn-primary btn-lg">
-            <span class="material-symbols-outlined">add_circle</span>
-            Post a Project
+          <a href="/marketplace/" class="btn btn-primary btn-lg">
+            <span class="material-symbols-outlined">explore</span>
+            Explore Projects
           </a>
-          <a href="/dashboard/" class="btn btn-secondary btn-lg">
-            <span class="material-symbols-outlined">dashboard</span>
-            Creator Dashboard
+          <a href="/create-project/" class="btn btn-secondary btn-lg">
+            <span class="material-symbols-outlined">add_circle</span>
+            Post Project
           </a>
           <a href="/bounties/" class="btn btn-ghost btn-lg">
             <span class="material-symbols-outlined">radar</span>
-            Browse Bounties to Bid
+            Bounties
           </a>
         `;
       }
@@ -72,9 +72,13 @@ async function loadHomeRoleActions() {
             <span class="material-symbols-outlined">explore</span>
             Explore Projects
           </a>
-          <a href="/bounties/" class="btn btn-secondary btn-lg">
+          <a href="/create-project/" class="btn btn-secondary btn-lg">
+            <span class="material-symbols-outlined">add_circle</span>
+            Post Project
+          </a>
+          <a href="/bounties/" class="btn btn-ghost btn-lg">
             <span class="material-symbols-outlined">post_add</span>
-            Post a Hardware Bounty
+            Bounties
           </a>
         `;
       }
@@ -107,7 +111,11 @@ async function loadHomeRoleActions() {
           </a>
           <a href="/create-project/" class="btn btn-secondary btn-lg">
             <span class="material-symbols-outlined">add_circle</span>
-            Share a Project
+            Post Project
+          </a>
+          <a href="/bounties/" class="btn btn-ghost btn-lg">
+            <span class="material-symbols-outlined">post_add</span>
+            Bounties
           </a>
         `;
       }

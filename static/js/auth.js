@@ -166,37 +166,16 @@ async function loadAuthNav() {
 
     if (desktopNav) desktopNav.innerHTML = loggedInHtml;
 
-    // Build Role-Specific Desktop Main Navigation Links
+    // Build Stable Desktop Main Navigation Links
     if (mainNav) {
-      let navItems = [];
-      if (role === 'seller') {
-        navItems = [
-          { href: '/', label: 'Home', active: currentPath === '/' },
-          { href: '/marketplace/', label: 'Marketplace', active: currentPath.startsWith('/marketplace') },
-          { href: '/bounties/', label: 'Bounties &amp; Bids', active: currentPath.startsWith('/bounties') },
-          { href: '/dashboard/', label: 'Creator Dashboard', active: currentPath.startsWith('/dashboard') },
-          { href: '/requests/', label: 'Client Inquiries', active: currentPath.startsWith('/requests') || currentPath.startsWith('/project-requests') },
-        ];
-      } else if (role === 'buyer') {
-        navItems = [
-          { href: '/', label: 'Home', active: currentPath === '/' },
-          { href: '/marketplace/', label: 'Marketplace', active: currentPath.startsWith('/marketplace') },
-          { href: '/categories/', label: 'Categories', active: currentPath.startsWith('/categories') },
-          { href: '/bounties/', label: 'Post Bounty', active: currentPath.startsWith('/bounties') },
-          { href: '/favorites/', label: 'Saved Projects', active: currentPath.startsWith('/favorites') },
-          { href: '/dashboard/', label: 'My Orders', active: currentPath.startsWith('/dashboard') },
-        ];
-      } else {
-        // Both or Admin
-        navItems = [
-          { href: '/', label: 'Home', active: currentPath === '/' },
-          { href: '/marketplace/', label: 'Marketplace', active: currentPath.startsWith('/marketplace') },
-          { href: '/categories/', label: 'Categories', active: currentPath.startsWith('/categories') },
-          { href: '/bounties/', label: 'Bounties', active: currentPath.startsWith('/bounties') },
-          { href: '/dashboard/', label: 'Dashboard', active: currentPath.startsWith('/dashboard') },
-          { href: '/requests/', label: 'Inquiries &amp; Orders', active: currentPath.startsWith('/requests') || currentPath.startsWith('/project-requests') },
-        ];
-      }
+      const navItems = [
+        { href: '/', label: 'Home', active: currentPath === '/' },
+        { href: '/marketplace/', label: 'Marketplace', active: currentPath.startsWith('/marketplace') },
+        { href: '/categories/', label: 'Categories', active: currentPath.startsWith('/categories') },
+        { href: '/bounties/', label: 'Bounties', active: currentPath.startsWith('/bounties') },
+        { href: '/project-requests/', label: 'Inquiries', active: currentPath.startsWith('/project-requests') || currentPath.startsWith('/requests') },
+        { href: '/dashboard/', label: 'Dashboard', active: currentPath.startsWith('/dashboard') },
+      ];
 
       if (isAdmin) {
         navItems.push({ href: '/admin-panel/', label: 'Admin Panel', active: currentPath.startsWith('/admin-panel'), style: 'color: #00ff88;' });
@@ -207,44 +186,19 @@ async function loadAuthNav() {
       `).join('');
     }
 
-    // Build Role-Specific Mobile Drawer Links
+    // Build Consistent Mobile Drawer Links
     if (mobileNavLinks) {
-      let mobileItems = [];
-      if (role === 'seller') {
-        mobileItems = [
-          { href: '/', label: 'Home' },
-          { href: '/marketplace/', label: 'Marketplace' },
-          { href: '/bounties/', label: 'Bounties &amp; Maker Bids' },
-          { href: '/create-project/', label: '+ Publish New Project', highlight: true },
-          { href: '/dashboard/', label: 'Creator Studio Dashboard' },
-          { href: '/requests/', label: 'Client Inquiries &amp; Orders' },
-          { href: '/profile/', label: 'Maker Profile' },
-        ];
-      } else if (role === 'buyer') {
-        mobileItems = [
-          { href: '/', label: 'Home' },
-          { href: '/marketplace/', label: 'Marketplace' },
-          { href: '/categories/', label: 'Categories' },
-          { href: '/bounties/', label: 'Post a Bounty / Request' },
-          { href: '/favorites/', label: 'Saved Projects' },
-          { href: '/dashboard/', label: 'My Hardware Orders' },
-          { href: '/requests/', label: 'My Inquiries' },
-          { href: '/profile/', label: 'Profile Settings' },
-        ];
-      } else {
-        // Both / Admin
-        mobileItems = [
-          { href: '/', label: 'Home' },
-          { href: '/marketplace/', label: 'Marketplace' },
-          { href: '/categories/', label: 'Categories' },
-          { href: '/bounties/', label: 'Bounties &amp; Commissions' },
-          { href: '/create-project/', label: '+ Publish Project', highlight: true },
-          { href: '/dashboard/', label: 'Dashboard (Sales &amp; Orders)' },
-          { href: '/favorites/', label: 'Saved Projects' },
-          { href: '/requests/', label: 'Inquiries &amp; Orders' },
-          { href: '/profile/', label: 'Profile' },
-        ];
-      }
+      const mobileItems = [
+        { href: '/', label: 'Home' },
+        { href: '/marketplace/', label: 'Marketplace' },
+        { href: '/categories/', label: 'Categories' },
+        { href: '/bounties/', label: 'Bounties' },
+        { href: '/create-project/', label: '+ Publish Project', highlight: true },
+        { href: '/project-requests/', label: 'Inquiries &amp; Messages' },
+        { href: '/favorites/', label: 'Saved Projects' },
+        { href: '/dashboard/', label: 'Dashboard &amp; Orders' },
+        { href: '/profile/', label: 'Profile Settings' },
+      ];
 
       if (isAdmin) {
         mobileItems.push({ href: '/admin-panel/', label: 'Admin Panel', style: 'color: #00ff88;' });

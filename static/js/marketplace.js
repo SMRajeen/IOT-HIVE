@@ -152,14 +152,27 @@
     `;
   }
 
+  function renderSkeletonCards() {
+    if (!grid) return;
+    grid.innerHTML = Array(6).fill(0).map(() => `
+      <div class="card-cyber" style="height: 350px; display: flex; flex-direction: column; background: var(--bg-surface-low); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; opacity: 0.7;">
+        <div style="height: 190px; background: var(--bg-surface-high); border-bottom: 1px solid var(--border-subtle);"></div>
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px; flex: 1;">
+          <div style="height: 14px; width: 40%; background: var(--bg-surface-high); border-radius: 4px;"></div>
+          <div style="height: 20px; width: 85%; background: var(--bg-surface-high); border-radius: 4px;"></div>
+          <div style="height: 14px; width: 95%; background: var(--bg-surface-high); border-radius: 4px; margin-top: auto;"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
   async function loadMarketplaceProjects() {
     if (!grid) return;
-    grid.innerHTML = `
-      <div style="grid-column: 1 / -1; padding: 48px; text-align: center; color: var(--text-muted);">
-        <span class="material-symbols-outlined spin" style="font-size: 32px; color: var(--primary);">sync</span>
-        <p style="margin-top: 8px;">Loading hardware projects...</p>
-      </div>
-    `;
+    
+    // Only show skeleton if grid is currently empty or has only placeholder
+    if (!grid.children.length || grid.querySelector('.card-cyber[style*="opacity: 0.7"]') || grid.querySelector('.material-symbols-outlined.spin')) {
+      renderSkeletonCards();
+    }
 
     const q = new URLSearchParams();
     if (activeCategory && activeCategory !== 'all') {
@@ -269,7 +282,7 @@
   if (searchInput) {
     searchInput.addEventListener('input', () => {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(loadMarketplaceProjects, 280);
+      debounceTimer = setTimeout(loadMarketplaceProjects, 250);
     });
   }
 
@@ -281,11 +294,12 @@
     difficultySelect.addEventListener('change', loadMarketplaceProjects);
   }
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  document.addEventListener('DOMContentLoaded', () => {
     initMCUPills();
-    await updateMarketplaceRoleUI();
-    await loadCategories();
-    await loadMarketplaceProjects();
+    // Fire all initial requests in parallel for maximum speed
+    updateMarketplaceRoleUI();
+    loadCategories();
+    loadMarketplaceProjects();
   });
 })();
 

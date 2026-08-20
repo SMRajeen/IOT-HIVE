@@ -313,6 +313,25 @@ class ProjectSerializer(serializers.ModelSerializer):
         name = f"{obj.seller.first_name} {obj.seller.last_name}".strip()
         return name if name else obj.seller.username
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not data.get("tiers") or len(data["tiers"]) == 0:
+            data["tiers"] = [
+                {
+                    "id": None,
+                    "tier_type": "digital",
+                    "name": "Digital Blueprint & Firmware",
+                    "price": float(instance.price or 0.0),
+                    "currency": "LKR",
+                    "description": "Instant access to Gerber PCB files, KiCad schematics, BOM, and firmware.",
+                    "requires_shipping": False,
+                    "stock_quantity": -1,
+                    "is_available": True,
+                    "created_at": instance.created_at.isoformat() if instance.created_at else None,
+                }
+            ]
+        return data
+
     def _process_bom(self, project, bom_input):
         if not bom_input:
             return
