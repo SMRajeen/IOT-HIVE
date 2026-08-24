@@ -21,3 +21,5 @@ services:
         sync: false
       - key: NOTIFY_LK_SENDER_ID
         value: "IOTHIVE"
+      - key: DATABASE_URL
+        sync: false

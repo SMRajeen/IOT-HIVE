@@ -79,16 +79,31 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
-# Support PostgreSQL via DATABASE_URL or fallback to local SQLite
-database_url = os.getenv('DATABASE_URL')
-if database_url:
+# Support PostgreSQL via DATABASE_URL / POSTGRES_URL / SUPABASE_DB_URL or discrete env vars, with fallback to SQLite
+raw_db_url = (
+    os.getenv('DATABASE_URL')
+    or os.getenv('POSTGRES_URL')
+    or os.getenv('SUPABASE_DB_URL')
+    or os.getenv('SUPABASE_DATABASE_URL')
+)
+
+# If SUPABASE_URL was provided as a postgres connection string, use it; otherwise treat it as API URL
+supabase_env = os.getenv('SUPABASE_URL', '')
+if not raw_db_url and (supabase_env.startswith('postgres://') or supabase_env.startswith('postgresql://')):
+    raw_db_url = supabase_env
+
+db_host = os.getenv('DB_HOST') or os.getenv('POSTGRES_HOST') or os.getenv('SUPABASE_HOST')
+
+if raw_db_url and (raw_db_url.startswith('postgres://') or raw_db_url.startswith('postgresql://')):
     try:
         import dj_database_url
+        is_transaction_pooler = ':6543' in raw_db_url or 'pgbouncer=true' in raw_db_url.lower()
         DATABASES = {
             'default': dj_database_url.config(
-                default=database_url,
-                conn_max_age=600,
+                default=raw_db_url,
+                conn_max_age=0 if is_transaction_pooler else 600,
                 conn_health_checks=True,
+                ssl_require=True,
             )
         }
     except ImportError:
@@ -98,6 +113,22 @@ if database_url:
                 'NAME': BASE_DIR / 'db.sqlite3',
             }
         }
+elif db_host:
+    # Support discrete environment variables if added individually on Render
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME') or os.getenv('POSTGRES_DB') or 'postgres',
+            'USER': os.getenv('DB_USER') or os.getenv('POSTGRES_USER') or 'postgres',
+            'PASSWORD': os.getenv('DB_PASSWORD') or os.getenv('POSTGRES_PASSWORD', ''),
+            'HOST': db_host,
+            'PORT': os.getenv('DB_PORT') or os.getenv('POSTGRES_PORT') or '5432',
+            'CONN_MAX_AGE': 600,
+            'OPTIONS': {
+                'sslmode': 'require',
+            }
+        }
+    }
 else:
     DATABASES = {
         'default': {
@@ -105,6 +136,12 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+
+# Supabase API & Auth Configuration (for REST API / JWT / Auth integration)
+SUPABASE_URL = os.getenv('SUPABASE_URL', '')
+SUPABASE_SECRET_KEY = os.getenv('SUPABASE_SECRET_KEY', '')
+SUPABASE_PUBLISHABLE_KEY = os.getenv('SUPABASE_PUBLISHABLE_KEY', '')
+SUPABASE_JWKS_URL = os.getenv('SUPABASE_JWKS_URL', '')
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -136,8 +173,8 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files & Cloudinary Upload Storage (Root paths: projects/images/, profiles/, projects/attachments/)
-MEDIA_URL = '/'
-MEDIA_ROOT = BASE_DIR
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')

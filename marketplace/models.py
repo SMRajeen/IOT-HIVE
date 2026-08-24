@@ -3,20 +3,26 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 import os
-from django.core.files.storage import default_storage
+
 
 def get_raw_storage():
+    """
+    Lazy storage resolver for non-image file fields (zip, pdf, hex, etc.).
+    Called per-upload so Cloudinary env vars are guaranteed to be loaded.
+    Returns RawMediaCloudinaryStorage when Cloudinary is configured,
+    otherwise falls back to the default FileSystemStorage.
+    """
     try:
-        from django.conf import settings
-        if os.getenv("CLOUDINARY_CLOUD_NAME") or os.getenv("CLOUDINARY_URL") or getattr(settings, "CLOUDINARY_CLOUD_NAME", None):
+        if (
+            os.environ.get("CLOUDINARY_CLOUD_NAME")
+            or os.environ.get("CLOUDINARY_URL")
+        ):
             from cloudinary_storage.storage import RawMediaCloudinaryStorage
             return RawMediaCloudinaryStorage()
     except Exception:
         pass
+    from django.core.files.storage import default_storage
     return default_storage
-
-
-raw_storage = get_raw_storage()
 
 
 class Category(models.Model):
@@ -236,7 +242,7 @@ class ProjectAttachment(models.Model):
         related_name="attachments"
     )
     title = models.CharField(max_length=200)
-    file = models.FileField(upload_to="projects/attachments/", storage=raw_storage)
+    file = models.FileField(upload_to="projects/attachments/", storage=get_raw_storage)
     file_type = models.CharField(max_length=30, choices=FILE_TYPE_CHOICES, default="other")
     file_size = models.CharField(max_length=50, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -620,7 +626,7 @@ class ChatMessage(models.Model):
         related_name="chat_messages"
     )
     message = models.TextField()
-    attachment = models.FileField(upload_to="chat/attachments/", blank=True, null=True, storage=raw_storage)
+    attachment = models.FileField(upload_to="chat/attachments/", blank=True, null=True, storage=get_raw_storage)
     is_read = models.BooleanField(default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
