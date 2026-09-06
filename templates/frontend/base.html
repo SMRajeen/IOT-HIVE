@@ -10,12 +10,33 @@
   <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}?v=4">
   <link rel="apple-touch-icon" href="{% static 'images/favicon.png' %}?v=4">
   
-  <!-- Immediate Theme Initialization to Prevent Flash of Dark/Light -->
+  <!-- Immediate Theme & Core UI Helpers -->
   <script>
     (function() {
       var savedTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
     })();
+
+    window.togglePasswordVisibility = function(btn) {
+      if (!btn) return false;
+      var container = btn.closest('.search-box-cyber, .input-group') || btn.parentElement;
+      if (!container) return false;
+      var input = container.querySelector('input');
+      if (!input) return false;
+      var icon = btn.querySelector('.material-symbols-outlined');
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) icon.textContent = 'visibility_off';
+        btn.setAttribute('aria-label', 'Hide password');
+        btn.classList.add('active');
+      } else {
+        input.type = 'password';
+        if (icon) icon.textContent = 'visibility';
+        btn.setAttribute('aria-label', 'Show password');
+        btn.classList.remove('active');
+      }
+      return false;
+    };
   </script>
 
   <!-- Modern Google Fonts -->
@@ -27,7 +48,7 @@
   <!-- Prism Syntax Highlighting -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
   <!-- Master Stylesheet -->
-  <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.4">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4.5">
   {% block extra_css %}{% endblock %}
 </head>
 <body data-page="{% block page_id %}home{% endblock %}">
@@ -239,10 +260,10 @@
   <div id="toast-container" class="toast-container"></div>
 
   <!-- Base JS Scripts -->
-  <script src="{% static 'js/api.js' %}?v=4.4"></script>
-  <script src="{% static 'js/auth.js' %}?v=4.4"></script>
-  <script src="{% static 'js/chat.js' %}?v=4.4"></script>
-  <script src="{% static 'js/spa-router.js' %}?v=4.4"></script>
+  <script src="{% static 'js/api.js' %}?v=4.5"></script>
+  <script src="{% static 'js/auth.js' %}?v=4.5"></script>
+  <script src="{% static 'js/chat.js' %}?v=4.5"></script>
+  <script src="{% static 'js/spa-router.js' %}?v=4.5"></script>
   <script>
     // -------------------------------------------------------------
     // Light / Dark Theme Switching & Persistence

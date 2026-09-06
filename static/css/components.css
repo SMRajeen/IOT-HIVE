@@ -953,6 +953,10 @@ body[data-page="register"] .site-header .header-inner {
   align-items: center;
   justify-content: center;
   margin-left: 2px;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
 }
 
 .filter-pill {

@@ -75,8 +75,8 @@
           <div class="search-box-cyber">
             <span class="material-symbols-outlined" style="color: var(--text-muted); font-size: 20px; flex-shrink: 0;">lock</span>
             <input type="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
-            <button type="button" data-password-toggle class="btn-icon" onclick="window.togglePasswordVisibility(this)" aria-label="Toggle password visibility">
-              <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+            <button type="button" data-password-toggle class="btn-icon" onclick="window.togglePasswordVisibility(this); return false;" aria-label="Toggle password visibility">
+              <span class="material-symbols-outlined" style="font-size: 18px; pointer-events: none;">visibility</span>
             </button>
           </div>
         </div>
@@ -147,8 +147,8 @@
           <div class="search-box-cyber">
             <span class="material-symbols-outlined" style="color: var(--text-muted); margin-right: 8px; font-size: 20px;">lock</span>
             <input type="password" id="new-password" name="new_password" placeholder="Enter new password" required minlength="6">
-            <button type="button" data-password-toggle class="btn-icon" onclick="window.togglePasswordVisibility(this)" aria-label="Toggle password visibility">
-              <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+            <button type="button" data-password-toggle class="btn-icon" onclick="window.togglePasswordVisibility(this); return false;" aria-label="Toggle password visibility">
+              <span class="material-symbols-outlined" style="font-size: 18px; pointer-events: none;">visibility</span>
             </button>
           </div>
         </div>
