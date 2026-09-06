@@ -5,7 +5,10 @@
 
 let activeInquiryTab = 'received';
 let currentUser = null;
-let inquiriesCache = [];
+let inquiriesCache = {
+  sent: [],
+  received: []
+};
 
 function formatLKR(amount) {
   const num = Number(amount || 0);
@@ -13,6 +16,7 @@ function formatLKR(amount) {
 }
 
 window.switchInquiryTab = function(tab) {
+  if (!currentUser) return;
   activeInquiryTab = tab;
   const recBtn = document.getElementById('tab-received-btn');
   const sentBtn = document.getElementById('tab-sent-btn');
@@ -31,27 +35,49 @@ window.switchInquiryTab = function(tab) {
 
 async function loadRequests() {
   const listContainer = document.getElementById('requests-list-container');
+  const tabsWrapper = document.getElementById('inquiries-tabs-wrapper');
   if (!listContainer) return;
 
+  const api = window.IoTHiveAPI || window.API;
+  const auth = window.IoTHiveAuth || window.Auth;
+
   try {
-    currentUser = await API.auth.me();
-    if (!currentUser) {
+    currentUser = auth ? await auth.getUser(true) : (api?.auth ? await api.auth.me() : null);
+    if (!currentUser || !currentUser.username) {
+      if (tabsWrapper) tabsWrapper.style.display = 'none';
       listContainer.innerHTML = `
-        <div class="card-cyber" style="padding: 36px; text-align: center;">
-          <p style="color: var(--text-muted);">Please log in to view project inquiries.</p>
-          <a href="/login/?next=/project-requests/" class="btn btn-primary btn-sm">Sign In</a>
+        <div class="card-cyber" style="padding: 48px 24px; text-align: center; background: var(--bg-surface-container);">
+          <div style="width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.25); display: flex; align-items: center; justify-content: center;">
+            <span class="material-symbols-outlined" style="font-size: 28px; color: var(--accent-cyan);">lock</span>
+          </div>
+          <h3 style="font-size: 1.3rem; margin-bottom: 8px;">Authentication Required</h3>
+          <p style="color: var(--text-muted); max-width: 440px; margin: 0 auto 24px; font-size: 0.95rem; line-height: 1.5;">
+            Please sign in or create an account to view and respond to project inquiries, hardware orders, and customer messages.
+          </p>
+          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a href="/login/?next=/project-requests/" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">login</span>
+              Sign In
+            </a>
+            <a href="/register/?next=/project-requests/" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">person_add</span>
+              Create Account
+            </a>
+          </div>
         </div>
       `;
       return;
     }
 
+    if (tabsWrapper) tabsWrapper.style.display = 'flex';
+
     const [sentData, receivedData] = await Promise.all([
-      API.requests.sent().catch(() => []),
-      API.requests.received().catch(() => [])
+      api.requests.sent().catch(() => []),
+      api.requests.received().catch(() => [])
     ]);
 
-    const sentList = Array.isArray(sentData) ? sentData : (sentData.results || []);
-    const receivedList = Array.isArray(receivedData) ? receivedData : (receivedData.results || []);
+    const sentList = Array.isArray(sentData) ? sentData : (sentData?.results || []);
+    const receivedList = Array.isArray(receivedData) ? receivedData : (receivedData?.results || []);
 
     const recBadge = document.getElementById('badge-received-count');
     const sentBadge = document.getElementById('badge-sent-count');
@@ -65,13 +91,15 @@ async function loadRequests() {
 
     renderInquiriesList();
   } catch (err) {
+    console.error('[IoT Hive] Error loading inquiries:', err);
+    if (tabsWrapper) tabsWrapper.style.display = 'none';
     listContainer.innerHTML = '<div class="card-cyber" style="padding: 32px; text-align: center; color: var(--text-muted);">Error loading inquiries. Please refresh.</div>';
   }
 }
 
 function renderInquiriesList() {
   const listContainer = document.getElementById('requests-list-container');
-  if (!listContainer) return;
+  if (!listContainer || !currentUser) return;
 
   const currentList = (inquiriesCache && inquiriesCache[activeInquiryTab]) ? inquiriesCache[activeInquiryTab] : [];
 
@@ -107,7 +135,7 @@ function renderInquiriesList() {
       ? `<span class="badge-status online"><span class="material-symbols-outlined" style="font-size: 13px;">check_circle</span> COMPLETED</span>`
       : (req.status === 'accepted'
         ? `<span class="badge-status online">ACCEPTED</span>`
-        : `<span class="badge-status standby">${req.status.toUpperCase()}</span>`);
+        : `<span class="badge-status standby">${(req.status || 'PENDING').toUpperCase()}</span>`);
 
     return `
       <div class="card-cyber" style="padding: 22px 24px; margin-bottom: 16px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl);">
@@ -161,7 +189,7 @@ function renderInquiriesList() {
         <!-- Actions Footer -->
         <div class="flex items-center justify-between" style="border-top: 1px solid var(--border-subtle); padding-top: 12px; flex-wrap: wrap; gap: 10px;">
           <div class="flex items-center gap-2">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="window.openMessengerForInquiry('${isReceived ? req.buyer : req.project_seller || ''}', '${encodeURIComponent(otherPartyName)}', ${req.project}, '${encodeURIComponent(req.project_title || '')}')">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="window.openMessengerForInquiry('${isReceived ? req.buyer : (req.project_seller || req.seller || '')}', '${encodeURIComponent(otherPartyName)}', ${req.project}, '${encodeURIComponent(req.project_title || '')}')">
               <span class="material-symbols-outlined" style="font-size: 15px;">forum</span>
               Open in Live Chat
             </button>
@@ -187,9 +215,10 @@ window.handleSendReply = async function(reqId) {
   const replyText = input.value.trim();
   if (!replyText) return;
 
+  const api = window.IoTHiveAPI || window.API;
   try {
     input.disabled = true;
-    await API.requests.reply(reqId, replyText);
+    await api.requests.reply(reqId, replyText);
     input.value = '';
     input.disabled = false;
     if (window.showToast) showToast('Reply sent and recipient notified via email!', 'success');
@@ -210,8 +239,9 @@ window.openMessengerForInquiry = function(partnerId, encodedName, projectId, enc
 };
 
 window.updateRequestStatus = async function(reqId, newStatus) {
+  const api = window.IoTHiveAPI || window.API;
   try {
-    await API.requests.updateStatus(reqId, newStatus);
+    await api.requests.updateStatus(reqId, newStatus);
     if (window.showToast) showToast(`Inquiry marked as ${newStatus}`, 'success');
     loadRequests();
   } catch (err) {
@@ -219,8 +249,30 @@ window.updateRequestStatus = async function(reqId, newStatus) {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+function initProjectRequests() {
+  const container = document.getElementById('requests-list-container');
+  if (!container) return;
   loadRequests();
-  // Poll periodically for new incoming inquiries
-  setInterval(loadRequests, 12000);
+  if (window._inquiriesPollInterval) {
+    clearInterval(window._inquiriesPollInterval);
+  }
+  window._inquiriesPollInterval = setInterval(() => {
+    if (document.getElementById('requests-list-container')) {
+      loadRequests();
+    } else {
+      clearInterval(window._inquiriesPollInterval);
+    }
+  }, 12000);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initProjectRequests);
+} else {
+  initProjectRequests();
+}
+
+window.addEventListener('page:loaded', () => {
+  if (document.getElementById('requests-list-container')) {
+    initProjectRequests();
+  }
 });

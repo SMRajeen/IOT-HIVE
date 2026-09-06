@@ -3,7 +3,7 @@ services:
     name: iot-hive
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn config.wsgi:application"
+    startCommand: "gunicorn config.wsgi:application --workers 3 --threads 2 --worker-class gthread --timeout 30"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.8
@@ -21,5 +21,3 @@ services:
         sync: false
       - key: NOTIFY_LK_SENDER_ID
         value: "IOTHIVE"
-      - key: DATABASE_URL
-        sync: false

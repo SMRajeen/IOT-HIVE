@@ -68,10 +68,31 @@
         websiteEl.removeAttribute('href');
       }
 
-      if (currentUser.avatar) {
-        document.getElementById('profile-avatar-container').innerHTML = `
-          <img src="${api.resolveUrl(currentUser.avatar)}" alt="${escapeHtml(currentUser.username)}" style="width: 100%; height: 100%; object-fit: cover;">
-        `;
+      const avatarContainer = document.getElementById('profile-avatar-container');
+      if (avatarContainer) {
+        if (currentUser.avatar) {
+          avatarContainer.innerHTML = `
+            <img src="${api.resolveUrl(currentUser.avatar)}" alt="${escapeHtml(currentUser.username)}" style="width: 100%; height: 100%; object-fit: cover;">
+          `;
+        } else {
+          avatarContainer.innerHTML = `
+            <span class="material-symbols-outlined" style="font-size: 40px; color: var(--primary);">person</span>
+          `;
+        }
+      }
+
+      // Populate edit form preview
+      const editPreview = document.getElementById('edit-avatar-preview');
+      if (editPreview) {
+        if (currentUser.avatar) {
+          editPreview.innerHTML = `
+            <img src="${api.resolveUrl(currentUser.avatar)}" alt="${escapeHtml(currentUser.username)}" style="width: 100%; height: 100%; object-fit: cover;">
+          `;
+        } else {
+          editPreview.innerHTML = `
+            <span class="material-symbols-outlined" style="font-size: 36px; color: var(--primary);">person</span>
+          `;
+        }
       }
 
       // Populate edit form
@@ -202,21 +223,55 @@
     }
   };
 
+  function setupAvatarInputPreview() {
+    const avatarInput = document.getElementById('avatar-file-input');
+    if (avatarInput) {
+      avatarInput.addEventListener('change', function() {
+        const file = this.files?.[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+          if (window.showToast) showToast('Avatar file size must be less than 5MB.', 'error');
+          this.value = '';
+          return;
+        }
+
+        const previewContainer = document.getElementById('edit-avatar-preview');
+        if (previewContainer) {
+          const objectUrl = URL.createObjectURL(file);
+          previewContainer.innerHTML = `<img src="${objectUrl}" alt="Selected avatar" style="width: 100%; height: 100%; object-fit: cover;">`;
+        }
+      });
+    }
+  }
+
   const editForm = document.getElementById('profile-edit-form');
   if (editForm) {
     editForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const btn = document.getElementById('profile-save-btn');
+      const btn = document.getElementById('profile-save-btn') || editForm.querySelector('button[type="submit"]');
       const alert = document.getElementById('profile-edit-alert');
 
-      btn.disabled = true;
-      btn.innerHTML = '<span class="material-symbols-outlined spin">sync</span> Saving...';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined spin">sync</span> Saving...';
+      }
+      if (alert) alert.style.display = 'none';
 
       try {
         const formData = new FormData(editForm);
-        await api.auth.updateProfile(formData);
-        if (window.showToast) showToast('Profile updated successfully!', 'success');
-        if (window.loadAuthNav) await loadAuthNav();
+        const res = await api.auth.updateProfile(formData);
+        if (window.showToast) showToast(res?.message || 'Profile updated successfully!', 'success');
+        
+        // Clear cached auth user and re-render header & profile
+        if (auth && auth.clearCache) {
+          auth.clearCache();
+        }
+        currentUser = await auth.getUser(true);
+        if (auth && auth.loadAuthNav) {
+          await auth.loadAuthNav();
+        }
+
         window.toggleEditProfile(false);
         await loadProfile();
       } catch (err) {
@@ -226,11 +281,30 @@
           alert.style.display = 'block';
         }
       } finally {
-        btn.disabled = false;
-        btn.innerHTML = 'Save Changes';
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = 'Save Changes';
+        }
       }
     });
   }
 
-  document.addEventListener('DOMContentLoaded', loadProfile);
+  function initProfile() {
+    if (document.getElementById('profile-name')) {
+      loadProfile();
+      setupAvatarInputPreview();
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initProfile);
+  } else {
+    initProfile();
+  }
+
+  window.addEventListener('page:loaded', () => {
+    if (document.getElementById('profile-name')) {
+      initProfile();
+    }
+  });
 })();

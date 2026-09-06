@@ -52,28 +52,30 @@
     </div>
 
     <!-- Category Filter Pills -->
-    <div style="margin-bottom: 12px;">
-      <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">Category:</div>
+    <div style="margin-bottom: 14px;">
+      <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">Category:</div>
       <div class="flex items-center gap-2" style="overflow-x: auto; padding-bottom: 4px;" id="category-pills">
         <button class="filter-pill active" data-slug="all">All Categories</button>
       </div>
     </div>
 
     <!-- Microcontroller & Board Filters -->
-    <div style="border-top: 1px solid var(--border-subtle); padding-top: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-      <div class="flex items-center gap-2" style="overflow-x: auto;" id="mcu-pills">
-        <span style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; margin-right: 4px;">MCU / Core:</span>
-        <button class="filter-pill active" data-mcu="all">All Boards</button>
-        <button class="filter-pill" data-mcu="ESP32">ESP32</button>
-        <button class="filter-pill" data-mcu="Raspberry Pi">Raspberry Pi</button>
-        <button class="filter-pill" data-mcu="Arduino">Arduino</button>
-        <button class="filter-pill" data-mcu="STM32">STM32</button>
-        <button class="filter-pill" data-mcu="RP2040">RP2040 Pico</button>
+    <div style="border-top: 1px solid var(--border-subtle); padding-top: 14px; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+      <div style="flex: 1; min-width: 280px;">
+        <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">MCU / Core:</div>
+        <div class="flex items-center gap-2" style="overflow-x: auto; padding-bottom: 4px;" id="mcu-pills">
+          <button class="filter-pill active" data-mcu="all">All Boards</button>
+          <button class="filter-pill" data-mcu="ESP32">ESP32</button>
+          <button class="filter-pill" data-mcu="Raspberry Pi">Raspberry Pi</button>
+          <button class="filter-pill" data-mcu="Arduino">Arduino</button>
+          <button class="filter-pill" data-mcu="STM32">STM32</button>
+          <button class="filter-pill" data-mcu="RP2040">RP2040 Pico</button>
+        </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <span style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase;">Difficulty:</span>
-        <select id="marketplace-difficulty" class="input-cyber" style="width: auto; padding: 4px 10px; font-size: 0.82rem; background: var(--bg-surface-low);">
+      <div style="flex-shrink: 0;">
+        <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">Difficulty:</div>
+        <select id="marketplace-difficulty" class="input-cyber" style="width: auto; padding: 7px 12px; font-size: 0.84rem; background: var(--bg-surface-low); border-radius: var(--radius-sm);">
           <option value="all">All Levels</option>
           <option value="beginner">Beginner</option>
           <option value="intermediate">Intermediate</option>
@@ -90,7 +92,7 @@
   </div>
 
   <!-- Projects Grid -->
-  <div class="grid-cols-3" id="marketplace-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+  <div class="grid-cols-3" id="marketplace-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; align-items: stretch;">
     <!-- Rendered dynamically by marketplace.js -->
   </div>
 

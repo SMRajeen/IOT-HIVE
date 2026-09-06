@@ -2,8 +2,22 @@
  * IoT HIVE - Categories Page & Box Setup Controller
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadCategoriesPage();
+function initCategoriesPage() {
+  if (document.getElementById('categories-page-grid')) {
+    loadCategoriesPage();
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCategoriesPage);
+} else {
+  initCategoriesPage();
+}
+
+window.addEventListener('page:loaded', () => {
+  if (document.getElementById('categories-page-grid')) {
+    initCategoriesPage();
+  }
 });
 
 const DEFAULT_CATEGORIES_METADATA = {
@@ -15,7 +29,7 @@ const DEFAULT_CATEGORIES_METADATA = {
   },
   'robotics': {
     icon: 'smart_toy',
-    color: '#00ff88',
+    color: 'var(--status-online)',
     tags: ['ROS2', 'SLAM LiDAR', 'Motor Drivers', 'Jetson Nano', 'CAN-FD'],
     description: 'Autonomous mobile rovers, robotic arms, computer vision payloads, and smart kinematics machines.'
   },

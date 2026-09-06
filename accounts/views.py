@@ -125,12 +125,11 @@ def register(request):
         role=role,
     )
 
-    login(request, user)
-
     return Response(
         {
-            "message": "Welcome to IoT Hive! Your account has been created.",
-            "user": UserSerializer(user).data,
+            "message": "Your account has been created successfully! Please sign in with your credentials.",
+            "username": user.username,
+            "email": user.email,
         },
         status=status.HTTP_201_CREATED
     )
@@ -150,29 +149,17 @@ def login_view(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    username_to_auth = identifier
-    user_obj = User.objects.filter(
-        Q(email__iexact=identifier) | Q(username__iexact=identifier)
-    ).first()
-    if user_obj:
-        username_to_auth = user_obj.username
+    user = None
+    if "@" in identifier:
+        user = User.objects.filter(email__iexact=identifier).first()
+        if user:
+            user = authenticate(request, username=user.username, password=password)
+    else:
+        user = authenticate(request, username=identifier, password=password)
 
-    user = authenticate(
-        request,
-        username=username_to_auth,
-        password=password
-    )
-
-    if user is None and username_to_auth != identifier:
-        user = authenticate(
-            request,
-            username=identifier,
-            password=password
-        )
-
-    if user is None:
+    if not user:
         return Response(
-            {"detail": "Incorrect username/email or password."},
+            {"detail": "Invalid credentials. Please verify your username/email and password."},
             status=status.HTTP_401_UNAUTHORIZED
         )
 
@@ -183,10 +170,9 @@ def login_view(request):
     )
 
     login(request, user)
-
     return Response(
         {
-            "message": "Welcome back! Login successful.",
+            "message": f"Welcome back, {user.first_name or user.username}!",
             "user": UserSerializer(user).data,
         }
     )
@@ -196,7 +182,7 @@ def login_view(request):
 @permission_classes([AllowAny])
 @throttle_classes([AuthAnonRateThrottle])
 def password_reset_request(request):
-    """Initiates a password reset flow by email or username."""
+    """Initiates a password reset flow securely via email."""
     data = _get_request_data(request)
     identifier = (data.get("email") or data.get("username") or data.get("identifier") or "").strip()
 
@@ -210,22 +196,84 @@ def password_reset_request(request):
         Q(email__iexact=identifier) | Q(username__iexact=identifier)
     ).first()
 
-    if not user:
-        return Response(
-            {"detail": f"No account found matching '{identifier}'. Please check your spelling."},
-            status=status.HTTP_404_NOT_FOUND
-        )
+    if user and user.email:
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        reset_url = request.build_absolute_uri(f"/login/?reset_uid={uidb64}&reset_token={token}")
 
-    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-    token = default_token_generator.make_token(user)
+        subject = "IoT HIVE - Password Reset Request"
+        message_body = (
+            f"Hello @{user.username},\n\n"
+            f"We received a request to reset your password on IoT HIVE.\n\n"
+            f"Please click the secure link below to choose a new password:\n"
+            f"{reset_url}\n\n"
+            f"If you did not request a password reset, please ignore this email. Your account remains secure.\n\n"
+            f"— The IoT HIVE Team"
+        )
+        html_message = f"""
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin: 0; padding: 0; background-color: #080c14; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #080c14; padding: 40px 15px;">
+    <tr>
+      <td align="center">
+        <table width="100%" max-width="540" border="0" cellspacing="0" cellpadding="0" style="max-width: 540px; background-color: #0f172a; border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 16px; padding: 36px 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
+          <tr>
+            <td align="center" style="padding-bottom: 24px;">
+              <span style="font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">IoT <span style="color: #00e5ff;">HIVE</span></span>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-bottom: 12px;">
+              <h2 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 700;">Password Reset Request</h2>
+            </td>
+          </tr>
+          <tr>
+            <td style="color: #94a3b8; font-size: 15px; line-height: 1.6; padding-bottom: 24px; text-align: center;">
+              Hello <strong style="color: #f1f5f9;">@{user.username}</strong>,<br>
+              We received a request to reset your password on IoT HIVE. Please click the button below to choose a new password:
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-bottom: 28px;">
+              <a href="{reset_url}" target="_blank" style="background: linear-gradient(135deg, #0066ff 0%, #00e5ff 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 15px; display: inline-block; box-shadow: 0 4px 18px rgba(0, 229, 255, 0.4);">
+                Reset Password
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="border-top: 1px solid rgba(148, 163, 184, 0.15); padding-top: 20px; color: #64748b; font-size: 13px; line-height: 1.5; text-align: center;">
+              If you did not request this password reset, please ignore this email. Your account remains secure.<br><br>
+              If the button above does not work, copy and paste this URL into your browser:<br>
+              <a href="{reset_url}" style="color: #00e5ff; word-break: break-all;">{reset_url}</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
+        try:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            send_mail(
+                subject=subject,
+                message=message_body,
+                html_message=html_message,
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "IoT HIVE <iothive221@gmail.com>"),
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+            print(f"\n==================== [IoT HIVE PASSWORD RESET EMAIL] ====================\nTo: {user.email}\nSubject: {subject}\n\n{message_body}\n==========================================================================\n")
+        except Exception as e:
+            print(f"\n==================== [IoT HIVE PASSWORD RESET EMAIL (FALLBACK)] ====================\nTo: {user.email}\nSubject: {subject}\n\n{message_body}\n===================================================================================\n")
 
     return Response(
         {
-            "message": f"Account verified for @{user.username}.",
-            "uidb64": uidb64,
-            "token": token,
-            "username": user.username,
-            "reset_url": f"/login/?reset_uid={uidb64}&reset_token={token}",
+            "message": "If an account matching that username/email exists, a password reset link has been dispatched to the registered email."
         },
         status=status.HTTP_200_OK
     )
@@ -284,8 +332,10 @@ def logout_view(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def current_user(request):
+    if not request.user.is_authenticated:
+        return Response(None, status=status.HTTP_200_OK)
     return Response(
         UserSerializer(request.user).data
     )
@@ -403,6 +453,7 @@ def social_login(request):
     email = data.get("email", "").strip()
     first_name = data.get("first_name", "").strip()
     last_name = data.get("last_name", "").strip()
+    id_token_val = data.get("id_token") or data.get("token") or data.get("credential")
 
     if not email:
         return Response(
@@ -411,7 +462,14 @@ def social_login(request):
         )
 
     user = User.objects.filter(email__iexact=email).first()
-    if not user:
+    if user:
+        # Prevent unauthorized takeover of existing accounts with passwords or staff access
+        if (user.is_staff or user.is_superuser or user.has_usable_password()) and not id_token_val:
+            return Response(
+                {"detail": f"An account with email '{email}' already exists. Please log in using your account password."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    else:
         gen_username = _generate_unique_username(last_name, first_name, email)
         user = User.objects.create_user(
             username=gen_username,

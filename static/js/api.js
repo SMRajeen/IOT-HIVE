@@ -353,6 +353,10 @@ class ApiClient {
       method: 'DELETE'
     }),
     orders: () => this.request('admin/orders/'),
+    updateOrder: (id, data) => this.request(`admin/orders/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data)
+    }),
   };
 }
 

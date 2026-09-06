@@ -1,7 +1,8 @@
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
 
 from core import views as core_views
 
@@ -37,12 +38,10 @@ urlpatterns = [
     path("promo/", core_views.promo_view, name="promo"),
 ]
 
-from django.urls import re_path
-from django.views.static import serve
-
 if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'static')
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.BASE_DIR / 'media')
     urlpatterns += [
         re_path(r'^projects/(?P<path>.*)$', serve, {'document_root': settings.BASE_DIR / 'projects'}),
         re_path(r'^profiles/(?P<path>.*)$', serve, {'document_root': settings.BASE_DIR / 'profiles'}),
-        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.BASE_DIR / 'media'}),
     ]

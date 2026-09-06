@@ -21,11 +21,23 @@
   let isOwner = false;
   let activeTab = 'overview';
   let selectedTierIndex = 0;
-  let currentReviewRating = 5;
+  function resolveProjectId() {
+    const container = document.getElementById('project-detail-content');
+    const dataId = container?.dataset?.projectId;
+    if (dataId && !isNaN(dataId) && Number(dataId) > 0) return dataId;
 
-  // Extract Project ID from URL (/project/123/ or /project/123)
-  const pathParts = window.location.pathname.split('/').filter(Boolean);
-  const projectId = pathParts[pathParts.length - 1];
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryId = urlParams.get('id') || urlParams.get('project_id');
+    if (queryId && !isNaN(queryId) && Number(queryId) > 0) return queryId;
+
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const lastPart = pathParts[pathParts.length - 1];
+    if (lastPart && !isNaN(lastPart) && Number(lastPart) > 0) return lastPart;
+
+    return lastPart || '';
+  }
+
+  let projectId = resolveProjectId();
 
   function formatLKR(amount) {
     const num = Number(amount || 0);
@@ -93,7 +105,7 @@
       }
     ];
 
-    const isOwner = currentUser && (currentProject.seller === currentUser.id || currentProject.seller_id === currentUser.id);
+    const isOwner = !!(currentUser && currentUser.id && ((currentProject.seller && currentProject.seller === currentUser.id) || (currentProject.seller_id && currentProject.seller_id === currentUser.id)));
 
     return tiers.map((tier, idx) => {
       const isSelected = idx === selectedTierIndex;
@@ -130,22 +142,22 @@
       return `
         <div class="card-cyber tier-option-card ${isSelected ? 'tier-selected' : ''}" 
              onclick="window.selectHardwareTier(${idx})" 
-             style="cursor: pointer; padding: 14px 16px; margin-bottom: 10px; border-radius: 10px; transition: all 0.2s; border: 1.5px solid ${isSelected ? 'var(--primary)' : 'var(--border-subtle)'}; background: ${isSelected ? 'rgba(0, 229, 255, 0.08)' : 'var(--bg-surface-low)'};">
+             style="cursor: pointer; padding: 16px 18px; margin-bottom: 12px; border-radius: 12px; transition: all 0.22s; border: 1.5px solid ${isSelected ? '#00e5ff' : 'var(--border-subtle)'}; background: ${isSelected ? '#070c18' : 'var(--bg-surface-low)'}; ${isSelected ? 'box-shadow: 0 8px 24px rgba(0, 229, 255, 0.22), inset 0 0 16px rgba(0, 229, 255, 0.08);' : ''}">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="material-symbols-outlined" style="font-size: 20px; color: ${isSelected ? 'var(--primary)' : 'var(--text-muted)'};">${icon}</span>
-              <strong style="font-size: 0.95rem; color: ${isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'};">${auth.escapeHtml(tier.name)}</strong>
+              <span class="material-symbols-outlined" style="font-size: 20px; color: ${isSelected ? '#00e5ff' : 'var(--text-muted)'}; ${isSelected ? 'text-shadow: 0 0 12px rgba(0, 229, 255, 0.45);' : ''}">${icon}</span>
+              <strong style="font-size: 0.95rem; color: ${isSelected ? '#ffffff' : 'var(--text-primary)'};">${auth.escapeHtml(tier.name)}</strong>
             </div>
-            <span class="font-mono font-bold" style="color: var(--primary); font-size: 1.05rem;">
+            <span class="font-mono font-bold" style="color: ${isSelected ? '#00e5ff' : 'var(--primary)'}; font-size: 1.05rem; ${isSelected ? 'text-shadow: 0 0 10px rgba(0, 229, 255, 0.35);' : ''}">
               ${tier.price == 0 ? 'Free' : formatLKR(tier.price)}
             </span>
           </div>
-          <p style="color: var(--text-muted); font-size: 0.8rem; margin: 4px 0 6px; line-height: 1.4;">
+          <p style="color: ${isSelected ? '#94a3b8' : 'var(--text-muted)'}; font-size: 0.82rem; margin: 6px 0 8px; line-height: 1.45;">
             ${auth.escapeHtml(tier.description || '')}
           </p>
           <div style="display: flex; align-items: center; gap: 6px;">
-            <span class="hardware-chip" style="font-size: 0.68rem; padding: 2px 6px;">${badge}</span>
-            <span class="text-xs" style="color: var(--text-muted); font-size: 0.72rem;">
+            <span class="hardware-chip" style="font-size: 0.68rem; padding: 2px 7px; ${isSelected ? 'background: rgba(0, 229, 255, 0.18); color: #38bdf8; border: 1px solid rgba(0, 229, 255, 0.4);' : ''}">${badge}</span>
+            <span class="text-xs" style="color: ${isSelected ? '#cbd5e1' : 'var(--text-muted)'}; font-size: 0.72rem;">
               ${isPhysical ? '&bull; Doorstep courier delivery' : '&bull; Instant Unlock'}
             </span>
           </div>
@@ -250,7 +262,7 @@
 
             <div class="hardware-spec-card">
               <div class="hardware-spec-label">
-                <span class="material-symbols-outlined" style="font-size: 15px; color: #00ff88;">wifi</span>
+                <span class="material-symbols-outlined" style="font-size: 15px; color: var(--status-online);">wifi</span>
                 CONNECTIVITY
               </div>
               <div class="hardware-spec-val">${auth.escapeHtml(connectivity)}</div>
@@ -363,7 +375,7 @@
               </div>
               <div>
                 <strong style="font-size: 1.05rem; color: var(--text-primary);">${auth.escapeHtml(creator)}</strong>
-                <div class="text-xs" style="color: #00ff88; font-family: var(--font-mono); display: flex; align-items: center; gap: 4px;">
+                <div class="text-xs" style="color: var(--status-online); font-family: var(--font-mono); display: flex; align-items: center; gap: 4px;">
                   <span class="material-symbols-outlined" style="font-size: 13px;">verified</span> Verified Maker
                 </div>
               </div>
@@ -524,11 +536,18 @@
           ` : `
             <div class="code-viewer-container">
               <div class="code-viewer-header">
-                <span class="code-lang-tag">
-                  <span class="material-symbols-outlined" style="font-size: 15px;">code</span>
-                  ${lang.toUpperCase()}
-                </span>
-                <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
+                <div style="display: flex; align-items: center;">
+                  <div class="code-terminal-controls">
+                    <span class="code-terminal-dot close"></span>
+                    <span class="code-terminal-dot minimize"></span>
+                    <span class="code-terminal-dot maximize"></span>
+                  </div>
+                  <span class="code-lang-tag">
+                    <span class="material-symbols-outlined" style="font-size: 14px;">terminal</span>
+                    ${lang.toUpperCase()}
+                  </span>
+                </div>
+                <span class="code-viewer-lines">
                   ${code.split('\n').length} lines
                 </span>
               </div>
@@ -798,14 +817,56 @@
 
     // Update Tier UI classes
     document.querySelectorAll('.tier-option-card').forEach((el, i) => {
-      if (i === idx) {
+      const isCur = i === idx;
+      const iconEl = el.querySelector('.material-symbols-outlined');
+      const titleEl = el.querySelector('strong');
+      const descEl = el.querySelector('p');
+      const priceEl = el.querySelector('.font-mono');
+      const badgeEl = el.querySelector('.hardware-chip');
+      const subtextEl = el.querySelector('.text-xs');
+
+      if (isCur) {
         el.classList.add('tier-selected');
-        el.style.borderColor = 'var(--primary)';
-        el.style.background = 'rgba(0, 229, 255, 0.08)';
+        el.style.borderColor = '#00e5ff';
+        el.style.background = '#070c18';
+        el.style.boxShadow = '0 8px 24px rgba(0, 229, 255, 0.22), inset 0 0 16px rgba(0, 229, 255, 0.08)';
+        if (iconEl) {
+          iconEl.style.color = '#00e5ff';
+          iconEl.style.textShadow = '0 0 12px rgba(0, 229, 255, 0.45)';
+        }
+        if (titleEl) titleEl.style.color = '#ffffff';
+        if (descEl) descEl.style.color = '#94a3b8';
+        if (priceEl) {
+          priceEl.style.color = '#00e5ff';
+          priceEl.style.textShadow = '0 0 10px rgba(0, 229, 255, 0.35)';
+        }
+        if (badgeEl) {
+          badgeEl.style.background = 'rgba(0, 229, 255, 0.18)';
+          badgeEl.style.color = '#38bdf8';
+          badgeEl.style.border = '1px solid rgba(0, 229, 255, 0.4)';
+        }
+        if (subtextEl) subtextEl.style.color = '#cbd5e1';
       } else {
         el.classList.remove('tier-selected');
         el.style.borderColor = 'var(--border-subtle)';
         el.style.background = 'var(--bg-surface-low)';
+        el.style.boxShadow = 'none';
+        if (iconEl) {
+          iconEl.style.color = 'var(--text-muted)';
+          iconEl.style.textShadow = 'none';
+        }
+        if (titleEl) titleEl.style.color = 'var(--text-primary)';
+        if (descEl) descEl.style.color = 'var(--text-muted)';
+        if (priceEl) {
+          priceEl.style.color = 'var(--primary)';
+          priceEl.style.textShadow = 'none';
+        }
+        if (badgeEl) {
+          badgeEl.style.background = '';
+          badgeEl.style.color = '';
+          badgeEl.style.border = '';
+        }
+        if (subtextEl) subtextEl.style.color = 'var(--text-muted)';
       }
     });
 
@@ -1058,6 +1119,7 @@
   };
 
   async function loadProjectDetails() {
+    projectId = resolveProjectId();
     try {
       currentUser = await auth.getUser();
     } catch (e) {
@@ -1065,9 +1127,12 @@
     }
 
     try {
+      if (!projectId) throw new Error("No project specified.");
       currentProject = await api.projects.get(projectId);
-      if (currentUser && currentProject.seller === currentUser.id) {
+      if (currentUser && currentUser.id && ((currentProject.seller && currentProject.seller === currentUser.id) || (currentProject.seller_id && currentProject.seller_id === currentUser.id))) {
         isOwner = true;
+      } else {
+        isOwner = false;
       }
       renderProject(currentProject);
     } catch (err) {
@@ -1085,5 +1150,21 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', loadProjectDetails);
+  function initProjectDetails() {
+    if (document.getElementById('project-detail-content') || document.getElementById('project-detail-container') || document.querySelector('[data-page="project"]') || document.querySelector('[data-page="project-details"]')) {
+      loadProjectDetails();
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initProjectDetails);
+  } else {
+    initProjectDetails();
+  }
+
+  window.addEventListener('page:loaded', () => {
+    if (document.getElementById('project-detail-content') || document.getElementById('project-detail-container') || document.querySelector('[data-page="project"]') || document.querySelector('[data-page="project-details"]')) {
+      initProjectDetails();
+    }
+  });
 })();

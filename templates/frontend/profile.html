@@ -13,7 +13,7 @@
     <div class="card-cyber" style="padding: 36px 32px; margin-bottom: var(--space-8); background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl);">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
         <div style="display: flex; gap: 20px; align-items: center;">
-          <div id="profile-avatar-container" style="width: 80px; height: 80px; border-radius: 50%; background: var(--bg-surface-high); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);">
+          <div id="profile-avatar-container" style="width: 84px; height: 84px; border-radius: 18px; background: var(--bg-surface-high); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 0 20px rgba(0, 229, 255, 0.25); flex-shrink: 0;">
             <span class="material-symbols-outlined" style="font-size: 40px; color: var(--primary);">person</span>
           </div>
           <div>
@@ -25,7 +25,7 @@
             <div class="flex items-center gap-3 font-mono text-xs" style="color: var(--text-muted); flex-wrap: wrap;">
               <span>Location: <strong id="profile-location" style="color: var(--text-secondary);">Global</strong></span>
               <span>&bull;</span>
-              <span>Mobile SMS: <strong id="profile-phone-display" style="color: #00ff88;">Not linked</strong></span>
+              <span>Mobile SMS: <strong id="profile-phone-display" style="color: var(--status-online);">Not linked</strong></span>
               <span>&bull;</span>
               <span>Website: <a id="profile-website" class="text-link" target="_blank" rel="noopener noreferrer">None</a></span>
             </div>
@@ -77,7 +77,7 @@
 
         <!-- Avatar Picture Upload -->
         <div class="flex items-center gap-4 flex-wrap" style="margin-bottom: 24px; padding: 18px; background: var(--bg-surface-low); border-radius: 12px; border: 1px dashed var(--border-medium);">
-          <div id="edit-avatar-preview" style="width: 72px; height: 72px; border-radius: 50%; background: var(--bg-surface-high); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+          <div id="edit-avatar-preview" style="width: 76px; height: 76px; border-radius: 16px; background: var(--bg-surface-high); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
             <span class="material-symbols-outlined" style="font-size: 36px; color: var(--primary);">person</span>
           </div>
           <div style="flex: 1; min-width: 200px;">
@@ -200,5 +200,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/profile.js' %}"></script>
+<script src="{% static 'js/profile.js' %}?v=3.0"></script>
 {% endblock %}

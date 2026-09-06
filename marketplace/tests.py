@@ -44,6 +44,16 @@ class MarketplaceAPIBaseTestCase(TestCase):
         )
         UserProfile.objects.create(user=self.buyer, role="buyer")
 
+        # Admin / Staff User
+        self.admin_user = User.objects.create_user(
+            username="admin_super",
+            email="admin@example.com",
+            password="AdminPassword123!",
+            is_staff=True,
+            is_superuser=True
+        )
+        UserProfile.objects.create(user=self.admin_user, role="both")
+
         # Category
         self.category = Category.objects.create(
             name="Smart Home",
@@ -198,7 +208,7 @@ class OrdersAndPaymentsAPITests(MarketplaceAPIBaseTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         order_data = response.json()
-        self.assertEqual(order_data["status"], "paid")
+        self.assertEqual(order_data["status"], "pending")
         self.assertEqual(order_data["shipping_city"], "Colombo")
 
     def test_direct_card_charge(self):
@@ -224,6 +234,32 @@ class OrdersAndPaymentsAPITests(MarketplaceAPIBaseTestCase):
         data = response.json()
         self.assertTrue(data.get("success"))
         self.assertEqual(data["order"]["status"], "paid")
+
+    def test_admin_update_order_fulfillment(self):
+        # Create an order first
+        from marketplace.models import Order
+        order = Order.objects.create(
+            project=self.project,
+            buyer=self.buyer,
+            seller=self.seller,
+            amount=self.tier.price,
+            status="paid"
+        )
+        self.client.force_login(self.admin_user)
+        patch_res = self.client.patch(
+            f"/api/admin/orders/{order.id}/",
+            data=json.dumps({
+                "status": "shipped",
+                "tracking_courier": "PromptX",
+                "tracking_number": "PRX-123456"
+            }),
+            content_type="application/json"
+        )
+        self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
+        updated_data = patch_res.json()
+        self.assertEqual(updated_data["order"]["status"], "shipped")
+        self.assertEqual(updated_data["order"]["tracking_courier"], "PromptX")
+        self.assertEqual(updated_data["order"]["tracking_number"], "PRX-123456")
 
 
 class BountiesAndProposalsAPITests(MarketplaceAPIBaseTestCase):

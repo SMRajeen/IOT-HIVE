@@ -25,6 +25,7 @@ local_db/
 *.webm
 *.avi
 *.mkv
+screenshots/
 
 # --- User Uploaded Media Directory ---
 media/

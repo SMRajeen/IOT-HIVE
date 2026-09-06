@@ -56,31 +56,31 @@
     const statusLabel = statusLabels[bounty.status] || bounty.status.toUpperCase();
 
     return `
-      <div class="bounty-card">
-        <div>
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-            <span class="tag-mono" style="background: rgba(0,229,255,0.08); color: var(--primary); border: 1px solid rgba(0,229,255,0.25);">
+      <div class="bounty-card" style="display: flex; flex-direction: column; height: 100%;">
+        <div style="flex: 1; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; min-height: 28px;">
+            <span class="tag-mono" style="background: rgba(37,99,235,0.08); color: var(--primary); border: 1px solid rgba(37,99,235,0.25); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; border-radius: var(--radius-full); padding: 3px 10px;">
               ${auth.escapeHtml(bounty.category_name || 'Hardware')}
             </span>
-            <span class="bounty-status-tag ${statusClass}">
+            <span class="bounty-status-tag ${statusClass}" style="flex-shrink: 0;">
               <span class="dot" style="width: 6px; height: 6px; border-radius: 50%; background: currentColor;"></span>
               ${statusLabel}
             </span>
           </div>
 
-          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">
             Posted by <strong>${auth.escapeHtml(clientName)}</strong> &bull; ${bounty.created_formatted || 'Recently'}
           </div>
 
-          <h3 style="font-size: 1.15rem; line-height: 1.35; margin: 0 0 10px; color: var(--text-primary);">
+          <h3 style="font-size: 1.12rem; line-height: 1.35; margin: 0 0 8px; color: var(--text-primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.7rem;">
             ${auth.escapeHtml(bounty.title)}
           </h3>
 
-          <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+          <p style="color: var(--text-secondary); font-size: 0.86rem; line-height: 1.45; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; height: 3.75em;">
             ${auth.escapeHtml(bounty.description)}
           </p>
 
-          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;">
+          <div style="display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; margin-bottom: 16px; min-height: 56px;">
             ${bounty.preferred_mcu ? `
               <span class="hardware-chip" style="font-size: 0.72rem;">
                 <span class="material-symbols-outlined" style="font-size: 13px;">memory</span>
@@ -88,7 +88,7 @@
               </span>
             ` : ''}
             ${bounty.connectivity ? `
-              <span class="hardware-chip" style="font-size: 0.72rem; color: #00ff88; border-color: rgba(0,255,136,0.3); background: rgba(0,255,136,0.08);">
+              <span class="hardware-chip" style="font-size: 0.72rem; color: var(--primary); border-color: rgba(37, 99, 235, 0.3); background: rgba(37, 99, 235, 0.06);">
                 <span class="material-symbols-outlined" style="font-size: 13px;">wifi</span>
                 ${auth.escapeHtml(bounty.connectivity)}
               </span>
@@ -100,15 +100,17 @@
           </div>
         </div>
 
-        <div style="border-top: 1px solid var(--border-subtle); padding-top: 16px; margin-top: auto; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono);">BUDGET</div>
-            <div class="bounty-budget-badge">${formatLKR(bounty.budget)}</div>
+        <div style="border-top: 1px solid var(--border-subtle); padding-top: 14px; margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px;">
+          <div style="min-width: 0; flex: 1;">
+            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono); margin-bottom: 2px;">BUDGET</div>
+            <div class="bounty-budget-badge" style="font-size: 1.15rem; font-weight: 800; color: var(--primary); font-family: var(--font-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
+              ${formatLKR(bounty.budget)}
+            </div>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <button onclick="window.openBountyDetailModal(${bounty.id})" class="btn btn-secondary btn-sm">
-              <span class="material-symbols-outlined" style="font-size: 16px;">description</span>
+          <div style="flex-shrink: 0;">
+            <button onclick="window.openBountyDetailModal(${bounty.id})" class="btn btn-secondary btn-sm" style="white-space: nowrap; padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
+              <span class="material-symbols-outlined" style="font-size: 15px;">description</span>
               Specs &amp; Bids (${bounty.proposals_count || (bounty.proposals ? bounty.proposals.length : 0)})
             </button>
           </div>
@@ -168,11 +170,11 @@
       loadBountyStats();
 
       if (allBounties.length === 0) {
-        const scopeMsg = activeScope === 'my' 
+        const scopeMsg = activeScope === 'my'
           ? 'You have not posted any hardware commission bounties yet.'
-          : (activeScope === 'awarded' 
-              ? 'You have no bounties awarded or currently in-progress.'
-              : 'Be the first to post a custom hardware commission requirement!');
+          : (activeScope === 'awarded'
+            ? 'You have no bounties awarded or currently in-progress.'
+            : 'Be the first to post a custom hardware commission requirement!');
 
         grid.innerHTML = `
           <div class="card-cyber" style="grid-column: 1 / -1; padding: 48px 24px; text-align: center;">
@@ -338,7 +340,7 @@
           </div>
           <div class="hardware-spec-card">
             <div class="hardware-spec-label">
-              <span class="material-symbols-outlined" style="font-size: 14px; color: #00ff88;">wifi</span>
+              <span class="material-symbols-outlined" style="font-size: 14px; color: var(--status-online);">wifi</span>
               Connectivity
             </div>
             <div class="hardware-spec-val">${auth.escapeHtml(bounty.connectivity || 'Custom')}</div>
@@ -416,7 +418,7 @@
           <h4 style="font-size: 1.05rem; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
             <span>Maker Proposals (${proposals.length})</span>
             ${!isOwner && !myProposal && currentUser ? `
-              <span class="tag-mono" style="color: #00ff88;">Ready for your proposal</span>
+              <span class="tag-mono" style="color: var(--status-online);">Ready for your proposal</span>
             ` : ''}
           </h4>
 
@@ -427,9 +429,9 @@
               <p style="font-size: 0.82rem; margin: 4px 0 0; color: var(--text-muted);">Verified makers will review requirements and submit pricing bids.</p>
             </div>
           ` : proposals.map(p => {
-            const isAccepted = p.status === 'accepted';
-            return `
-              <div class="card-cyber" style="padding: 16px 20px; margin-bottom: 10px; background: var(--bg-surface-low); border: 1px solid ${isAccepted ? '#00ff88' : 'var(--border-subtle)'};">
+        const isAccepted = p.status === 'accepted';
+        return `
+              <div class="card-cyber" style="padding: 16px 20px; margin-bottom: 10px; background: var(--bg-surface-low); border: 1px solid ${isAccepted ? 'var(--status-online)' : 'var(--border-subtle)'};">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
                     <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-surface-high); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary);">
@@ -441,7 +443,7 @@
                     </div>
                   </div>
                   <div style="text-align: right;">
-                    <div class="font-mono font-bold" style="color: #00ff88; font-size: 1.05rem;">${formatLKR(p.bid_amount)}</div>
+                    <div class="font-mono font-bold" style="color: var(--status-online); font-size: 1.05rem;">${formatLKR(p.bid_amount)}</div>
                     <div class="text-xs" style="color: var(--text-muted); font-family: var(--font-mono);">${p.delivery_days} Days Delivery</div>
                   </div>
                 </div>
@@ -475,7 +477,7 @@
                 </div>
               </div>
             `;
-          }).join('')}
+      }).join('')}
         </div>
 
         <!-- Proposal Submission Box for Makers -->
@@ -488,7 +490,7 @@
           ` : (currentUser.role === 'buyer' ? `
             <div class="role-upgrade-banner">
               <div style="display: flex; gap: 12px; align-items: center;">
-                <span class="material-symbols-outlined" style="font-size: 28px; color: #00ff88;">engineering</span>
+                <span class="material-symbols-outlined" style="font-size: 28px; color: var(--status-online);">engineering</span>
                 <div>
                   <h4 style="margin: 0 0 4px 0; color: #fff;">Want to build this project and earn?</h4>
                   <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
@@ -595,6 +597,95 @@
     }
   };
 
+  window.openCreateBountyModal = () => {
+    if (!currentUser) {
+      if (window.showToast) showToast('Please log in to post a hardware bounty.', 'info');
+      window.location.href = `/login/?next=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
+    const modal = document.getElementById('create-bounty-modal');
+    if (modal) {
+      modal.style.display = 'flex';
+      modal.classList.add('open');
+      const titleInput = modal.querySelector('input[name="title"]');
+      if (titleInput) setTimeout(() => titleInput.focus(), 100);
+    }
+  };
+
+  window.closeCreateBountyModal = () => {
+    const modal = document.getElementById('create-bounty-modal');
+    if (modal) {
+      modal.style.display = 'none';
+      modal.classList.remove('open');
+    }
+  };
+
+  window.handleCreateBountySubmit = async (e) => {
+    e.preventDefault();
+    if (!currentUser) {
+      if (window.showToast) showToast('Please log in to post a bounty.', 'info');
+      return;
+    }
+
+    const form = document.getElementById('create-bounty-form');
+    const btn = document.getElementById('create-bounty-submit-btn');
+    const alertBox = document.getElementById('create-bounty-alert');
+    const formData = new FormData(form);
+
+    const title = (formData.get('title') || '').trim();
+    const category = formData.get('category');
+    const budget = formData.get('budget');
+    const deadlineDays = formData.get('deadline_days');
+    const difficulty = formData.get('difficulty');
+    const preferredMCU = (formData.get('preferred_mcu') || '').trim();
+    const connectivity = (formData.get('connectivity') || '').trim();
+    const description = (formData.get('description') || '').trim();
+    const deliverables = (formData.get('deliverables_needed') || '').trim();
+
+    if (!title || !category || !budget || !description) {
+      if (alertBox) {
+        alertBox.className = 'form-alert form-alert-error';
+        alertBox.textContent = 'Please fill in all required fields marked with *.';
+        alertBox.style.display = 'block';
+      }
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined spin">sync</span> Publishing Bounty...';
+
+    try {
+      const res = await api.bounties.create({
+        title,
+        category: parseInt(category, 10),
+        budget: parseFloat(budget),
+        deadline_days: parseInt(deadlineDays, 10) || 14,
+        difficulty,
+        preferred_mcu: preferredMCU,
+        connectivity,
+        description,
+        deliverables_needed: deliverables,
+      });
+
+      if (window.showToast) showToast('Hardware bounty published successfully!', 'success');
+      form.reset();
+      window.closeCreateBountyModal();
+      await loadBounties();
+      if (res && res.id) {
+        window.openBountyDetailModal(res.id);
+      }
+    } catch (err) {
+      if (alertBox) {
+        alertBox.className = 'form-alert form-alert-error';
+        alertBox.textContent = err.message || 'Failed to create bounty. Please verify your entries.';
+        alertBox.style.display = 'block';
+      }
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-symbols-outlined">publish</span> Publish Bounty';
+    }
+  };
+
   window.closeBountyDetailModal = () => {
     const modal = document.getElementById('bounty-detail-modal');
     if (modal) modal.style.display = 'none';
@@ -668,7 +759,8 @@
     sortSelect.addEventListener('change', loadBounties);
   }
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  async function initBounties() {
+    if (!document.getElementById('bounties-grid')) return;
     try {
       currentUser = await auth.getUser();
     } catch (e) {
@@ -676,5 +768,17 @@
     }
     await loadCategories();
     await loadBounties();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBounties);
+  } else {
+    initBounties();
+  }
+
+  window.addEventListener('page:loaded', () => {
+    if (document.getElementById('bounties-grid')) {
+      initBounties();
+    }
   });
 })();

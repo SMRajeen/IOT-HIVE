@@ -21,7 +21,7 @@ import json
 import hashlib
 import uuid
 from decimal import Decimal
-from django.db.models import Q, Sum, Max, Count, Avg
+from django.db.models import Q, Sum, Max, Count, Avg, F
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -186,8 +186,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+        Project.objects.filter(pk=instance.pk).update(views=F("views") + 1)
         instance.views += 1
-        instance.save(update_fields=["views"])
         serializer = ProjectSerializer(instance)
         return Response(serializer.data)
 
@@ -390,13 +390,18 @@ class OrderViewSet(viewsets.ModelViewSet):
         import uuid
         tx_id = f"HIVE-LK-{uuid.uuid4().hex[:8].upper()}"
 
+        # If project/tier is free or creator is admin, status can be paid, otherwise pending
+        is_free_item = (amount == 0 or (project and project.is_free))
+        is_admin = self.request.user.is_staff or self.request.user.is_superuser
+        initial_status = "paid" if (is_free_item or is_admin) else "pending"
+
         order = serializer.save(
             buyer=self.request.user,
             seller=seller,
             amount=amount,
             tier_type=tier_type,
             transaction_id=tx_id,
-            status="paid"
+            status=initial_status
         )
         try:
             notify_order_created(order)
@@ -745,9 +750,11 @@ def chat_send_view(request):
 
 
 @api_view(["GET"])
-@permission_classes([permissions.IsAuthenticated])
+@permission_classes([permissions.AllowAny])
 def chat_unread_count_view(request):
     """Get total unread messages count for navbar notification badges."""
+    if not request.user.is_authenticated:
+        return Response({"unread_count": 0})
     count = ChatMessage.objects.filter(recipient=request.user, is_read=False).count()
     return Response({"unread_count": count})
 
@@ -1100,14 +1107,49 @@ def admin_projects_view(request, pk=None):
         return Response({"message": "Project deleted successfully."})
 
 
-@api_view(["GET"])
+@api_view(["GET", "PATCH"])
 @permission_classes([permissions.IsAuthenticated])
-def admin_orders_view(request):
+def admin_orders_view(request, pk=None):
     if not is_admin_user(request.user):
         return Response({"detail": "Admin authorization required."}, status=status.HTTP_403_FORBIDDEN)
 
-    orders = Order.objects.all().select_related("project", "buyer", "seller", "tier").order_by("-created_at")
-    return Response(OrderSerializer(orders, many=True).data)
+    if request.method == "GET":
+        orders = Order.objects.all().select_related("project", "buyer", "seller", "tier").order_by("-created_at")
+        return Response(OrderSerializer(orders, many=True).data)
+
+    elif request.method == "PATCH":
+        if not pk:
+            return Response({"detail": "Order ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+        order = Order.objects.filter(id=pk).first()
+        if not order:
+            return Response({"detail": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        status_val = request.data.get("status")
+        courier = request.data.get("tracking_courier")
+        tracking_num = request.data.get("tracking_number")
+        notes = request.data.get("notes")
+
+        if status_val in ["pending", "paid", "shipped", "delivered", "cancelled"]:
+            order.status = status_val
+        if courier is not None:
+            order.tracking_courier = courier.strip()
+        if tracking_num is not None:
+            order.tracking_number = tracking_num.strip()
+        if notes is not None:
+            order.notes = notes.strip()
+
+        order.save()
+
+        if status_val == "shipped":
+            try:
+                notify_order_shipped(order)
+            except Exception:
+                pass
+
+        return Response({
+            "message": "Order fulfillment updated successfully.",
+            "order": OrderSerializer(order).data
+        })
 
 
 # ---------------------------------------------------------------------------

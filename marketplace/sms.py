@@ -176,25 +176,48 @@ def send_sms(phone_number, message, event_type="notification", recipient_user=No
 
     status = "sent" if (success and gateway != "console") else ("mock_delivered" if (success and gateway == "console") else "failed")
 
-    log_entry = NotificationLog.objects.create(
-        recipient=recipient_user,
-        phone_number=normalized,
-        event_type=event_type,
-        message=message,
-        gateway=gateway,
-        status=status,
-        gateway_response=str(response_data)
-    )
+    log_id = None
+    try:
+        log_entry = NotificationLog.objects.create(
+            recipient=recipient_user,
+            phone_number=normalized,
+            event_type=event_type,
+            message=message,
+            gateway=gateway,
+            status=status,
+            gateway_response=str(response_data)
+        )
+        log_id = log_entry.id
+    except Exception as e:
+        logger.warning("[SMS Gateway] NotificationLog record skipped: %s", e)
 
     return {
         "success": success,
-        "log_id": log_entry.id,
+        "log_id": log_id,
         "phone_number": normalized,
         "gateway": gateway,
         "status": status,
         "message": message,
         "error": response_data if not success else None
     }
+
+
+def _async_send_sms(phone_number, message, event_type="notification", recipient_user=None):
+    """Dispatches SMS in a non-blocking background daemon thread with connection cleanup."""
+    import threading
+    from django.db import connection
+
+    def _worker():
+        try:
+            send_sms(phone_number, message, event_type, recipient_user)
+        finally:
+            try:
+                connection.close()
+            except Exception:
+                pass
+
+    thread = threading.Thread(target=_worker, daemon=True)
+    thread.start()
 
 
 # --- Event Triggers ---
@@ -209,13 +232,13 @@ def notify_order_created(order):
     if buyer_phone and (not hasattr(buyer, "profile") or buyer.profile.notify_sms_orders):
         tier_title = tier.name if tier else "Hardware Blueprint"
         msg = f"[IoT HIVE] Order #{order.transaction_id} Confirmed! You ordered '{project.title}' ({tier_title}) for Rs. {order.amount:,.2f}. Thank you for supporting open hardware!"
-        send_sms(buyer_phone, msg, event_type="order_created", recipient_user=buyer)
+        _async_send_sms(buyer_phone, msg, event_type="order_created", recipient_user=buyer)
 
     if hasattr(seller, "profile") and seller.profile.phone_number and seller.profile.notify_sms_orders:
         seller_phone = seller.profile.phone_number
         buyer_name = order.shipping_full_name or buyer.username
         msg = f"[IoT HIVE] New Hardware Sale! {buyer_name} purchased '{project.title}' for Rs. {order.amount:,.2f}. Check your dashboard to manage fulfillment."
-        send_sms(seller_phone, msg, event_type="order_created", recipient_user=seller)
+        _async_send_sms(seller_phone, msg, event_type="order_created", recipient_user=seller)
 
 
 def notify_order_shipped(order):
@@ -223,7 +246,7 @@ def notify_order_shipped(order):
     buyer_phone = order.shipping_phone or (buyer.profile.phone_number if hasattr(buyer, "profile") else "")
     if buyer_phone:
         msg = f"[IoT HIVE] Your order #{order.transaction_id} for '{order.project.title}' has been dispatched via courier! Doorstep delivery in progress."
-        send_sms(buyer_phone, msg, event_type="order_shipped", recipient_user=buyer)
+        _async_send_sms(buyer_phone, msg, event_type="order_shipped", recipient_user=buyer)
 
 
 def notify_bounty_proposal(proposal):
@@ -233,14 +256,14 @@ def notify_bounty_proposal(proposal):
 
     if hasattr(client, "profile") and client.profile.phone_number and client.profile.notify_sms_bounties:
         msg = f"[IoT HIVE] New Proposal on Bounty #{bounty.id} '{bounty.title}'! Maker {maker.username} submitted a bid of Rs. {proposal.bid_amount:,.2f} ({proposal.delivery_days} days). Review at iothive.lk/bounties/"
-        send_sms(client.profile.phone_number, msg, event_type="bounty_proposal", recipient_user=client)
+        _async_send_sms(client.profile.phone_number, msg, event_type="bounty_proposal", recipient_user=client)
 
 
 def notify_bounty_awarded(bounty):
     maker = bounty.awarded_maker
     if maker and hasattr(maker, "profile") and maker.profile.phone_number and maker.profile.notify_sms_bounties:
         msg = f"[IoT HIVE] Congratulations {maker.username}! Your proposal for bounty #{bounty.id} '{bounty.title}' has been ACCEPTED & AWARDED! Check your dashboard to begin fabrication."
-        send_sms(maker.profile.phone_number, msg, event_type="bounty_awarded", recipient_user=maker)
+        _async_send_sms(maker.profile.phone_number, msg, event_type="bounty_awarded", recipient_user=maker)
 
 
 def notify_chat_message(chat_msg):
@@ -250,7 +273,7 @@ def notify_chat_message(chat_msg):
     if hasattr(recipient, "profile") and recipient.profile.phone_number and recipient.profile.notify_sms_chat:
         preview = chat_msg.message[:60] + "..." if len(chat_msg.message) > 60 else chat_msg.message
         msg = f"[IoT HIVE] New Live Message from {sender.username}: \"{preview}\" Reply directly on iothive.lk"
-        send_sms(recipient.profile.phone_number, msg, event_type="chat_message", recipient_user=recipient)
+        _async_send_sms(recipient.profile.phone_number, msg, event_type="chat_message", recipient_user=recipient)
 
 
 def send_test_sms(user, phone_number):

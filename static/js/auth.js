@@ -80,8 +80,12 @@ async function getCurrentUser(forceRefresh = false) {
   if (cachedCurrentUser && !forceRefresh) return cachedCurrentUser;
   try {
     const user = await API.auth.me();
-    cachedCurrentUser = user;
-    return user;
+    if (user && user.id) {
+      cachedCurrentUser = user;
+      return user;
+    }
+    cachedCurrentUser = null;
+    return null;
   } catch (e) {
     cachedCurrentUser = null;
     return null;
@@ -112,7 +116,7 @@ async function loadAuthNav() {
 
   const user = await getCurrentUser();
   const currentPath = window.location.pathname;
-  const navStateKey = `${user?.id || 'anon'}_${user?.role || ''}_${user?.username || ''}_${currentPath}`;
+  const navStateKey = `${user?.id || 'anon'}_${user?.role || ''}_${user?.username || ''}_${user?.avatar || ''}_${currentPath}`;
 
   if (lastRenderedNavState === navStateKey && desktopNav && desktopNav.children.length > 0) {
     return;
@@ -123,8 +127,8 @@ async function loadAuthNav() {
     // User is logged in
     const avatarSrc = user.avatar ? (API.resolveUrl ? API.resolveUrl(user.avatar) : user.avatar) : null;
     const avatarHtml = avatarSrc 
-      ? `<img src="${avatarSrc}" alt="${escapeHtml(user.username)}" class="user-nav-avatar-img" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); display: inline-block;">`
-      : `<div class="user-nav-avatar-fallback" style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-surface-high); border: 2px solid var(--primary); display: inline-flex; align-items: center; justify-content: center; color: var(--primary);"><span class="material-symbols-outlined" style="font-size: 18px;">person</span></div>`;
+      ? `<img src="${avatarSrc}" alt="${escapeHtml(user.username)}" class="user-nav-avatar-img">`
+      : `<div class="user-nav-avatar-fallback"><span class="material-symbols-outlined" style="font-size: 15px;">person</span></div>`;
 
     const displayName = user.first_name || user.username;
     const isAdmin = user.is_staff || user.is_superuser || user.role === 'admin';
@@ -143,112 +147,72 @@ async function loadAuthNav() {
     }
 
     const adminBtnHtml = isAdmin
-      ? `<a href="/admin-panel/" class="btn-auth-admin" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px; background: rgba(0, 255, 136, 0.12); border: 1px solid rgba(0, 255, 136, 0.35); color: #00ff88; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.78rem; flex-shrink: 0; white-space: nowrap;">
+      ? `<a href="/admin-panel/" class="btn-auth-admin">
            <span class="material-symbols-outlined" style="font-size: 15px;">admin_panel_settings</span>
            Admin
          </a>`
       : '';
 
     const loggedInHtml = `
-      <div class="flex items-center gap-2" style="flex-shrink: 0; flex-wrap: nowrap;">
-        ${adminBtnHtml}
-        <a href="/profile/" class="user-nav-badge" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text-primary); font-weight: 600; max-width: 160px; padding: 3px 8px 3px 3px; font-size: 0.82rem; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          ${avatarHtml}
-          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80px;">${escapeHtml(displayName)}</span>
-          ${roleBadgeHtml}
-        </a>
-        <button type="button" onclick="handleLogout()" class="btn-auth-logout" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px; background: var(--bg-surface-high); border: 1px solid var(--border-medium); color: var(--text-muted); border-radius: 6px; cursor: pointer; font-size: 0.78rem; flex-shrink: 0; white-space: nowrap;">
-          <span class="material-symbols-outlined" style="font-size: 15px;">logout</span>
-          Sign Out
-        </button>
-      </div>
+      <a href="/profile/" class="user-nav-badge" title="View Profile">
+        ${avatarHtml}
+        <span class="user-nav-name">${escapeHtml(displayName)}</span>
+      </a>
+      <button type="button" onclick="handleLogout()" class="btn-auth-logout" title="Sign Out">
+        <span class="material-symbols-outlined" style="font-size: 15px;">logout</span>
+        <span class="btn-auth-logout-text">Sign Out</span>
+      </button>
     `;
 
     if (desktopNav) desktopNav.innerHTML = loggedInHtml;
 
-    // Build Stable Desktop Main Navigation Links
-    if (mainNav) {
-      const navItems = [
-        { href: '/', label: 'Home', active: currentPath === '/' },
-        { href: '/marketplace/', label: 'Marketplace', active: currentPath.startsWith('/marketplace') },
-        { href: '/categories/', label: 'Categories', active: currentPath.startsWith('/categories') },
-        { href: '/bounties/', label: 'Bounties', active: currentPath.startsWith('/bounties') },
-        { href: '/project-requests/', label: 'Inquiries', active: currentPath.startsWith('/project-requests') || currentPath.startsWith('/requests') },
-        { href: '/dashboard/', label: 'Dashboard', active: currentPath.startsWith('/dashboard') },
-      ];
-
-      if (isAdmin) {
-        navItems.push({ href: '/admin-panel/', label: 'Admin Panel', active: currentPath.startsWith('/admin-panel'), style: 'color: #00ff88;' });
-      }
-
-      mainNav.innerHTML = navItems.map(item => `
-        <a href="${item.href}" class="nav-link ${item.active ? 'active' : ''}" ${item.style ? `style="${item.style}"` : ''}>${item.label}</a>
-      `).join('');
-    }
-
-    // Build Consistent Mobile Drawer Links
-    if (mobileNavLinks) {
-      const mobileItems = [
-        { href: '/', label: 'Home' },
-        { href: '/marketplace/', label: 'Marketplace' },
-        { href: '/categories/', label: 'Categories' },
-        { href: '/bounties/', label: 'Bounties' },
-        { href: '/create-project/', label: '+ Publish Project', highlight: true },
-        { href: '/project-requests/', label: 'Inquiries &amp; Messages' },
-        { href: '/favorites/', label: 'Saved Projects' },
-        { href: '/dashboard/', label: 'Dashboard &amp; Orders' },
-        { href: '/profile/', label: 'Profile Settings' },
-      ];
-
-      if (isAdmin) {
-        mobileItems.push({ href: '/admin-panel/', label: 'Admin Panel', style: 'color: #00ff88;' });
-      }
-
-      mobileNavLinks.innerHTML = mobileItems.map(item => `
-        <a href="${item.href}" class="mobile-nav-link" ${item.style ? `style="${item.style}"` : (item.highlight ? 'style="color: var(--primary); font-weight: 700;"' : '')}>
-          ${item.label} <span class="material-symbols-outlined">chevron_right</span>
-        </a>
-      `).join('');
-    }
-
     if (mobileNav) {
       mobileNav.innerHTML = `
         <div class="flex flex-col gap-2" style="padding-top: 12px; border-top: 1px solid var(--border-subtle);">
-          ${isAdmin ? '<a href="/admin-panel/" class="btn-auth-admin" style="justify-content:center; padding: 8px 12px; background: rgba(0,255,136,0.12); color:#00ff88; border:1px solid rgba(0,255,136,0.3); border-radius:6px; text-decoration:none; display:flex; align-items:center; gap:6px;">Admin Panel</a>' : ''}
+          ${isAdmin ? '<a href="/admin-panel/" class="btn-auth-admin" style="justify-content:center; padding: 8px 12px; border-radius:6px; text-decoration:none; display:flex; align-items:center; gap:6px;">Admin Panel</a>' : ''}
           <a href="/profile/" class="btn btn-secondary btn-sm" style="justify-content:center; display: flex; align-items: center; gap: 8px;">
             ${avatarHtml}
             <span>${escapeHtml(displayName)}</span>
             ${roleBadgeHtml}
           </a>
-          <button type="button" onclick="handleLogout()" class="btn-auth-logout" style="justify-content:center; padding: 8px; background: var(--bg-surface-high); border: 1px solid var(--border-medium); color: var(--text-muted); border-radius: 6px;">Sign Out</button>
+          <button type="button" onclick="handleLogout()" class="btn-auth-logout" style="justify-content:center; padding: 8px; border-radius: 6px;">Sign Out</button>
         </div>
       `;
     }
-    return;
-  }
-
-  // Guest buttons
-  const guestHtml = `
-    <div class="flex items-center gap-2">
-      <a href="/login/" class="btn-auth-login" style="padding: 7px 14px; background: var(--bg-surface-high); border: 1px solid var(--border-medium); color: var(--text-primary); border-radius: 6px; text-decoration: none; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px; font-weight: 500;">
-        <span class="material-symbols-outlined" style="font-size: 16px;">login</span>
+  } else {
+    // Guest buttons
+    const guestHtml = `
+      <a href="/login/" class="btn-auth-login">
+        <span class="material-symbols-outlined" style="font-size: 15px;">login</span>
         Sign In
       </a>
-      <a href="/register/" class="btn btn-primary btn-sm" style="padding: 7px 14px;">
-        <span class="material-symbols-outlined" style="font-size: 16px;">person_add</span>
+      <a href="/register/" class="btn-auth-register">
+        <span class="material-symbols-outlined" style="font-size: 15px;">person_add</span>
         Get Started
       </a>
-    </div>
-  `;
-
-  if (desktopNav) desktopNav.innerHTML = guestHtml;
-  if (mobileNav) {
-    mobileNav.innerHTML = `
-      <div class="flex flex-col gap-2" style="padding-top: 12px; border-top: 1px solid var(--border-subtle);">
-        <a href="/login/" class="btn-auth-login" style="justify-content:center; padding: 8px 14px; background: var(--bg-surface-high); border: 1px solid var(--border-medium); color: var(--text-primary); border-radius: 6px; text-decoration: none; display: flex; align-items: center; gap: 6px;">Sign In</a>
-        <a href="/register/" class="btn btn-primary btn-sm" style="justify-content:center;">Get Started</a>
-      </div>
     `;
+
+    if (desktopNav) desktopNav.innerHTML = guestHtml;
+    if (mobileNav) {
+      mobileNav.innerHTML = `
+        <div class="flex flex-col gap-2" style="padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+          <a href="/login/" class="btn-auth-login" style="justify-content:center;">Sign In</a>
+          <a href="/register/" class="btn-auth-register" style="justify-content:center;">Get Started</a>
+        </div>
+      `;
+    }
+  }
+
+  // Update active state on server-rendered nav links without replacing the DOM structure
+  if (mainNav) {
+    mainNav.querySelectorAll('.nav-link').forEach(link => {
+      const href = link.getAttribute('href');
+      if (href === '/') {
+        link.classList.toggle('active', currentPath === '/');
+      } else if (href && href !== '#') {
+        link.classList.toggle('active', currentPath.startsWith(href));
+      }
+    });
   }
 }
 
@@ -260,11 +224,17 @@ window.handleLogout = async function() {
   try {
     await API.auth.logout();
     cachedCurrentUser = null;
+    if (window.IoTHiveRouter && window.IoTHiveRouter.clearCache) {
+      window.IoTHiveRouter.clearCache();
+    }
     showToast('You have been signed out.', 'info');
     setTimeout(() => {
       window.location.href = '/';
-    }, 500);
+    }, 400);
   } catch (err) {
+    if (window.IoTHiveRouter && window.IoTHiveRouter.clearCache) {
+      window.IoTHiveRouter.clearCache();
+    }
     window.location.href = '/';
   }
 };
@@ -275,6 +245,39 @@ window.handleLogout = async function() {
 function setupLoginForm() {
   const form = document.querySelector('[data-login-form]') || document.getElementById('login-form');
   if (!form) return;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const regBanner = document.getElementById('register-success-banner');
+  const resetDoneBanner = document.getElementById('reset-done-banner');
+  const resetSentBanner = document.getElementById('reset-sent-banner');
+  const userInput = form.querySelector('input[name="username"]');
+  const passInput = form.querySelector('input[name="password"]');
+
+  if (urlParams.get('registered') === '1') {
+    if (regBanner) regBanner.style.display = 'block';
+    const emailParam = urlParams.get('email');
+    if (emailParam && userInput) {
+      userInput.value = emailParam;
+      setTimeout(() => passInput?.focus(), 100);
+    }
+  }
+
+  if (urlParams.get('reset_done') === '1') {
+    if (resetDoneBanner) resetDoneBanner.style.display = 'block';
+    const emailParam = urlParams.get('email');
+    if (emailParam && userInput) {
+      userInput.value = emailParam;
+      setTimeout(() => passInput?.focus(), 100);
+    }
+  }
+
+  if (urlParams.get('reset_sent') === '1') {
+    if (resetSentBanner) resetSentBanner.style.display = 'block';
+    const emailParam = urlParams.get('email');
+    if (emailParam && userInput) {
+      userInput.value = emailParam;
+    }
+  }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -297,11 +300,14 @@ function setupLoginForm() {
       setMessage(msgBox, 'Login successful! Redirecting...', 'success');
       showToast('Welcome back!', 'success');
       cachedCurrentUser = null;
+      if (window.IoTHiveRouter && window.IoTHiveRouter.clearCache) {
+        window.IoTHiveRouter.clearCache();
+      }
       setTimeout(() => {
         const params = new URLSearchParams(window.location.search);
         const next = params.get('next') || '/marketplace/';
         window.location.href = next;
-      }, 600);
+      }, 500);
     } catch (err) {
       setMessage(msgBox, err.message || 'Incorrect credentials.', 'error');
       setBusy(btn, false);
@@ -359,12 +365,12 @@ function setupRegisterForm() {
 
       await API.auth.register(payload);
 
-      setMessage(msgBox, 'Account created! Redirecting...', 'success');
-      showToast('Welcome to IoT Hive!', 'success');
+      setMessage(msgBox, 'Account created successfully! Redirecting to login...', 'success');
+      showToast('Account created! Please sign in with your password.', 'success');
       cachedCurrentUser = null;
       setTimeout(() => {
-        window.location.href = '/marketplace/';
-      }, 600);
+        window.location.href = `/login/?registered=1&email=${encodeURIComponent(email)}`;
+      }, 800);
     } catch (err) {
       setMessage(msgBox, err.message || 'Registration failed.', 'error');
       setBusy(btn, false);
@@ -412,15 +418,18 @@ window.openResetPasswordModal = function() {
   if (!modal) return;
   modal.style.display = 'flex';
   modal.classList.add('open');
-  const reqForm = document.getElementById('reset-request-form');
-  const confForm = document.getElementById('reset-confirm-form');
-  const reqMsg = document.getElementById('reset-modal-msg');
-  const confMsg = document.getElementById('reset-confirm-msg');
-  if (reqForm) reqForm.style.display = 'flex';
-  if (confForm) confForm.style.display = 'none';
+
+  const step1 = document.getElementById('reset-step-1');
+  const step2 = document.getElementById('reset-step-2');
+  if (step1) step1.style.display = 'block';
+  if (step2) step2.style.display = 'none';
+
+  const reqMsg = document.getElementById('forgot-message') || document.getElementById('reset-modal-msg');
+  const confMsg = document.getElementById('confirm-reset-message') || document.getElementById('reset-confirm-msg');
   if (reqMsg) setMessage(reqMsg, '');
   if (confMsg) setMessage(confMsg, '');
-  const emailInput = document.getElementById('reset-email-input');
+
+  const emailInput = document.getElementById('forgot-email') || document.getElementById('reset-email-input');
   if (emailInput) {
     setTimeout(() => emailInput.focus(), 50);
   }
@@ -433,16 +442,71 @@ window.closeResetPasswordModal = function() {
   modal.style.display = 'none';
 };
 
+window.handleForgotPasswordSubmit = async function(e) {
+  if (e) e.preventDefault();
+  const emailInput = document.getElementById('forgot-email') || document.getElementById('reset-email-input');
+  const msgEl = document.getElementById('forgot-message') || document.getElementById('reset-modal-msg');
+  const submitBtn = document.getElementById('forgot-submit-btn');
+  const identifier = emailInput?.value?.trim();
+  if (!identifier) return;
+
+  setBusy(submitBtn, true, 'Sending Instructions...');
+  try {
+    const res = await API.auth.passwordResetRequest(identifier);
+    if (window.showToast) showToast('Password reset link sent to your email!', 'success');
+    window.closeResetPasswordModal();
+    window.location.href = `/login/?reset_sent=1&email=${encodeURIComponent(identifier)}`;
+  } catch (err) {
+    setMessage(msgEl, err.message || 'Failed to dispatch reset instructions.', 'error');
+    setBusy(submitBtn, false);
+  }
+};
+
+window.handleConfirmResetSubmit = async function(e) {
+  if (e) e.preventDefault();
+  const tokenInput = document.getElementById('reset-code') || document.getElementById('reset-token-input');
+  const passInput = document.getElementById('new-password') || document.getElementById('reset-new-password');
+  const msgEl = document.getElementById('confirm-reset-message') || document.getElementById('reset-confirm-msg');
+  const submitBtn = document.getElementById('confirm-reset-btn');
+
+  const tokenVal = tokenInput?.value?.trim() || activeResetToken;
+  const newPassword = passInput?.value;
+
+  if (!tokenVal) {
+    setMessage(msgEl, 'Please provide the reset token received in your email.', 'error');
+    return;
+  }
+
+  if (!newPassword || newPassword.length < 6) {
+    setMessage(msgEl, 'Password must be at least 6 characters.', 'error');
+    return;
+  }
+
+  let uid = activeResetUid || '';
+  let token = tokenVal;
+  if (tokenVal.includes(':')) {
+    const parts = tokenVal.split(':');
+    uid = parts[0];
+    token = parts[1];
+  }
+
+  setBusy(submitBtn, true, 'Updating Password...');
+  try {
+    await API.auth.passwordResetConfirm(uid, token, newPassword);
+    if (window.showToast) showToast('Password updated! Please sign in with your new password.', 'success');
+    window.closeResetPasswordModal();
+    window.location.href = '/login/?reset_done=1';
+  } catch (err) {
+    setMessage(msgEl, err.message || 'Failed to reset password. The link or code may have expired.', 'error');
+    setBusy(submitBtn, false);
+  }
+};
+
 function setupPasswordResetModal() {
   const modal = document.getElementById('reset-password-modal');
   const closeBtn = document.getElementById('close-reset-modal');
-  const reqForm = document.getElementById('reset-request-form');
-  const confForm = document.getElementById('reset-confirm-form');
-  const reqMsg = document.getElementById('reset-modal-msg');
-  const confMsg = document.getElementById('reset-confirm-msg');
-  const backToReqBtn = document.getElementById('reset-back-to-req');
-  const userPill = document.getElementById('reset-user-pill');
-  const userText = document.getElementById('reset-user-text');
+  const step1 = document.getElementById('reset-step-1');
+  const step2 = document.getElementById('reset-step-2');
 
   if (!modal) return;
 
@@ -455,8 +519,10 @@ function setupPasswordResetModal() {
     activeResetToken = resetToken;
     modal.style.display = 'flex';
     modal.classList.add('open');
-    if (reqForm) reqForm.style.display = 'none';
-    if (confForm) confForm.style.display = 'flex';
+    if (step1) step1.style.display = 'none';
+    if (step2) step2.style.display = 'block';
+    const codeInput = document.getElementById('reset-code');
+    if (codeInput) codeInput.value = `${resetUid}:${resetToken}`;
   }
 
   // Close modal when clicking on backdrop
@@ -469,80 +535,6 @@ function setupPasswordResetModal() {
   if (closeBtn) {
     closeBtn.addEventListener('click', window.closeResetPasswordModal);
   }
-
-  if (backToReqBtn) {
-    backToReqBtn.addEventListener('click', () => {
-      if (reqForm) reqForm.style.display = 'flex';
-      if (confForm) confForm.style.display = 'none';
-      if (reqMsg) setMessage(reqMsg, '');
-      if (confMsg) setMessage(confMsg, '');
-    });
-  }
-
-  if (reqForm) {
-    reqForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const identifier = document.getElementById('reset-email-input').value.trim();
-      const submitBtn = reqForm.querySelector('button[type="submit"]');
-      if (!identifier) return;
-
-      setBusy(submitBtn, true, 'Verifying...');
-      try {
-        const res = await API.auth.passwordResetRequest(identifier);
-        activeResetUid = res.uidb64;
-        activeResetToken = res.token;
-
-        if (userText) {
-          userText.textContent = `Account: @${res.username || identifier}`;
-        }
-        if (userPill) {
-          userPill.style.display = 'flex';
-        }
-
-        // Switch to Step 2: Set New Password immediately
-        reqForm.style.display = 'none';
-        confForm.style.display = 'flex';
-        setMessage(confMsg, 'Account verified! Please enter your new password below.', 'success');
-        const passInput = document.getElementById('reset-new-password');
-        if (passInput) setTimeout(() => passInput.focus(), 50);
-      } catch (err) {
-        setMessage(reqMsg, err.message || 'Failed to verify account.', 'error');
-      } finally {
-        setBusy(submitBtn, false);
-      }
-    });
-  }
-
-  if (confForm) {
-    confForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const newPassword = document.getElementById('reset-new-password').value;
-      const submitBtn = confForm.querySelector('button[type="submit"]');
-
-      if (!activeResetUid || !activeResetToken) {
-        setMessage(confMsg, 'Reset token missing. Please verify your account first.', 'error');
-        return;
-      }
-
-      if (!newPassword || newPassword.length < 6) {
-        setMessage(confMsg, 'Password must be at least 6 characters.', 'error');
-        return;
-      }
-
-      setBusy(submitBtn, true, 'Updating Password...');
-      try {
-        await API.auth.passwordResetConfirm(activeResetUid, activeResetToken, newPassword);
-        setMessage(confMsg, 'Password reset successful! Redirecting to login...', 'success');
-        showToast('Password updated! Please sign in with your new password.', 'success');
-        setTimeout(() => {
-          window.location.href = '/login/';
-        }, 1200);
-      } catch (err) {
-        setMessage(confMsg, err.message || 'Failed to reset password.', 'error');
-        setBusy(submitBtn, false);
-      }
-    });
-  }
 }
 
 function initAuthUI() {
@@ -552,23 +544,24 @@ function initAuthUI() {
     if (trigger) {
       e.preventDefault();
       window.openResetPasswordModal();
+      return;
     }
-  });
 
-  document.querySelectorAll('[data-password-toggle]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const input = btn.parentElement.querySelector('input');
+    const toggleBtn = e.target.closest('[data-password-toggle]');
+    if (toggleBtn) {
+      e.preventDefault();
+      const input = toggleBtn.parentElement ? toggleBtn.parentElement.querySelector('input') : null;
       if (!input) return;
       if (input.type === 'password') {
         input.type = 'text';
-        const icon = btn.querySelector('.material-symbols-outlined');
+        const icon = toggleBtn.querySelector('.material-symbols-outlined');
         if (icon) icon.textContent = 'visibility_off';
       } else {
         input.type = 'password';
-        const icon = btn.querySelector('.material-symbols-outlined');
+        const icon = toggleBtn.querySelector('.material-symbols-outlined');
         if (icon) icon.textContent = 'visibility';
       }
-    });
+    }
   });
 }
 
@@ -580,6 +573,10 @@ const AuthHelpers = {
   showToast: window.showToast,
   requireAuth,
   getUser: getCurrentUser,
+  clearCache: () => {
+    cachedCurrentUser = null;
+    lastRenderedNavState = null;
+  },
   loadAuthNav,
   openResetPasswordModal: window.openResetPasswordModal,
   closeResetPasswordModal: window.closeResetPasswordModal

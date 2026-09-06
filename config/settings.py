@@ -79,7 +79,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
-# Support PostgreSQL via DATABASE_URL / POSTGRES_URL / SUPABASE_DB_URL or discrete env vars, with fallback to SQLite
+# Support PostgreSQL via DATABASE_URL / POSTGRES_URL / SUPABASE_DB_URL or fallback to local SQLite
 raw_db_url = (
     os.getenv('DATABASE_URL')
     or os.getenv('POSTGRES_URL')
@@ -87,7 +87,6 @@ raw_db_url = (
     or os.getenv('SUPABASE_DATABASE_URL')
 )
 
-# If SUPABASE_URL was provided as a postgres connection string, use it; otherwise treat it as API URL
 supabase_env = os.getenv('SUPABASE_URL', '')
 if not raw_db_url and (supabase_env.startswith('postgres://') or supabase_env.startswith('postgresql://')):
     raw_db_url = supabase_env
@@ -114,7 +113,6 @@ if raw_db_url and (raw_db_url.startswith('postgres://') or raw_db_url.startswith
             }
         }
 elif db_host:
-    # Support discrete environment variables if added individually on Render
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -136,12 +134,6 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
-# Supabase API & Auth Configuration (for REST API / JWT / Auth integration)
-SUPABASE_URL = os.getenv('SUPABASE_URL', '')
-SUPABASE_SECRET_KEY = os.getenv('SUPABASE_SECRET_KEY', '')
-SUPABASE_PUBLISHABLE_KEY = os.getenv('SUPABASE_PUBLISHABLE_KEY', '')
-SUPABASE_JWKS_URL = os.getenv('SUPABASE_JWKS_URL', '')
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -219,6 +211,10 @@ else:
             'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
         },
     }
+
+# WhiteNoise Cache Expiry (1 year for versioned static assets)
+WHITENOISE_MAX_AGE = 31536000
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -269,7 +265,7 @@ EMAIL_BACKEND = os.getenv(
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'rajeenm2003@gmail.com')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'iothive221@gmail.com')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f'IoT HIVE <{EMAIL_HOST_USER}>')
 EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', 10))

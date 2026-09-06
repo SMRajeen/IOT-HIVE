@@ -8,7 +8,7 @@
 <div class="app-container" style="padding-top: var(--space-8);">
   
   <!-- Dynamic Project Details Container -->
-  <div id="project-detail-content">
+  <div id="project-detail-content" data-project-id="{{ project_id|default:'' }}">
     <div style="padding: 64px; text-align: center; color: var(--text-muted);">
       <span class="material-symbols-outlined spin" style="font-size: 36px; color: var(--primary);">sync</span>
       <p style="margin-top: 12px;">Loading hardware project details &amp; community makes...</p>

@@ -12,8 +12,8 @@
     <!-- Top Header -->
     <div style="margin-bottom: 28px;">
       <div class="badge-hud" style="margin-bottom: 6px;">
-        <span class="dot" style="background: #00ff88;"></span>
-        <span class="label" style="color: #00ff88;">CREATOR STUDIO &bull; SRI LANKA</span>
+        <span class="dot" style="background: var(--status-online);"></span>
+        <span class="label" style="color: var(--status-online);">CREATOR STUDIO &bull; SRI LANKA</span>
       </div>
       <h1 style="font-size: 2rem; margin: 0 0 6px;">Publish Hardware Project &amp; Hardware Tiers</h1>
       <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
@@ -182,26 +182,37 @@
           </button>
         </div>
 
-        <div class="table-responsive-wrapper" style="margin-bottom: 12px;">
-          <table class="bom-table" style="font-size: 0.88rem; width: 100%; min-width: 600px;">
+        <div class="table-responsive-wrapper" style="margin-bottom: 12px; border: 1px solid var(--border-medium); border-radius: var(--radius-lg); overflow-x: auto; background: var(--bg-surface-low);">
+          <table class="bom-table" style="font-size: 0.88rem; width: 100%; min-width: 720px; table-layout: fixed;">
+            <colgroup>
+              <col style="width: 27%;">
+              <col style="width: 20%;">
+              <col style="width: 85px;">
+              <col style="width: 145px;">
+              <col style="width: auto;">
+              <col style="width: 48px;">
+            </colgroup>
             <thead>
               <tr>
-                <th style="min-width: 170px;">Component Name *</th>
-                <th style="min-width: 130px;">Part No / MPN</th>
-                <th style="width: 80px; text-align: center;">Qty</th>
-                <th style="width: 130px; text-align: right;">Est. Unit (LKR)</th>
+                <th style="min-width: 160px;">Component Name *</th>
+                <th style="min-width: 120px;">Part No / MPN</th>
+                <th style="width: 85px; text-align: center;">Qty</th>
+                <th style="width: 145px; text-align: right;">Est. Unit (LKR)</th>
                 <th style="min-width: 150px;">Supplier Link</th>
-                <th style="width: 50px; text-align: center;"></th>
+                <th style="width: 48px; text-align: center;"></th>
               </tr>
             </thead>
             <tbody id="bom-rows-container">
               <!-- Initial Dynamic Row -->
             </tbody>
             <tfoot>
-              <tr>
-                <td colspan="3" style="text-align: right; font-weight: 700; font-family: var(--font-mono); color: var(--text-muted);">Estimated Parts Total:</td>
-                <td style="text-align: right; font-weight: 700; font-family: var(--font-mono); color: var(--primary);" id="bom-total-display">Rs. 0.00</td>
-                <td colspan="2"></td>
+              <tr class="bom-total-row" style="border-top: 1px solid var(--border-medium); background: var(--bg-surface-low);">
+                <td colspan="3" style="text-align: right; font-weight: 700; font-family: var(--font-mono); color: var(--text-muted); padding: 14px 12px; vertical-align: middle; font-size: 0.85rem; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap;">
+                  Estimated Parts Total:
+                </td>
+                <td colspan="3" style="text-align: left; padding: 14px 10px; vertical-align: middle; white-space: nowrap;">
+                  <span id="bom-total-display" style="font-weight: 700; font-family: var(--font-mono); color: var(--primary); font-size: 1.15rem; white-space: nowrap; display: inline-block;">Rs. 0.00</span>
+                </td>
               </tr>
             </tfoot>
           </table>
@@ -299,6 +310,51 @@
 
   </div>
 
+</div>
+
+<!-- Project Submitted Success Modal -->
+<div id="project-success-modal" class="modal-backdrop" style="display: none;">
+  <div class="modal-box card-cyber" style="max-width: 520px; width: 100%; padding: 36px 30px; text-align: center;">
+    
+    <div style="width: 68px; height: 68px; border-radius: 20px; background: rgba(0, 229, 255, 0.12); border: 2px solid var(--primary); display: inline-flex; align-items: center; justify-content: center; color: var(--primary); margin-bottom: 20px; box-shadow: 0 0 28px var(--primary-glow);">
+      <span class="material-symbols-outlined" style="font-size: 38px;">verified</span>
+    </div>
+
+    <h2 id="success-modal-title" style="font-size: 1.55rem; margin: 0 0 8px 0; color: #fff;">Your Project Was Submitted Successfully!</h2>
+    <p id="success-modal-desc" style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6; margin: 0 0 24px 0;">
+      Your hardware build has been successfully published to the IoT HIVE marketplace. Makers and buyers can now explore your schematics, firmware code, and order kits.
+    </p>
+
+    <!-- Mini project summary card -->
+    <div id="success-project-card" style="padding: 16px; background: var(--bg-surface-low); border: 1px solid var(--border-subtle); border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; text-align: left;">
+      <div id="success-card-thumb" style="width: 54px; height: 54px; border-radius: 10px; background: #0b1120; border: 1px solid var(--border-subtle); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+        <span class="material-symbols-outlined" style="font-size: 28px; color: var(--primary);">memory</span>
+      </div>
+      <div style="flex: 1; overflow: hidden;">
+        <h4 id="success-card-title" style="margin: 0 0 4px 0; font-size: 0.98rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Hardware Build</h4>
+        <span id="success-card-badge" class="badge-status status-online">PUBLISHED TO MARKETPLACE</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <a id="success-view-project-btn" href="#" class="btn btn-primary btn-lg" style="width: 100%; justify-content: center; display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined">visibility</span>
+        View Live Project
+      </a>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <a href="/dashboard/" class="btn btn-secondary" style="justify-content: center; display: flex; align-items: center; gap: 6px;">
+          <span class="material-symbols-outlined">dashboard</span>
+          My Dashboard
+        </a>
+        <button type="button" onclick="window.resetCreateProjectForm()" class="btn btn-ghost" style="justify-content: center; display: flex; align-items: center; gap: 6px;">
+          <span class="material-symbols-outlined">add_circle</span>
+          Create Another
+        </button>
+      </div>
+    </div>
+
+  </div>
 </div>
 {% endblock %}
 

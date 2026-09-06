@@ -289,7 +289,7 @@
       if (headerInfo) {
         headerInfo.innerHTML = `
           <strong style="font-size: 0.95rem; color: var(--text-primary);">${escapeHtml(partnerName)}</strong>
-          <div class="text-xs" style="color: #00ff88; font-family: var(--font-mono);">&bull; Online Live Channel</div>
+          <div class="text-xs" style="color: var(--status-online); font-family: var(--font-mono);">&bull; Online Live Channel</div>
         `;
       }
 

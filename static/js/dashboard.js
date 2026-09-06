@@ -23,6 +23,153 @@
     return `Rs. ${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
+  function getDashboardStructureHtml() {
+    return `
+      <!-- Real Statistics Cards (5 Cards) -->
+      <div id="dashboard-kpi-grid" class="grid-cols-4" style="margin-bottom: var(--space-8); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+        <div class="card-cyber kpi-card" style="padding: 22px;">
+          <div class="flex items-center justify-between" style="margin-bottom: 8px;">
+            <span class="stat-label">My Projects</span>
+            <span class="material-symbols-outlined" style="color: var(--primary);">memory</span>
+          </div>
+          <div class="kpi-value" id="kpi-my-projects">0</div>
+          <div class="kpi-change neutral">Shared in repository</div>
+        </div>
+
+        <div class="card-cyber kpi-card" style="padding: 22px;">
+          <div class="flex items-center justify-between" style="margin-bottom: 8px;">
+            <span class="stat-label">Hardware Sales</span>
+            <span class="material-symbols-outlined" style="color: var(--status-success);">payments</span>
+          </div>
+          <div class="kpi-value" id="kpi-total-sales" style="color: var(--primary); font-size: 1.6rem;">Rs. 0.00</div>
+          <div class="kpi-change positive" id="kpi-sales-count">0 orders fulfilled</div>
+        </div>
+
+        <div class="card-cyber kpi-card" style="padding: 22px;">
+          <div class="flex items-center justify-between" style="margin-bottom: 8px;">
+            <span class="stat-label">Total Views</span>
+            <span class="material-symbols-outlined" style="color: var(--primary-container);">visibility</span>
+          </div>
+          <div class="kpi-value" id="kpi-total-views">0</div>
+          <div class="kpi-change positive">Across projects</div>
+        </div>
+
+        <div class="card-cyber kpi-card" style="padding: 22px;">
+          <div class="flex items-center justify-between" style="margin-bottom: 8px;">
+            <span class="stat-label">Inquiries &amp; Messages</span>
+            <span class="material-symbols-outlined" style="color: var(--status-warning);">chat</span>
+          </div>
+          <div class="kpi-value" id="kpi-inquiries">0</div>
+          <div class="kpi-change neutral">
+            <a href="/project-requests/" style="color: var(--primary); text-decoration: underline;">View Inquiries &rarr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Maker Pro SaaS Subscription & Take-Rate Tier Banner -->
+      <div class="card-cyber" id="maker-pro-banner" style="padding: 22px 26px; margin-bottom: var(--space-8); background: linear-gradient(135deg, rgba(255, 170, 0, 0.08) 0%, rgba(0, 255, 136, 0.04) 100%); border: 1px solid rgba(255, 170, 0, 0.3); border-radius: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255, 170, 0, 0.15); border: 1px solid #ffaa00; display: flex; align-items: center; justify-content: center; color: #ffaa00; flex-shrink: 0;">
+              <span class="material-symbols-outlined" style="font-size: 28px;">workspace_premium</span>
+            </div>
+            <div style="min-width: 220px; flex: 1;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px; flex-wrap: wrap;">
+                <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-primary);">Maker Pro Subscription &bull; SaaS Recurring Revenue</h3>
+                <span class="tag-mono" style="background: rgba(255,170,0,0.2); color: #ffaa00; border-color: rgba(255,170,0,0.4); font-size: 0.72rem;">0% COMMISSION TIER</span>
+              </div>
+              <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+                Current Plan: <strong id="current-maker-tier-badge" style="color: var(--text-primary);">Standard Maker (8% Escrow Fee)</strong>. Upgrade to <strong>Maker Pro (Rs. 1,490 / mo)</strong> for 0% commission, Gold Verified Badge &amp; SMS alerts.
+              </p>
+            </div>
+          </div>
+          <button type="button" onclick="window.openMakerProModal()" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #ffaa00, #ff7700); border-color: #ffaa00; color: #000; font-weight: 700;">
+            <span class="material-symbols-outlined" style="font-size: 18px;">star</span>
+            View SaaS Pro Tiers
+          </button>
+        </div>
+      </div>
+
+      <!-- Hardware Orders & Shipping Fulfillment Section -->
+      <div class="card-cyber" style="padding: 24px; margin-bottom: var(--space-8);">
+        <div class="flex items-center justify-between" style="margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 id="dashboard-orders-title" style="font-size: 1.3rem; margin: 0 0 4px; display: flex; align-items: center; gap: 8px;">
+              <span class="material-symbols-outlined text-primary">local_shipping</span>
+              Hardware Orders &amp; Fulfillment
+            </h3>
+            <p id="dashboard-orders-subtitle" style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">Manage customer shipments across Sri Lanka, update courier tracking numbers, and view purchases.</p>
+          </div>
+
+          <!-- Tab Switcher -->
+          <div class="flex items-center gap-2 flex-wrap" id="dashboard-orders-tabs">
+            <button type="button" id="tab-orders-sales-btn" class="btn btn-secondary btn-sm active" onclick="window.switchOrdersTab('sales')">
+              <span class="material-symbols-outlined" style="font-size: 16px;">sell</span>
+              Creator Sales (<span id="sales-count-badge">0</span>)
+            </button>
+            <button type="button" id="tab-orders-purchases-btn" class="btn btn-ghost btn-sm" onclick="window.switchOrdersTab('purchases')">
+              <span class="material-symbols-outlined" style="font-size: 16px;">shopping_bag</span>
+              My Purchases (<span id="purchases-count-badge">0</span>)
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive-wrapper">
+          <table class="table-cyber" style="width: 100%; min-width: 650px;">
+            <thead>
+              <tr id="orders-table-headers">
+                <th>Order ID</th>
+                <th>Project &amp; Tier</th>
+                <th>Buyer / Address</th>
+                <th>Amount (LKR)</th>
+                <th>Delivery Status</th>
+                <th>Tracking / Action</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-orders-tbody">
+              <tr>
+                <td colspan="6" style="padding: 32px; text-align: center; color: var(--text-muted);">
+                  <span class="material-symbols-outlined spin" style="font-size: 24px; color: var(--primary);">sync</span>
+                  <p style="margin-top: 8px;">Loading hardware orders...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Projects Management Table -->
+      <div id="dashboard-projects-section" class="card-cyber" style="padding: 24px; margin-bottom: var(--space-8);">
+        <div class="flex items-center justify-between flex-wrap gap-2" style="margin-bottom: 20px;">
+          <h3 style="font-size: 1.25rem; margin: 0;">My Published Projects</h3>
+          <a href="/create-project/" class="btn btn-ghost btn-sm">+ Add Project</a>
+        </div>
+
+        <div class="table-responsive-wrapper">
+          <table class="table-cyber" style="width: 100%; min-width: 550px;">
+            <thead>
+              <tr>
+                <th>Project Title</th>
+                <th>Category</th>
+                <th>Base Price</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-projects-tbody">
+              <tr>
+                <td colspan="5" style="padding: 32px; text-align: center; color: var(--text-muted);">
+                  <span class="material-symbols-outlined spin" style="font-size: 24px; color: var(--primary);">sync</span>
+                  <p style="margin-top: 8px;">Loading your projects...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
   function renderKPIs(projects, inquiries, favorites, orders) {
     const role = (currentUser?.role || 'both').toLowerCase();
     const kpiGrid = document.getElementById('dashboard-kpi-grid');
@@ -80,7 +227,7 @@
             <span class="material-symbols-outlined" style="color: var(--status-warning);">chat</span>
           </div>
           <div class="kpi-value">${inquiries.length}</div>
-          <div class="kpi-change neutral"><a href="/requests/" style="color: var(--primary);">View Inquiries &rarr;</a></div>
+          <div class="kpi-change neutral"><a href="/project-requests/" style="color: var(--primary);">View Inquiries &rarr;</a></div>
         </div>
       `;
     } else {
@@ -120,7 +267,7 @@
           </div>
           <div class="kpi-value" id="kpi-inquiries">${inquiries.length}</div>
           <div class="kpi-change neutral">
-            <a href="/requests/" style="color: var(--primary); text-decoration: underline;">View Inquiries &rarr;</a>
+            <a href="/project-requests/" style="color: var(--primary); text-decoration: underline;">View Inquiries &rarr;</a>
           </div>
         </div>
       `;
@@ -148,33 +295,35 @@
 
         <div class="role-upgrade-banner" style="margin-bottom: 24px;">
           <div style="display: flex; gap: 14px; align-items: center;">
-            <span class="material-symbols-outlined" style="font-size: 32px; color: #00ff88;">hardware</span>
+            <div class="role-upgrade-icon">
+              <span class="material-symbols-outlined" style="font-size: 26px;">storefront</span>
+            </div>
             <div>
-              <h4 style="margin: 0 0 4px; color: #fff;">Have circuit designs, Arduino code, or DIY kits to sell?</h4>
-              <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
-                Switch your account mode to <strong>Seller</strong> or <strong>Both</strong> to list your projects on the IoT HIVE marketplace, accept courier orders, and monetize blueprints.
+              <h4 style="margin: 0 0 4px; font-size: 1.05rem;">Start selling your IoT &amp; Embedded creations</h4>
+              <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+                Enable creator privileges to publish hardware blueprints, set Sri Lanka courier fees, and earn revenue with 0% platform commissions on Pro tiers.
               </p>
             </div>
           </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-          <h4 style="font-size: 1.05rem; margin: 0; color: var(--primary);">Your Saved Bookmarks (${favorites.length})</h4>
-          <a href="/favorites/" class="btn btn-ghost btn-sm">View All Saved &rarr;</a>
-        </div>
-
+        <h4 style="font-size: 1.1rem; margin-bottom: 14px;">Your Saved Bookmarks (${favorites.length})</h4>
         ${favorites.length === 0 ? `
-          <div style="padding: 28px; text-align: center; color: var(--text-muted); background: var(--bg-surface-low); border-radius: var(--radius-md);">
-            <span class="material-symbols-outlined" style="font-size: 28px; margin-bottom: 6px;">bookmark_border</span>
-            <p style="margin: 0;">No saved projects yet. Explore the marketplace to bookmark circuits!</p>
-            <a href="/marketplace/" class="btn btn-secondary btn-sm" style="margin-top: 12px;">Explore Marketplace</a>
+          <div style="text-align: center; padding: 32px; color: var(--text-muted); background: var(--bg-surface-low); border-radius: 8px;">
+            <span class="material-symbols-outlined" style="font-size: 32px; opacity: 0.5;">bookmark_border</span>
+            <p style="margin: 8px 0 14px;">You haven't saved any hardware projects yet.</p>
+            <a href="/marketplace/" class="btn btn-secondary btn-sm">Explore Marketplace</a>
           </div>
         ` : `
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px;">
-            ${favorites.slice(0, 4).map(fav => `
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+            ${favorites.map(fav => `
               <div class="card-cyber" style="padding: 14px; background: var(--bg-surface-low); cursor: pointer;" onclick="location.href='/project/${fav.project}/'">
-                <div style="font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${auth.escapeHtml(fav.project_title || 'Hardware Build')}</div>
-                <div style="font-size: 0.8rem; color: var(--text-muted);">Saved project</div>
+                <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; color: var(--text-primary);">${fav.project_title || 'IoT Device'}</div>
+                <div class="text-xs" style="color: var(--text-muted); margin-bottom: 8px;">Saved on ${new Date(fav.created_at).toLocaleDateString()}</div>
+                <div class="flex items-center justify-between">
+                  <span class="tag-mono" style="font-size: 0.72rem;">Rs. ${Number(fav.project_price || 0).toLocaleString()}</span>
+                  <span style="font-size: 0.8rem; color: var(--primary);">View Project &rarr;</span>
+                </div>
               </div>
             `).join('')}
           </div>
@@ -183,144 +332,216 @@
       return;
     }
 
-    // Seller or Both
-    section.innerHTML = `
-      <div class="flex items-center justify-between" style="margin-bottom: 20px;">
-        <h3 style="font-size: 1.25rem; margin: 0;">My Published Projects</h3>
-        <a href="/create-project/" class="btn btn-ghost btn-sm">+ Add Project</a>
-      </div>
-
-      <div style="overflow-x: auto;">
-        <table class="table-cyber">
-          <thead>
-            <tr>
-              <th>Project Title</th>
-              <th>Category</th>
-              <th>Base Price</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="dashboard-projects-tbody">
-            ${!projects.length ? `
-              <tr>
-                <td colspan="5" style="padding: 32px; text-align: center; color: var(--text-muted);">
-                  <span class="material-symbols-outlined" style="font-size: 32px; margin-bottom: 8px;">memory</span>
-                  <p>You have not published any hardware projects yet.</p>
-                  <a href="/create-project/" class="btn btn-primary btn-sm" style="margin-top: 12px;">Create Your First Project</a>
-                </td>
-              </tr>
-            ` : projects.map(p => {
-              const price = p.is_free ? 'Free' : formatLKR(p.price);
-              return `
-                <tr>
-                  <td>
-                    <a href="/project/${p.id}/" style="font-weight: 600; color: var(--text-primary);">
-                      ${auth.escapeHtml(p.title)}
-                    </a>
-                    <div class="text-xs" style="color: var(--text-muted); font-family: var(--font-mono);">${p.views || 0} views</div>
-                  </td>
-                  <td>
-                    <span class="tag-mono">${auth.escapeHtml(p.category_name || 'Hardware')}</span>
-                  </td>
-                  <td class="font-mono" style="color: var(--primary); font-weight: 700;">${price}</td>
-                  <td>
-                    <span class="badge-status status-${p.status === 'published' ? 'online' : 'away'}">${p.status.toUpperCase()}</span>
-                  </td>
-                  <td>
-                    <div class="flex items-center gap-2">
-                      <a href="/project/${p.id}/" class="btn btn-ghost btn-sm" title="View Project">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
-                      </a>
-                      <a href="/create-project/?edit=${p.id}" class="btn btn-ghost btn-sm" title="Edit Project">
-                        <span class="material-symbols-outlined" style="font-size: 16px; color: var(--primary);">edit</span>
-                      </a>
-                      <button onclick="window.deleteDashboardProject(${p.id})" class="btn btn-ghost btn-sm" style="color: var(--status-warning);" title="Delete">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  }
-
-  function renderOrdersTable() {
-    const tbody = document.getElementById('dashboard-orders-tbody');
+    const tbody = document.getElementById('dashboard-projects-tbody');
     if (!tbody) return;
 
-    const isSales = activeOrdersTab === 'sales';
-    const displayedOrders = allOrders.filter(o => {
-      if (!currentUser) return false;
-      return isSales ? o.seller === currentUser.id : o.buyer === currentUser.id;
-    });
-
-    if (!displayedOrders.length) {
+    if (!projects || projects.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" style="padding: 32px; text-align: center; color: var(--text-muted);">
-            <span class="material-symbols-outlined" style="font-size: 32px; margin-bottom: 8px;">local_shipping</span>
-            <p>${isSales ? 'No sales orders received yet. Share your hardware project in the marketplace!' : 'You have not placed any hardware orders yet.'}</p>
+          <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+            <span class="material-symbols-outlined" style="font-size: 36px; opacity: 0.5; margin-bottom: 8px;">folder_open</span>
+            <p style="margin: 0 0 12px;">No projects published yet.</p>
+            <a href="/create-project/" class="btn btn-primary btn-sm">+ Post Your First Project</a>
           </td>
         </tr>
       `;
       return;
     }
 
-    tbody.innerHTML = displayedOrders.map(order => {
-      const isPhysical = order.tier_type === 'kit' || order.tier_type === 'assembled' || order.shipping_address;
-      const statusBadge = order.status === 'delivered' ? 'online' : (order.status === 'shipped' ? 'active' : (order.status === 'paid' ? 'online' : 'away'));
+    tbody.innerHTML = projects.map(p => `
+      <tr>
+        <td>
+          <a href="/project/${p.id}/" style="font-weight: 600; color: var(--text-primary); text-decoration: none;">
+            ${p.title}
+          </a>
+        </td>
+        <td>
+          <span class="tag-mono">${p.category_name || p.category || 'General'}</span>
+        </td>
+        <td>
+          <strong style="color: var(--primary); font-family: var(--font-mono);">${formatLKR(p.price)}</strong>
+        </td>
+        <td>
+          <span class="badge ${p.status === 'published' ? 'badge-success' : 'badge-neutral'}">
+            ${p.status || 'published'}
+          </span>
+        </td>
+        <td>
+          <div class="flex items-center gap-2">
+            <a href="/project/${p.id}/" class="btn btn-ghost btn-sm" style="padding: 4px 8px;" title="View">
+              <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+            </a>
+            <a href="/create-project/?edit=${p.id}" class="btn btn-ghost btn-sm" style="padding: 4px 8px;" title="Edit">
+              <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+            </a>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderOrdersTable(orders, tabType = 'sales') {
+    const tbody = document.getElementById('dashboard-orders-tbody');
+    const headers = document.getElementById('orders-table-headers');
+    if (!tbody) return;
+
+    if (headers) {
+      if (tabType === 'sales') {
+        headers.innerHTML = `
+          <th style="white-space: nowrap;">Order ID</th>
+          <th style="white-space: nowrap;">Project &amp; Tier</th>
+          <th style="white-space: nowrap;">Buyer / Address</th>
+          <th style="white-space: nowrap;">Amount (LKR)</th>
+          <th style="white-space: nowrap;">Delivery Status</th>
+          <th style="white-space: nowrap;">Courier / Action</th>
+        `;
+      } else {
+        headers.innerHTML = `
+          <th style="white-space: nowrap;">Order ID</th>
+          <th style="white-space: nowrap;">Purchased Hardware</th>
+          <th style="white-space: nowrap;">Seller / Maker</th>
+          <th style="white-space: nowrap;">Amount Paid</th>
+          <th style="white-space: nowrap;">Delivery Status</th>
+          <th style="white-space: nowrap;">Live Courier Tracking</th>
+        `;
+      }
+    }
+
+    let filtered = [];
+    if (tabType === 'sales') {
+      filtered = orders.filter(o => currentUser && o.seller === currentUser.id);
+    } else {
+      filtered = orders.filter(o => currentUser && o.buyer === currentUser.id);
+    }
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-muted);">
+            <span class="material-symbols-outlined" style="font-size: 36px; opacity: 0.5; margin-bottom: 8px;">
+              ${tabType === 'sales' ? 'store' : 'shopping_basket'}
+            </span>
+            <p style="margin: 0 0 10px;">
+              ${tabType === 'sales' ? 'No incoming customer orders yet.' : 'You haven\'t purchased any hardware kits yet.'}
+            </p>
+            ${tabType === 'purchases' ? '<a href="/marketplace/" class="btn btn-secondary btn-sm">Explore Hardware Marketplace</a>' : ''}
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(order => {
+      const isSales = tabType === 'sales';
+      const statusBadge = getStatusBadge(order.status, order.fulfillment_type);
+      const courierName = order.courier_name || 'PromptX Logistics';
+      const trackingNo = order.tracking_number;
 
       return `
         <tr>
-          <td>
-            <strong class="font-mono text-xs" style="color: var(--primary);">${auth.escapeHtml(order.transaction_id || `#${order.id}`)}</strong>
-            <div class="text-xs" style="color: var(--text-muted);">${new Date(order.created_at).toLocaleDateString()}</div>
-          </td>
-          <td>
-            <a href="/project/${order.project}/" style="font-weight: 600; color: var(--text-primary);">
-              ${auth.escapeHtml(order.project_title || 'Hardware Build')}
-            </a>
-            <div class="text-xs" style="color: var(--text-muted);">
-              Tier: <strong>${(order.tier_type || 'digital').toUpperCase()}</strong> &bull; ${auth.escapeHtml(order.tier_name || 'Standard')}
+          <td style="white-space: nowrap;">
+            <span style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: var(--accent-cyan);">
+              #ORD-${String(order.id).padStart(5, '0')}
+            </span>
+            <div class="text-xs" style="color: var(--text-muted); margin-top: 2px;">
+              ${new Date(order.created_at).toLocaleDateString()}
             </div>
           </td>
-          <td>
-            <div>${auth.escapeHtml(order.buyer_name || order.buyer_username || 'Customer')}</div>
-            <div class="text-xs" style="color: var(--text-muted);">${auth.escapeHtml(order.shipping_city || '')} ${auth.escapeHtml(order.shipping_phone || '')}</div>
+
+          <td style="min-width: 180px;">
+            <div style="font-weight: 600; color: var(--text-primary); max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${order.project_title || 'Hardware Kit'}
+            </div>
+            <div class="flex items-center gap-1" style="margin-top: 3px;">
+              <span class="tag-mono" style="font-size: 0.7rem; text-transform: uppercase; white-space: nowrap;">
+                ${order.fulfillment_type === 'physical' ? 'Physical Device' : 'Digital Blueprint'}
+              </span>
+            </div>
           </td>
-          <td class="font-mono" style="font-weight: 700; color: var(--primary);">
-            ${formatLKR(order.amount)}
-          </td>
+
           <td>
-            <span class="badge-status status-${statusBadge}">
-              ${(order.status || 'paid').toUpperCase()}
-            </span>
-          </td>
-          <td>
-            ${isSales && isPhysical ? `
-              <button onclick="window.openShippingModal(${order.id})" class="btn btn-secondary btn-xs" style="display: inline-flex; align-items: center; gap: 4px;">
-                <span class="material-symbols-outlined" style="font-size: 14px;">local_shipping</span>
-                ${order.tracking_number ? 'Update Dispatch' : 'Dispatch'}
-              </button>
-            ` : (order.tracking_number ? `
-              <div class="text-xs font-mono" style="color: #00ff88;">
-                ${auth.escapeHtml(order.tracking_courier || 'Courier')}:<br>${auth.escapeHtml(order.tracking_number)}
+            ${isSales ? `
+              <div style="font-weight: 600; font-size: 0.9rem; white-space: nowrap;">${order.buyer_username || order.buyer_name || 'Customer'}</div>
+              <div class="text-xs" style="color: var(--text-muted); max-width: 200px; line-height: 1.3;">
+                ${order.shipping_address ? escapeHtml(order.shipping_address) : (order.shipping_city ? order.shipping_city + ', Sri Lanka' : 'Digital Delivery')}
               </div>
-            ` : '<span class="text-xs text-muted">Digital Access</span>')}
+              ${order.shipping_phone ? `<div class="text-xs" style="color: var(--accent-cyan); font-family: var(--font-mono); white-space: nowrap;">${order.shipping_phone}</div>` : ''}
+            ` : `
+              <div style="font-weight: 600; font-size: 0.9rem; white-space: nowrap;">${order.seller_username || order.seller_name || 'Creator Maker'}</div>
+              <div class="text-xs" style="color: var(--text-muted);">Verified Seller</div>
+            `}
+          </td>
+
+          <td style="white-space: nowrap;">
+            <div style="font-family: var(--font-mono); font-weight: 800; color: var(--status-success); font-size: 1rem; white-space: nowrap;">
+              ${formatLKR(order.amount)}
+            </div>
+            <div class="text-xs" style="color: var(--text-muted); white-space: nowrap;">
+              ${order.payment_method ? order.payment_method.toUpperCase() : 'PAYHERE GATEWAY'}
+            </div>
+          </td>
+
+          <td style="white-space: nowrap;">
+            ${statusBadge}
+          </td>
+
+          <td style="white-space: nowrap;">
+            ${isSales ? `
+              ${order.fulfillment_type === 'physical' ? `
+                <button type="button" class="btn btn-secondary btn-sm" onclick="window.openShippingModal(${order.id})" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 0.8rem; white-space: nowrap;">
+                  <span class="material-symbols-outlined" style="font-size: 15px;">local_shipping</span>
+                  ${trackingNo ? 'Edit Tracking' : 'Dispatch Courier'}
+                </button>
+                ${trackingNo ? `<div class="text-xs" style="color: var(--text-muted); margin-top: 4px; font-family: var(--font-mono); white-space: nowrap;">${trackingNo}</div>` : ''}
+              ` : `
+                <span class="tag-mono" style="color: var(--status-online); font-size: 0.75rem; white-space: nowrap;">Digital Instant Access</span>
+              `}
+            ` : `
+              ${trackingNo ? `
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <span class="tag-mono" style="color: var(--accent-cyan); font-size: 0.75rem; white-space: nowrap;">${courierName}</span>
+                  <span style="font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-primary); font-weight: 600; white-space: nowrap;">${trackingNo}</span>
+                  <a href="https://promptx.lk/track/${trackingNo}" target="_blank" rel="noopener noreferrer" style="font-size: 0.75rem; color: var(--primary); text-decoration: underline; white-space: nowrap;">
+                    Track Live &rarr;
+                  </a>
+                </div>
+              ` : `
+                <span class="text-xs" style="color: var(--text-muted); white-space: nowrap;">
+                  ${order.status === 'paid' ? 'Processing Dispatch in Colombo' : 'Pending Shipment Details'}
+                </span>
+              `}
+            `}
           </td>
         </tr>
       `;
     }).join('');
   }
 
-  // --- Window Handlers ---
+  function getStatusBadge(status, fulfillmentType) {
+    const s = (status || 'pending').toLowerCase();
+    if (s === 'delivered') {
+      return `<span class="badge badge-success" style="display: inline-flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 13px;">check_circle</span> Delivered</span>`;
+    }
+    if (s === 'shipped') {
+      return `<span class="badge" style="background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan); border: 1px solid rgba(0, 229, 255, 0.4); display: inline-flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 13px;">local_shipping</span> Shipped</span>`;
+    }
+    if (s === 'paid') {
+      return `<span class="badge" style="background: rgba(0, 255, 136, 0.15); color: var(--status-online); border: 1px solid rgba(0, 255, 136, 0.4); display: inline-flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 13px;">paid</span> Paid / Processing</span>`;
+    }
+    if (s === 'cancelled') {
+      return `<span class="badge" style="background: rgba(255, 68, 68, 0.15); color: var(--status-error); border: 1px solid rgba(255, 68, 68, 0.4);">Cancelled</span>`;
+    }
+    return `<span class="badge badge-neutral">${s.toUpperCase()}</span>`;
+  }
 
-  window.switchOrdersTab = (tab) => {
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    })[m]);
+  }
+
+  window.switchOrdersTab = function(tab) {
     activeOrdersTab = tab;
     const salesBtn = document.getElementById('tab-orders-sales-btn');
     const purchasesBtn = document.getElementById('tab-orders-purchases-btn');
@@ -330,118 +551,143 @@
         salesBtn.className = 'btn btn-secondary btn-sm active';
         purchasesBtn.className = 'btn btn-ghost btn-sm';
       } else {
-        purchasesBtn.className = 'btn btn-secondary btn-sm active';
         salesBtn.className = 'btn btn-ghost btn-sm';
+        purchasesBtn.className = 'btn btn-secondary btn-sm active';
       }
     }
 
-    renderOrdersTable();
+    renderOrdersTable(allOrders, tab);
   };
 
-  window.openShippingModal = (orderId) => {
+  // -------------------------------------------------------------------
+  // Shipping Modal Handler
+  // -------------------------------------------------------------------
+  window.openShippingModal = function(orderId) {
     const order = allOrders.find(o => o.id === orderId);
     if (!order) return;
 
-    document.getElementById('modal-shipping-order-id').value = order.id;
-    document.getElementById('modal-order-summary-label').textContent = `Order #${order.id} &bull; ${order.project_title} (${(order.tier_type || '').toUpperCase()})`;
-    if (order.tracking_courier) document.getElementById('modal-courier-name').value = order.tracking_courier;
-    if (order.tracking_number) document.getElementById('modal-tracking-number').value = order.tracking_number;
-    if (order.status) document.getElementById('modal-order-status').value = order.status;
-
     const modal = document.getElementById('shipping-modal');
+    const idInput = document.getElementById('modal-shipping-order-id');
+    const summaryLabel = document.getElementById('modal-order-summary-label');
+    const courierSelect = document.getElementById('modal-courier-name');
+    const trackingInput = document.getElementById('modal-tracking-number');
+    const statusSelect = document.getElementById('modal-order-status');
+    const alertBox = document.getElementById('shipping-modal-alert');
+
+    if (idInput) idInput.value = order.id;
+    if (summaryLabel) {
+      summaryLabel.innerHTML = `Order #ORD-${String(order.id).padStart(5, '0')} &bull; ${escapeHtml(order.project_title || 'Kit')} &bull; Deliver to: ${escapeHtml(order.buyer_name || 'Buyer')} (${escapeHtml(order.shipping_city || 'Sri Lanka')})`;
+    }
+    if (courierSelect) courierSelect.value = order.courier_name || 'PromptX Courier Sri Lanka';
+    if (trackingInput) trackingInput.value = order.tracking_number || '';
+    if (statusSelect) statusSelect.value = order.status || 'shipped';
+    if (alertBox) { alertBox.style.display = 'none'; alertBox.textContent = ''; }
+
     if (modal) modal.style.display = 'flex';
   };
 
-  window.closeShippingModal = () => {
+  window.closeShippingModal = function() {
     const modal = document.getElementById('shipping-modal');
     if (modal) modal.style.display = 'none';
   };
 
-  window.handleSaveShipping = async (e) => {
+  window.handleSaveShipping = async function(e) {
     e.preventDefault();
-    const btn = document.getElementById('modal-shipping-submit-btn');
-    const orderId = document.getElementById('modal-shipping-order-id').value;
-    const courier = document.getElementById('modal-courier-name').value;
-    const tracking = document.getElementById('modal-tracking-number').value.trim();
-    const status = document.getElementById('modal-order-status').value;
+    const orderId = document.getElementById('modal-shipping-order-id')?.value;
+    const courierName = document.getElementById('modal-courier-name')?.value;
+    const trackingNumber = document.getElementById('modal-tracking-number')?.value;
+    const status = document.getElementById('modal-order-status')?.value;
+    const submitBtn = document.getElementById('modal-shipping-submit-btn');
+    const alertBox = document.getElementById('shipping-modal-alert');
 
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-outlined spin">sync</span> Updating...';
+    if (!orderId || !trackingNumber) {
+      if (alertBox) {
+        alertBox.className = 'form-alert form-alert-error';
+        alertBox.textContent = 'Please enter a valid tracking number.';
+        alertBox.style.display = 'block';
+      }
+      return;
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size: 16px;">sync</span> Updating...';
+    }
 
     try {
-      await api.orders.updateShipping(orderId, {
-        tracking_courier: courier,
-        tracking_number: tracking,
-        status: status
+      const response = await api.request(`orders/${orderId}/update-fulfillment/`, {
+        method: 'POST',
+        body: {
+          courier_name: courierName,
+          tracking_number: trackingNumber,
+          status: status
+        }
       });
 
-      // Update in memory
-      const target = allOrders.find(o => o.id == orderId);
-      if (target) {
-        target.tracking_courier = courier;
-        target.tracking_number = tracking;
-        target.status = status;
+      const idx = allOrders.findIndex(o => o.id === Number(orderId));
+      if (idx !== -1 && response.order) {
+        allOrders[idx] = response.order;
+      } else if (idx !== -1) {
+        allOrders[idx].courier_name = courierName;
+        allOrders[idx].tracking_number = trackingNumber;
+        allOrders[idx].status = status;
       }
 
       window.closeShippingModal();
-      renderOrdersTable();
-      if (window.showToast) showToast('Shipment tracking updated successfully!', 'success');
+      window.switchOrdersTab(activeOrdersTab);
+      if (window.showToast) {
+        window.showToast(`Order #ORD-${String(orderId).padStart(5, '0')} updated with ${courierName} tracking!`, 'success');
+      }
     } catch (err) {
-      const alert = document.getElementById('shipping-modal-alert');
-      alert.className = 'form-alert form-alert-error';
-      alert.textContent = err.message || 'Failed to update shipping info.';
-      alert.style.display = 'block';
+      if (alertBox) {
+        alertBox.className = 'form-alert form-alert-error';
+        alertBox.textContent = err.message || 'Failed to update courier tracking.';
+        alertBox.style.display = 'block';
+      }
     } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<span class="material-symbols-outlined">save</span> Update Shipment';
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="material-symbols-outlined">save</span> Update Shipment';
+      }
     }
   };
 
-  window.deleteDashboardProject = async (id) => {
-    if (!confirm('Are you sure you want to delete this project?')) return;
-    try {
-      await api.projects.delete(id);
-      if (window.showToast) showToast('Project deleted.', 'info');
-      setTimeout(() => location.reload(), 600);
-    } catch (e) {
-      if (window.showToast) showToast(e.message || 'Delete failed', 'error');
-    }
+  // -------------------------------------------------------------------
+  // Maker Pro SaaS Tier Modal Handlers
+  // -------------------------------------------------------------------
+  window.openMakerProModal = function() {
+    const modal = document.getElementById('maker-pro-modal');
+    if (modal) modal.style.display = 'flex';
   };
 
-  window.openMakerProModal = () => {
-    const m = document.getElementById('maker-pro-modal');
-    if (m) m.style.display = 'flex';
+  window.closeMakerProModal = function() {
+    const modal = document.getElementById('maker-pro-modal');
+    if (modal) modal.style.display = 'none';
   };
 
-  window.closeMakerProModal = () => {
-    const m = document.getElementById('maker-pro-modal');
-    if (m) m.style.display = 'none';
-  };
-
-  window.activateMakerProDemo = () => {
+  window.activateMakerProDemo = async function() {
     const btn = document.getElementById('btn-activate-maker-pro');
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '<span class="material-symbols-outlined spin">sync</span> Activating Pro Membership...';
-      setTimeout(() => {
-        btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Active: Maker Pro';
-        btn.style.background = 'rgba(0, 255, 136, 0.2)';
-        btn.style.color = '#00ff88';
-        btn.style.borderColor = '#00ff88';
-        const badge = document.getElementById('current-maker-tier-badge');
-        if (badge) {
-          badge.innerHTML = '<span style="color: #ffaa00;">★ Maker Pro Active (0% Commission &bull; Gold Verified)</span>';
-        }
-        if (window.showToast) showToast('Maker Pro activated! 0% commission & Gold Verified badge enabled.', 'success');
-        setTimeout(() => window.closeMakerProModal(), 1200);
-      }, 900);
+      btn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size: 16px;">sync</span> Activating Maker Pro...';
     }
+
+    setTimeout(() => {
+      window.closeMakerProModal();
+      const badge = document.getElementById('current-maker-tier-badge');
+      if (badge) {
+        badge.innerHTML = '<span style="color: #ffaa00; font-weight: 800;">Maker Pro Tier (0% Commission Active)</span>';
+      }
+      if (window.showToast) {
+        window.showToast('Congratulations! Maker Pro SaaS Membership Activated (0% Take Rate & Gold Verified).', 'success');
+      }
+    }, 900);
   };
 
-  window.quickUpgradeToSeller = async (newRole) => {
+  window.quickUpgradeToSeller = async function(newRole = 'both') {
     try {
-      await api.auth.updateProfile({ role: newRole || 'both' });
-      if (window.showToast) showToast('Account role upgraded! Welcome to Creator Studio.', 'success');
+      await api.auth.updateProfile({ role: newRole });
+      if (window.showToast) showToast('Role upgraded! You can now publish projects and receive hardware sales.', 'success');
       setTimeout(() => location.reload(), 600);
     } catch (err) {
       if (window.showToast) showToast(err.message || 'Failed to update role.', 'error');
@@ -449,18 +695,46 @@
   };
 
   async function loadDashboard() {
+    const mainContainer = document.getElementById('dashboard-main-container');
+    const topActions = document.getElementById('dashboard-top-actions');
+    if (!mainContainer) return;
+
     try {
-      currentUser = await auth.getUser();
-      if (!currentUser) {
-        window.location.href = '/login/?next=/dashboard/';
+      currentUser = auth ? await auth.getUser(true) : (api?.auth ? await api.auth.me() : null);
+      
+      if (!currentUser || !currentUser.username) {
+        if (topActions) topActions.style.display = 'none';
+        mainContainer.innerHTML = `
+          <div class="card-cyber" style="padding: 48px 24px; text-align: center; background: var(--bg-surface-container);">
+            <div style="width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.25); display: flex; align-items: center; justify-content: center;">
+              <span class="material-symbols-outlined" style="font-size: 28px; color: var(--accent-cyan);">lock</span>
+            </div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 8px; font-weight: 700;">Authentication Required</h3>
+            <p style="color: var(--text-muted); max-width: 440px; margin: 0 auto 24px; font-size: 0.95rem; line-height: 1.5;">
+              Please sign in or create an account to view and respond to project inquiries, hardware orders, and customer messages.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <a href="/login/?next=/dashboard/" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined" style="font-size: 16px;">login</span>
+                Sign In
+              </a>
+              <a href="/register/?next=/dashboard/" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined" style="font-size: 16px;">person_add</span>
+                Create Account
+              </a>
+            </div>
+          </div>
+        `;
         return;
       }
+
+      if (topActions) topActions.style.display = 'flex';
+      mainContainer.innerHTML = getDashboardStructureHtml();
 
       const role = (currentUser.role || 'both').toLowerCase();
       const greeting = document.getElementById('dashboard-greeting');
       const hudLabel = document.getElementById('dashboard-hud-label');
       const subtitle = document.getElementById('dashboard-subtitle');
-      const topActions = document.getElementById('dashboard-top-actions');
       const ordersTitle = document.getElementById('dashboard-orders-title');
       const ordersSubtitle = document.getElementById('dashboard-orders-subtitle');
       const makerProBanner = document.getElementById('maker-pro-banner');
@@ -475,7 +749,7 @@
         if (makerProBanner) makerProBanner.style.display = 'none';
         if (topActions) {
           topActions.innerHTML = `
-            <a href="/admin-panel/" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; color: #00ff88; border-color: rgba(0, 255, 136, 0.35);">
+            <a href="/admin-panel/" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; color: var(--status-online); border-color: rgba(0, 168, 107, 0.35);">
               <span class="material-symbols-outlined" style="font-size: 18px;">admin_panel_settings</span>
               Admin Panel
             </a>
@@ -536,12 +810,6 @@
         }
       }
 
-    } catch (e) {
-      window.location.href = '/login/?next=/dashboard/';
-      return;
-    }
-
-    try {
       const [projectsData, inquiriesData, favsData, ordersData] = await Promise.all([
         api.projects.myProjects().catch(() => []),
         api.requests.list().catch(() => []),
@@ -562,5 +830,21 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', loadDashboard);
+  function initDashboard() {
+    if (document.getElementById('dashboard-main-container')) {
+      loadDashboard();
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDashboard);
+  } else {
+    initDashboard();
+  }
+
+  window.addEventListener('page:loaded', () => {
+    if (document.getElementById('dashboard-main-container')) {
+      initDashboard();
+    }
+  });
 })();

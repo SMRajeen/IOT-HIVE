@@ -63,6 +63,11 @@ class AccountsAuthTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_password_reset_flow_success(self):
+        from django.core import mail
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+
         # 1. Request reset
         req_res = self.client.post(
             "/api/auth/password-reset/",
@@ -70,17 +75,20 @@ class AccountsAuthTests(TestCase):
             content_type="application/json"
         )
         self.assertEqual(req_res.status_code, status.HTTP_200_OK)
-        data = req_res.json()
-        self.assertIn("uidb64", data)
-        self.assertIn("token", data)
+        self.assertIn("message", req_res.json())
+        # Verify email was dispatched
+        self.assertTrue(len(mail.outbox) > 0)
+        self.assertIn(self.email, mail.outbox[0].to)
 
-        # 2. Confirm reset with new password
+        # 2. Confirm reset using user's token
+        uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
         new_pass = "NewSecr3tPassword!456"
         conf_res = self.client.post(
             "/api/auth/password-reset-confirm/",
             data=json.dumps({
-                "uidb64": data["uidb64"],
-                "token": data["token"],
+                "uidb64": uidb64,
+                "token": token,
                 "new_password": new_pass
             }),
             content_type="application/json"
@@ -96,17 +104,14 @@ class AccountsAuthTests(TestCase):
         self.assertEqual(login_res.status_code, status.HTTP_200_OK)
 
     def test_password_reset_invalid_token(self):
-        req_res = self.client.post(
-            "/api/auth/password-reset/",
-            data=json.dumps({"email": self.email}),
-            content_type="application/json"
-        )
-        data = req_res.json()
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
 
+        uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
         conf_res = self.client.post(
             "/api/auth/password-reset-confirm/",
             data=json.dumps({
-                "uidb64": data["uidb64"],
+                "uidb64": uidb64,
                 "token": "invalid-token-123",
                 "new_password": "NewValidPassword!123"
             }),

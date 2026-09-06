@@ -51,7 +51,7 @@
             <span style="font-size: 0.82rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px;">
               <span class="badge-role badge-role-seller">Seller Mode</span>
               <span>&bull; Ready to monetize circuits &amp; firmware.</span>
-              <a href="/profile/" class="text-link" style="color: #00ff88; margin-left: 4px;">Change in Profile &rarr;</a>
+              <a href="/profile/" class="text-link" style="color: var(--status-online); margin-left: 4px;">Change in Profile &rarr;</a>
             </span>
           {% endif %}
         </div>
@@ -183,7 +183,7 @@
 <!-- Call to Action Banner -->
 <section style="padding: 60px 0 80px;">
   <div class="app-container">
-    <div id="home-cta-card" class="card-cyber" style="padding: 48px 32px; text-align: center; background: radial-gradient(circle at 50% 30%, rgba(255,0,51,0.12), var(--bg-surface-container) 70%);">
+    <div id="home-cta-card" class="card-cyber" style="padding: 48px 32px; text-align: center; background: radial-gradient(circle at 50% 30%, var(--primary-glow), var(--bg-surface) 70%);">
       {% if user.is_authenticated and user.profile.role == 'buyer' %}
         <h2 id="home-cta-title" style="font-size: 2rem; margin-bottom: 12px;">Looking for Custom Hardware or Blueprints?</h2>
         <p id="home-cta-desc" style="color: var(--text-secondary); max-width: 520px; margin: 0 auto 24px; font-size: 1rem;">

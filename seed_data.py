@@ -53,7 +53,7 @@ Category.objects.all().delete()
 print('Creating platform users with verified phone numbers...')
 admin_user = User.objects.create_superuser(
     username='admin',
-    email='admin@iothive.lk',
+    email='iothive221@gmail.com',
     password='adminpassword123',
     first_name='Platform',
     last_name='Admin'

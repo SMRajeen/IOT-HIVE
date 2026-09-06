@@ -43,22 +43,22 @@
     tr.className = 'bom-row';
     tr.innerHTML = `
       <td>
-        <input type="text" class="input-cyber bom-name" placeholder="e.g. ESP32 NodeMCU" value="${auth.escapeHtml(name || '')}" required style="padding: 6px 10px; font-size: 0.85rem;">
+        <input type="text" class="input-cyber bom-name" placeholder="e.g. ESP32 NodeMCU" value="${auth.escapeHtml(name || '')}" required style="padding: 7px 10px; font-size: 0.85rem; width: 100%; box-sizing: border-box;">
       </td>
       <td>
-        <input type="text" class="input-cyber bom-part" placeholder="ESP32-WROOM-32" value="${auth.escapeHtml(partNo || '')}" style="padding: 6px 10px; font-size: 0.85rem; font-family: var(--font-mono);">
+        <input type="text" class="input-cyber bom-part" placeholder="ESP32-WROOM-32" value="${auth.escapeHtml(partNo || '')}" style="padding: 7px 10px; font-size: 0.85rem; font-family: var(--font-mono); width: 100%; box-sizing: border-box;">
       </td>
-      <td style="text-align: center;">
-        <input type="number" class="input-cyber bom-qty" value="${qty || 1}" min="1" oninput="window.calcBOM()" style="padding: 6px; font-size: 0.85rem; text-align: center; font-family: var(--font-mono);">
+      <td style="text-align: center; width: 85px;">
+        <input type="number" class="input-cyber bom-qty" value="${qty || 1}" min="1" oninput="window.calcBOM()" style="padding: 7px 4px; font-size: 0.88rem; text-align: center; font-family: var(--font-mono); width: 68px; min-width: 68px; max-width: 72px; margin: 0 auto; display: block; box-sizing: border-box;">
+      </td>
+      <td style="width: 145px;">
+        <input type="number" step="10" min="0" class="input-cyber bom-cost" placeholder="1800.00" value="${cost || ''}" oninput="window.calcBOM()" style="padding: 7px 10px; font-size: 0.88rem; text-align: right; font-family: var(--font-mono); width: 100%; box-sizing: border-box;">
       </td>
       <td>
-        <input type="number" step="10" min="0" class="input-cyber bom-cost" placeholder="1800.00" value="${cost || ''}" oninput="window.calcBOM()" style="padding: 6px 10px; font-size: 0.85rem; text-align: right; font-family: var(--font-mono);">
+        <input type="url" class="input-cyber bom-url" placeholder="https://digikey.com/..." value="${auth.escapeHtml(url || '')}" style="padding: 7px 10px; font-size: 0.85rem; width: 100%; box-sizing: border-box;">
       </td>
-      <td>
-        <input type="url" class="input-cyber bom-url" placeholder="https://digikey.com/..." value="${auth.escapeHtml(url || '')}" style="padding: 6px 10px; font-size: 0.85rem;">
-      </td>
-      <td style="text-align: center;">
-        <button type="button" class="btn-icon" onclick="window.removeBOMRow(this)" style="width: 28px; height: 28px; color: var(--status-warning);">
+      <td style="text-align: center; width: 48px;">
+        <button type="button" class="btn-icon" onclick="window.removeBOMRow(this)" style="width: 30px; height: 30px; color: var(--status-warning); margin: 0 auto; display: flex; align-items: center; justify-content: center;">
           <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
         </button>
       </td>
@@ -257,12 +257,38 @@
         if (window.showToast) showToast('Project changes saved successfully!', 'success');
       } else {
         result = await api.projects.create(formData);
-        if (window.showToast) showToast('Hardware project created successfully!', 'success');
+        if (window.showToast) showToast('Hardware project submitted successfully!', 'success');
       }
 
-      setTimeout(() => {
-        window.location.href = `/project/${result.id || editProjectId}/`;
-      }, 700);
+      const successModal = document.getElementById('project-success-modal');
+      const titleEl = document.getElementById('success-card-title');
+      const viewBtn = document.getElementById('success-view-project-btn');
+      const modalTitle = document.getElementById('success-modal-title');
+      const modalDesc = document.getElementById('success-modal-desc');
+      const modalBadge = document.getElementById('success-card-badge');
+
+      const targetId = result?.id || editProjectId;
+      if (titleEl) titleEl.textContent = result?.title || formData.get('title') || 'Hardware Project';
+      if (viewBtn) viewBtn.href = `/project/${targetId}/`;
+
+      if (isEditing) {
+        if (modalTitle) modalTitle.textContent = 'Changes Saved Successfully!';
+        if (modalDesc) modalDesc.textContent = 'Your project updates have been saved and are now live on the IoT HIVE marketplace.';
+        if (modalBadge) modalBadge.textContent = 'UPDATES LIVE';
+      } else {
+        if (modalTitle) modalTitle.textContent = 'Your Project Was Submitted Successfully!';
+        if (modalDesc) modalDesc.textContent = 'Your hardware build has been successfully published to the IoT HIVE marketplace. Makers and buyers can now explore your schematics, code, and BOM.';
+        if (modalBadge) modalBadge.textContent = 'PUBLISHED TO MARKETPLACE';
+      }
+
+      if (successModal) {
+        successModal.style.display = 'flex';
+        successModal.classList.add('open');
+      } else {
+        setTimeout(() => {
+          window.location.href = `/project/${targetId}/`;
+        }, 700);
+      }
     } catch (err) {
       alertBox.className = 'form-alert form-alert-error';
       alertBox.textContent = err.message || (isEditing ? 'Failed to update project.' : 'Failed to publish project. Please check required fields.');
@@ -272,7 +298,17 @@
     }
   };
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  window.resetCreateProjectForm = function() {
+    const modal = document.getElementById('project-success-modal');
+    if (modal) {
+      modal.style.display = 'none';
+      modal.classList.remove('open');
+    }
+    window.location.href = '/create-project/';
+  };
+
+  async function initCreateProject() {
+    if (!document.getElementById('create-project-form')) return;
     let user = null;
     try {
       user = await auth.getUser();
@@ -295,7 +331,7 @@
         alertBox.style.marginBottom = '28px';
         alertBox.innerHTML = `
           <div style="display: flex; gap: 14px; align-items: center;">
-            <span class="material-symbols-outlined" style="font-size: 32px; color: #00ff88;">storefront</span>
+            <span class="material-symbols-outlined" style="font-size: 32px; color: var(--status-online);">storefront</span>
             <div>
               <h3 style="margin: 0 0 4px 0; color: #fff; font-size: 1.1rem;">Enable Seller Privileges to Publish</h3>
               <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
@@ -347,6 +383,18 @@
           if (priceInput.value === '0.00') priceInput.value = '3500.00';
         }
       });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCreateProject);
+  } else {
+    initCreateProject();
+  }
+
+  window.addEventListener('page:loaded', () => {
+    if (document.getElementById('create-project-form')) {
+      initCreateProject();
     }
   });
 })();

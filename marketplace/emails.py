@@ -16,7 +16,7 @@ def _async_send_mail(subject, message, recipient_list):
     """Worker function to send mail in a background daemon thread to prevent request blocking."""
     def _worker():
         try:
-            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", f"IoT HIVE <{getattr(settings, 'EMAIL_HOST_USER', 'rajeenm2003@gmail.com')}>")
+            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", f"IoT HIVE <{getattr(settings, 'EMAIL_HOST_USER', 'iothive221@gmail.com')}>")
             send_mail(
                 subject=subject,
                 message=message,

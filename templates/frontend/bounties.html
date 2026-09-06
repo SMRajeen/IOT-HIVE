@@ -6,18 +6,20 @@
 
 {% block content %}
 <div class="app-container" style="padding-top: var(--space-8);">
-  
+
   <!-- Bounty Board Header Banner -->
-  <div class="card-cyber" style="padding: 32px 28px; margin-bottom: var(--space-8); background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl);">
+  <div class="card-cyber"
+    style="padding: 32px 28px; margin-bottom: var(--space-8); background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl);">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
       <div>
         <div class="badge-hud" style="margin-bottom: 6px;">
-          <span class="dot" style="background: #00ff88;"></span>
-          <span class="label" style="color: #00ff88;">COMMUNITY COMMISSIONS &bull; HARDWARE BOUNTIES</span>
+          <span class="dot" style="background: var(--status-online);"></span>
+          <span class="label" style="color: var(--status-online);">COMMUNITY COMMISSIONS &bull; HARDWARE BOUNTIES</span>
         </div>
         <h1 style="font-size: 2.2rem; margin: 0 0 6px;">Maker Bounty &amp; Commission Board</h1>
         <p style="color: var(--text-muted); font-size: 0.98rem; margin: 0; max-width: 620px; line-height: 1.5;">
-          Post custom IoT circuit requirements, robotics jobs, and embedded device requests. Verified makers submit competitive proposals and deliver turnkey prototypes.
+          Post custom IoT circuit requirements, robotics jobs, and embedded device requests. Verified makers submit
+          competitive proposals and deliver turnkey prototypes.
         </p>
       </div>
 
@@ -31,7 +33,8 @@
   </div>
 
   <!-- Real-Time Bounty KPI Stats Strip -->
-  <div class="grid-cols-4" style="margin-bottom: var(--space-8); grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+  <div class="grid-cols-4"
+    style="margin-bottom: var(--space-8); grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
     <div class="card-cyber kpi-card" style="padding: 20px;">
       <div class="flex items-center justify-between" style="margin-bottom: 6px;">
         <span class="stat-label">Active Bounties</span>
@@ -44,9 +47,9 @@
     <div class="card-cyber kpi-card" style="padding: 20px;">
       <div class="flex items-center justify-between" style="margin-bottom: 6px;">
         <span class="stat-label">Total Commission Pool</span>
-        <span class="material-symbols-outlined" style="color: #00ff88;">payments</span>
+        <span class="material-symbols-outlined" style="color: var(--status-online);">payments</span>
       </div>
-      <div class="kpi-value" id="kpi-bounty-pool" style="color: #00ff88;">Rs. 0</div>
+      <div class="kpi-value" id="kpi-bounty-pool" style="color: var(--primary);">Rs. 0</div>
       <div class="kpi-change neutral">Funded by clients</div>
     </div>
 
@@ -74,12 +77,14 @@
     <div class="flex items-center justify-between gap-4 flex-wrap">
       <div class="search-box-cyber" style="flex: 1; min-width: 260px;">
         <span class="material-symbols-outlined" style="color: var(--text-muted); margin-right: 8px;">search</span>
-        <input type="text" id="bounty-search" placeholder="Search bounties by title, requirements, or keywords (e.g. 'LoRa', 'MQTT', 'Motor Controller')...">
+        <input type="text" id="bounty-search"
+          placeholder="Search bounties by title, requirements, or keywords (e.g. 'LoRa', 'MQTT', 'Motor Controller')...">
       </div>
 
       <div class="flex items-center gap-3" style="flex-shrink: 0;">
         <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">SORT:</span>
-        <select id="bounty-sort" class="input-cyber" style="width: 170px; padding: 8px 12px; background: var(--bg-surface-low);">
+        <select id="bounty-sort" class="input-cyber"
+          style="width: 170px; padding: 8px 12px; background: var(--bg-surface-low);">
           <option value="latest">Latest First</option>
           <option value="budget-desc">Highest Budget</option>
           <option value="budget-asc">Lowest Budget</option>
@@ -89,29 +94,37 @@
     </div>
 
     <!-- Filter & Scope Tabs (All, My Bounties, Awarded to Me) -->
-    <div style="display: flex; gap: 8px; margin-top: 16px; border-top: 1px solid var(--border-subtle); padding-top: 14px; flex-wrap: wrap;">
-      <button type="button" class="btn btn-primary btn-sm bounty-tab-btn" id="bounty-tab-all" onclick="window.switchBountyScope('all')">
+    <div
+      style="display: flex; gap: 8px; margin-top: 16px; border-top: 1px solid var(--border-subtle); padding-top: 14px; flex-wrap: wrap;">
+      <button type="button" class="btn btn-primary btn-sm bounty-tab-btn" id="bounty-tab-all"
+        onclick="window.switchBountyScope('all')">
         <span class="material-symbols-outlined" style="font-size: 16px;">explore</span>
         All Bounties
       </button>
-      <button type="button" class="btn btn-secondary btn-sm bounty-tab-btn" id="bounty-tab-my" onclick="window.switchBountyScope('my')">
+      <button type="button" class="btn btn-secondary btn-sm bounty-tab-btn" id="bounty-tab-my"
+        onclick="window.switchBountyScope('my')">
         <span class="material-symbols-outlined" style="font-size: 16px;">assignment_ind</span>
         My Posted Bounties
       </button>
-      <button type="button" class="btn btn-secondary btn-sm bounty-tab-btn" id="bounty-tab-awarded" onclick="window.switchBountyScope('awarded')">
+      <button type="button" class="btn btn-secondary btn-sm bounty-tab-btn" id="bounty-tab-awarded"
+        onclick="window.switchBountyScope('awarded')">
         <span class="material-symbols-outlined" style="font-size: 16px;">military_tech</span>
         Awarded / In-Progress
       </button>
     </div>
 
     <!-- Category Pills -->
-    <div class="flex items-center gap-2" style="margin-top: 14px; overflow-x: auto; padding-bottom: 4px;" id="bounty-category-pills">
-      <button class="filter-pill active" data-slug="all">All Categories</button>
+    <div style="margin-top: 14px;">
+      <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">Category:</div>
+      <div class="flex items-center gap-2" style="overflow-x: auto; padding-bottom: 4px;" id="bounty-category-pills">
+        <button class="filter-pill active" data-slug="all">All Categories</button>
+      </div>
     </div>
   </div>
 
   <!-- Bounties Feed -->
-  <div id="bounties-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-bottom: 48px;">
+  <div id="bounties-grid"
+    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; margin-bottom: 48px; align-items: stretch;">
     <div style="grid-column: 1 / -1; padding: 48px; text-align: center; color: var(--text-muted);">
       <span class="material-symbols-outlined spin" style="font-size: 32px; color: var(--primary);">sync</span>
       <p style="margin-top: 8px;">Loading hardware bounties...</p>
@@ -121,21 +134,25 @@
 </div>
 
 <!-- Post a Hardware Bounty Modal -->
-<div id="create-bounty-modal" class="modal-cyber" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 16px;">
-  <div class="card-cyber modal-box" style="max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 28px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl); box-shadow: 0 24px 60px rgba(0,0,0,0.9); position: relative;">
-    
-    <button onclick="window.closeCreateBountyModal()" class="btn-icon" style="position: absolute; top: 16px; right: 16px; z-index: 10;">
+<div id="create-bounty-modal" class="modal-cyber"
+  style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 16px;">
+  <div class="card-cyber modal-box"
+    style="max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 28px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl); box-shadow: 0 24px 60px rgba(0,0,0,0.9); position: relative;">
+
+    <button onclick="window.closeCreateBountyModal()" class="btn-icon"
+      style="position: absolute; top: 16px; right: 16px; z-index: 10;">
       <span class="material-symbols-outlined">close</span>
     </button>
 
     <div style="margin-bottom: 20px; padding-right: 40px;">
       <div class="badge-hud" style="margin-bottom: 6px;">
-        <span class="dot" style="background: #00ff88;"></span>
-        <span class="label" style="color: #00ff88;">NEW COMMISSION</span>
+        <span class="dot" style="background: var(--status-online);"></span>
+        <span class="label" style="color: var(--status-online);">NEW COMMISSION</span>
       </div>
       <h3 style="font-size: 1.45rem; margin: 0;">Post a Custom Hardware Bounty</h3>
       <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">
-        Define your hardware specifications and budget. Top IoT engineers and makers will bid with timelines and deliverables.
+        Define your hardware specifications and budget. Top IoT engineers and makers will bid with timelines and
+        deliverables.
       </p>
     </div>
 
@@ -144,7 +161,8 @@
 
       <div class="input-group" style="margin-bottom: 16px;">
         <label class="input-label">Bounty Title / Objective *</label>
-        <input type="text" name="title" class="input-cyber" required placeholder="e.g. Custom LoRaWAN Soil Moisture Sensor Node for Tea Estate">
+        <input type="text" name="title" class="input-cyber" required
+          placeholder="e.g. Custom LoRaWAN Soil Moisture Sensor Node for Tea Estate">
       </div>
 
       <div class="form-row-2">
@@ -181,7 +199,8 @@
       <div class="form-row-2">
         <div class="input-group">
           <label class="input-label">Preferred MCU / Platform</label>
-          <input type="text" name="preferred_mcu" class="input-cyber" placeholder="e.g. ESP32-S3, STM32, Raspberry Pi RP2040">
+          <input type="text" name="preferred_mcu" class="input-cyber"
+            placeholder="e.g. ESP32-S3, STM32, Raspberry Pi RP2040">
         </div>
 
         <div class="input-group">
@@ -192,12 +211,15 @@
 
       <div class="input-group" style="margin-bottom: 16px;">
         <label class="input-label">Detailed Requirements &amp; Scope *</label>
-        <textarea name="description" class="input-cyber" rows="4" required placeholder="Explain what the circuit must do, power constraints (e.g. solar/battery), sensor inputs, and functional requirements..." style="resize: vertical;"></textarea>
+        <textarea name="description" class="input-cyber" rows="4" required
+          placeholder="Explain what the circuit must do, power constraints (e.g. solar/battery), sensor inputs, and functional requirements..."
+          style="resize: vertical;"></textarea>
       </div>
 
       <div class="input-group" style="margin-bottom: 24px;">
         <label class="input-label">Deliverables Needed</label>
-        <input type="text" name="deliverables_needed" class="input-cyber" placeholder="e.g. PCB Gerber zip, Schematics PDF, Firmware source, 3D printable STL">
+        <input type="text" name="deliverables_needed" class="input-cyber"
+          placeholder="e.g. PCB Gerber zip, Schematics PDF, Firmware source, 3D printable STL">
       </div>
 
       <div class="flex items-center justify-between gap-3">
@@ -213,10 +235,13 @@
 </div>
 
 <!-- Bounty Details & Proposal Submission Modal -->
-<div id="bounty-detail-modal" class="modal-cyber" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
-  <div class="card-cyber" style="max-width: 680px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 32px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl); box-shadow: 0 24px 60px rgba(0,0,0,0.9); position: relative;">
-    
-    <button onclick="window.closeBountyDetailModal()" class="btn-icon" style="position: absolute; top: 16px; right: 16px; z-index: 10;">
+<div id="bounty-detail-modal" class="modal-cyber"
+  style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
+  <div class="card-cyber"
+    style="max-width: 680px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 32px; background: var(--bg-surface-container); border: 1px solid var(--border-medium); border-radius: var(--radius-xl); box-shadow: 0 24px 60px rgba(0,0,0,0.9); position: relative;">
+
+    <button onclick="window.closeBountyDetailModal()" class="btn-icon"
+      style="position: absolute; top: 16px; right: 16px; z-index: 10;">
       <span class="material-symbols-outlined">close</span>
     </button>
 

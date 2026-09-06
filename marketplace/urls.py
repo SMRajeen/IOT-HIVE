@@ -56,4 +56,5 @@ urlpatterns = router.urls + [
     path("admin/projects/", admin_projects_view, name="admin-projects"),
     path("admin/projects/<int:pk>/", admin_projects_view, name="admin-project-detail"),
     path("admin/orders/", admin_orders_view, name="admin-orders"),
+    path("admin/orders/<int:pk>/", admin_orders_view, name="admin-order-detail"),
 ]

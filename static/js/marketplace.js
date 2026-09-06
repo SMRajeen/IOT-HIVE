@@ -89,8 +89,8 @@
     const reviewCount = project.review_count || 0;
 
     return `
-      <div class="card-cyber project-node-card" onclick="location.href='/project/${project.id}/'" style="cursor: pointer; display: flex; flex-direction: column; transition: transform 0.2s, border-color 0.2s;">
-        <div class="node-thumb-box" style="position: relative; height: 190px; background: #000; border-radius: 6px; overflow: hidden;">
+      <div class="card-cyber project-node-card" onclick="location.href='/project/${project.id}/'" style="cursor: pointer; display: flex; flex-direction: column; height: 100%; transition: transform 0.2s, border-color 0.2s;">
+        <div class="node-thumb-box" style="position: relative; height: 190px; background: var(--bg-surface-lowest); border-radius: 6px; overflow: hidden; box-shadow: var(--shadow-neu-inset-sm); flex-shrink: 0;">
           ${img
             ? `<img src="${img}" alt="${auth.escapeHtml(project.title)}" style="width: 100%; height: 100%; object-fit: cover;">`
             : `<div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-surface-high); color: var(--text-muted);">
@@ -98,16 +98,16 @@
                 <span style="font-size: 0.8rem; margin-top: 6px; font-family: var(--font-mono);">SMART HARDWARE</span>
                </div>`
           }
-          <div class="tag-mono" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); padding: 4px 8px; border-radius: 4px;">
+          <div class="tag-mono" style="position: absolute; top: 10px; left: 10px; background: var(--bg-surface); backdrop-filter: blur(12px); padding: 4px 10px; border-radius: var(--radius-full); box-shadow: var(--shadow-neu-raised-sm); border: 1px solid var(--border-subtle); color: var(--text-secondary); white-space: nowrap; max-width: 65%; overflow: hidden; text-overflow: ellipsis;">
             ${auth.escapeHtml(project.category_name || 'Hardware')}
           </div>
-          ${project.featured ? `<div style="position: absolute; top: 10px; right: 10px; background: var(--primary); color: #000; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono);">FEATURED</div>` : ''}
+          ${project.featured ? `<div style="position: absolute; top: 10px; right: 10px; background: var(--primary); color: #ffffff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono); box-shadow: 0 0 10px var(--primary-glow);">FEATURED</div>` : ''}
         </div>
 
         <div style="padding: 18px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-          <div>
+          <div style="flex: 1; display: flex; flex-direction: column;">
             <!-- Hardware Spec Badge Strip on Card -->
-            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; min-height: 24px;">
               ${project.microcontroller ? `
                 <span class="hardware-chip" style="font-size: 0.72rem;">
                   <span class="material-symbols-outlined" style="font-size: 12px;">developer_board</span>
@@ -122,28 +122,28 @@
               ` : ''}
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <div style="font-size: 0.8rem; color: var(--text-muted);">By ${auth.escapeHtml(creator)}</div>
-              <div style="display: flex; align-items: center; gap: 3px; font-size: 0.78rem; font-family: var(--font-mono); color: #ffb700;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; min-height: 20px;">
+              <div style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%;">By ${auth.escapeHtml(creator)}</div>
+              <div style="display: flex; align-items: center; gap: 3px; font-size: 0.78rem; font-family: var(--font-mono); color: #ffb700; flex-shrink: 0;">
                 <span class="material-symbols-outlined" style="font-size: 13px;">star</span>
                 <strong>${rating}</strong>
                 ${reviewCount > 0 ? `<span style="color: var(--text-muted);">(${reviewCount})</span>` : ''}
               </div>
             </div>
 
-            <h3 style="font-size: 1.1rem; margin-bottom: 8px; line-height: 1.35;">${auth.escapeHtml(project.title)}</h3>
-            <p style="color: var(--text-muted); font-size: 0.86rem; line-height: 1.45; margin-bottom: 16px;">
+            <h3 style="font-size: 1.08rem; margin-bottom: 8px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.8rem;">${auth.escapeHtml(project.title)}</h3>
+            <p style="color: var(--text-muted); font-size: 0.86rem; line-height: 1.45; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 2.5rem;">
               ${auth.escapeHtml(project.short_description || '')}
             </p>
           </div>
 
-          <div class="flex items-center justify-between" style="border-top: 1px solid var(--border-subtle); padding-top: 14px; margin-top: auto;">
-            <div>
-              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono);">PRICE</div>
-              <span class="font-bold font-mono" style="color: var(--primary); font-size: 1.15rem;">${price}</span>
+          <div class="flex items-center justify-between" style="border-top: 1px solid var(--border-subtle); padding-top: 14px; margin-top: auto; gap: 10px;">
+            <div style="min-width: 0; flex: 1;">
+              <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono); margin-bottom: 2px;">PRICE</div>
+              <span class="font-bold font-mono" style="color: var(--primary); font-size: 1.12rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${price}</span>
             </div>
-            <span class="btn btn-secondary btn-sm">
-              <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+            <span class="btn btn-secondary btn-sm" style="flex-shrink: 0; white-space: nowrap; padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
+              <span class="material-symbols-outlined" style="font-size: 15px;">visibility</span>
               View Specs
             </span>
           </div>
@@ -294,12 +294,25 @@
     difficultySelect.addEventListener('change', loadMarketplaceProjects);
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    initMCUPills();
-    // Fire all initial requests in parallel for maximum speed
-    updateMarketplaceRoleUI();
-    loadCategories();
-    loadMarketplaceProjects();
+  function initMarketplace() {
+    if (document.getElementById('marketplace-grid')) {
+      initMCUPills();
+      updateMarketplaceRoleUI();
+      loadCategories();
+      loadMarketplaceProjects();
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMarketplace);
+  } else {
+    initMarketplace();
+  }
+
+  window.addEventListener('page:loaded', () => {
+    if (document.getElementById('marketplace-grid')) {
+      initMarketplace();
+    }
   });
 })();
 

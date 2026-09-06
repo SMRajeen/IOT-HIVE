@@ -73,7 +73,7 @@ class PaymentGateway {
         </div>
 
         <!-- SafePay Escrow Guarantee Badge -->
-        <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(0, 255, 136, 0.06); border: 1px dashed rgba(0, 255, 136, 0.3); border-radius: 8px; margin-bottom: 16px; font-size: 0.8rem; color: #00ff88;">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(0, 255, 136, 0.06); border: 1px dashed rgba(0, 255, 136, 0.3); border-radius: 8px; margin-bottom: 16px; font-size: 0.8rem; color: var(--status-online);">
           <span class="material-symbols-outlined" style="font-size: 18px;">lock_clock</span>
           <span><strong>IoT HIVE SafePay™ Escrow:</strong> Payment is held securely until prototype delivery is verified.</span>
         </div>
@@ -194,7 +194,7 @@ class PaymentGateway {
 
         <!-- Success Confirmation View -->
         <div id="payment-success-view" style="display: none; text-align: center; padding: 12px 0;">
-          <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(0, 255, 136, 0.15); border: 1px solid #00ff88; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #00ff88;">
+          <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(0, 168, 107, 0.12); border: 1px solid var(--status-online); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--status-online);">
             <span class="material-symbols-outlined" style="font-size: 36px;">check_circle</span>
           </div>
 
@@ -210,7 +210,7 @@ class PaymentGateway {
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
               <span style="color: var(--text-muted);">Status:</span>
-              <span class="hardware-chip" style="background: rgba(0,255,136,0.15); color: #00ff88;">PAID &amp; CONFIRMED</span>
+              <span class="hardware-chip" style="background: rgba(0, 168, 107, 0.12); color: var(--status-online);">PAID &amp; CONFIRMED</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-muted);">Fulfillment:</span>

@@ -67,7 +67,7 @@
                 ? `<img src="${img}" alt="${auth.escapeHtml(pTitle)}" style="width: 100%; height: 100%; object-fit: cover;">`
                 : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:var(--bg-surface-high); color:var(--text-muted);"><span class="material-symbols-outlined" style="font-size:40px; color:var(--primary);">memory</span></div>`
               }
-              <div class="tag-mono" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.75); padding: 4px 8px; border-radius: 4px;">
+              <div class="tag-mono" style="position: absolute; top: 10px; left: 10px; background: var(--bg-surface); backdrop-filter: blur(12px); padding: 4px 8px; border-radius: 6px; box-shadow: var(--shadow-neu-raised-sm); border: 1px solid var(--border-subtle); color: var(--text-secondary);">
                 ${auth.escapeHtml(pCategory)}
               </div>
             </div>
@@ -112,7 +112,21 @@
     }
   };
 
-  document.addEventListener('DOMContentLoaded', () => {
-    loadFavorites();
+  function initFavorites() {
+    if (document.getElementById('favorites-grid')) {
+      loadFavorites();
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFavorites);
+  } else {
+    initFavorites();
+  }
+
+  window.addEventListener('page:loaded', () => {
+    if (document.getElementById('favorites-grid')) {
+      initFavorites();
+    }
   });
 })();
