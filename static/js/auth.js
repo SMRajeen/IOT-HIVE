@@ -245,6 +245,8 @@ window.handleLogout = async function() {
 function setupLoginForm() {
   const form = document.querySelector('[data-login-form]') || document.getElementById('login-form');
   if (!form) return;
+  if (form.dataset.boundSubmit) return;
+  form.dataset.boundSubmit = 'true';
 
   const urlParams = new URLSearchParams(window.location.search);
   const regBanner = document.getElementById('register-success-banner');
@@ -321,6 +323,8 @@ function setupLoginForm() {
 function setupRegisterForm() {
   const form = document.querySelector('[data-register-form]') || document.getElementById('register-form');
   if (!form) return;
+  if (form.dataset.boundSubmit) return;
+  form.dataset.boundSubmit = 'true';
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -537,8 +541,33 @@ function setupPasswordResetModal() {
   }
 }
 
+let isAuthUIInitialized = false;
+
+window.togglePasswordVisibility = function(btn) {
+  if (!btn) return;
+  const container = btn.closest('.search-box-cyber, .input-group') || btn.parentElement;
+  if (!container) return;
+  const input = container.querySelector('input');
+  if (!input) return;
+  const icon = btn.querySelector('.material-symbols-outlined');
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) icon.textContent = 'visibility_off';
+    btn.setAttribute('aria-label', 'Hide password');
+    btn.classList.add('active');
+  } else {
+    input.type = 'password';
+    if (icon) icon.textContent = 'visibility';
+    btn.setAttribute('aria-label', 'Show password');
+    btn.classList.remove('active');
+  }
+};
+
 function initAuthUI() {
-  // Global event delegation for forgot password triggers
+  if (isAuthUIInitialized) return;
+  isAuthUIInitialized = true;
+
+  // Global event delegation for forgot password triggers and password toggles
   document.addEventListener('click', (e) => {
     const trigger = e.target.closest('#forgot-password-link, [data-forgot-password]');
     if (trigger) {
@@ -549,18 +578,11 @@ function initAuthUI() {
 
     const toggleBtn = e.target.closest('[data-password-toggle]');
     if (toggleBtn) {
+      // If button already has inline onclick, let inline onclick handle it to avoid duplicate toggle
+      if (toggleBtn.hasAttribute('onclick')) return;
       e.preventDefault();
-      const input = toggleBtn.parentElement ? toggleBtn.parentElement.querySelector('input') : null;
-      if (!input) return;
-      if (input.type === 'password') {
-        input.type = 'text';
-        const icon = toggleBtn.querySelector('.material-symbols-outlined');
-        if (icon) icon.textContent = 'visibility_off';
-      } else {
-        input.type = 'password';
-        const icon = toggleBtn.querySelector('.material-symbols-outlined');
-        if (icon) icon.textContent = 'visibility';
-      }
+      e.stopPropagation();
+      window.togglePasswordVisibility(toggleBtn);
     }
   });
 }
@@ -585,8 +607,22 @@ const AuthHelpers = {
 window.IoTHiveAuth = AuthHelpers;
 window.Auth = AuthHelpers;
 
-document.addEventListener('DOMContentLoaded', () => {
+function initAuthPage() {
   initAuthUI();
+  setupPasswordResetModal();
+  setupLoginForm();
+  setupRegisterForm();
+  loadAuthNav();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAuthPage);
+} else {
+  initAuthPage();
+}
+
+// Re-bind forms and nav state when SPA router loads/swaps pages
+window.addEventListener('page:loaded', () => {
   setupPasswordResetModal();
   setupLoginForm();
   setupRegisterForm();
