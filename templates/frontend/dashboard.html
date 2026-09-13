@@ -15,7 +15,13 @@
           <span class="dot" style="background: var(--accent-cyan);"></span>
           <span class="label" id="dashboard-hud-label">CREATOR STUDIO &bull; SRI LANKA</span>
         </div>
-        <h1 id="dashboard-greeting" style="font-size: 1.85rem; margin: 0 0 6px;">Creator Dashboard &amp; Orders</h1>
+        <h1 id="dashboard-greeting" style="font-size: 1.85rem; margin: 0 0 6px;">
+          {% if user.is_authenticated %}
+            Welcome, {{ user.display_name }}!
+          {% else %}
+            Creator Dashboard &amp; Orders
+          {% endif %}
+        </h1>
         <p id="dashboard-subtitle" style="color: var(--text-muted); margin: 0; font-size: 0.95rem;">
           Manage hardware blueprints, track sales revenue, process Sri Lanka shipments, and view order receipts.
         </p>
@@ -192,5 +198,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/dashboard.js' %}?v=4.0"></script>
+<script src="{% static 'js/dashboard.js' %}?v=4.2"></script>
 {% endblock %}

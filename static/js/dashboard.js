@@ -745,7 +745,7 @@
 
       if (isAdmin) {
         activeOrdersTab = 'sales';
-        if (greeting) greeting.textContent = `Administrator Dashboard • ${userDisplayName}`;
+        if (greeting) greeting.textContent = `Welcome, ${userDisplayName}!`;
         if (hudLabel) hudLabel.textContent = 'ADMIN & CREATOR HUB • SRI LANKA';
         if (subtitle) subtitle.textContent = 'Manage hardware blueprints, review system operations, track shipments, and view order receipts.';
         if (makerProBanner) makerProBanner.style.display = 'none';
@@ -783,7 +783,7 @@
         }
       } else if (role === 'seller') {
         activeOrdersTab = 'sales';
-        if (greeting) greeting.textContent = `Creator Studio • ${userDisplayName}`;
+        if (greeting) greeting.textContent = `Welcome to Creator Studio, ${userDisplayName}!`;
         if (hudLabel) hudLabel.textContent = 'CREATOR STUDIO • SRI LANKA';
         if (subtitle) subtitle.textContent = 'Manage hardware blueprints, track views, process Sri Lanka shipments, and view order receipts.';
         if (makerProBanner) makerProBanner.style.display = 'block';
