@@ -128,7 +128,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             queryset = queryset.select_related(
                 "seller", "category", "video", "model_3d"
             ).prefetch_related(
-                "tiers", "bom_items", "attachments", "images", "reviews__user"
+                "tiers", "bom_items", "attachments", "images", "reviews__user", "reviews__user__profile"
             ).annotate(
                 _avg_rating=Avg('reviews__rating'),
                 _review_count=Count('reviews', distinct=True),
@@ -138,7 +138,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             queryset = Project.objects.filter(status="published").select_related(
                 "seller", "category", "video", "model_3d"
             ).prefetch_related(
-                "tiers", "bom_items", "attachments", "images", "reviews__user"
+                "tiers", "bom_items", "attachments", "images", "reviews__user", "reviews__user__profile"
             ).annotate(
                 _avg_rating=Avg('reviews__rating'),
                 _review_count=Count('reviews', distinct=True),
@@ -188,7 +188,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         Project.objects.filter(pk=instance.pk).update(views=F("views") + 1)
         instance.views += 1
-        serializer = ProjectSerializer(instance)
+        serializer = ProjectSerializer(instance, context={"request": request})
         return Response(serializer.data)
 
     def perform_create(self, serializer):
@@ -202,8 +202,24 @@ class ProjectViewSet(viewsets.ModelViewSet):
         projects = Project.objects.filter(seller=request.user).select_related(
             "category"
         ).prefetch_related("tiers", "bom_items", "attachments", "images").order_by("-created_at")
-        serializer = ProjectSerializer(projects, many=True)
+        serializer = ProjectSerializer(projects, many=True, context={"request": request})
         return Response(serializer.data)
+
+    @action(detail=True, methods=["delete"], url_path=r"attachments/(?P<att_id>\d+)", permission_classes=[permissions.IsAuthenticated])
+    def delete_attachment(self, request, pk=None, att_id=None):
+        project = self.get_object()
+        if project.seller != request.user and not (request.user.is_staff or request.user.is_superuser):
+            raise exceptions.PermissionDenied("You do not have permission to delete attachments on this project.")
+        attachment = ProjectAttachment.objects.filter(project=project, id=att_id).first()
+        if not attachment:
+            return Response({"detail": "Attachment not found."}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            if attachment.file:
+                attachment.file.delete(save=False)
+        except Exception:
+            pass
+        attachment.delete()
+        return Response({"detail": "Attachment deleted successfully."}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get", "post"], permission_classes=[permissions.IsAuthenticatedOrReadOnly], parser_classes=[MultiPartParser, FormParser, JSONParser])
     def reviews(self, request, pk=None):

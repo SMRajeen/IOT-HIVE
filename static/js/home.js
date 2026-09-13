@@ -215,6 +215,7 @@ async function loadHomeFeatured() {
       const creator = p.seller_name || p.seller_username || 'Maker';
       const avgRating = p.average_rating ? Number(p.average_rating).toFixed(1) : null;
       const reviewsCount = p.review_count || 0;
+      const difficulty = p.difficulty || 'intermediate';
 
       return `
         <div class="card-cyber project-node-card" onclick="location.href='/project/${p.id}/'" style="cursor: pointer; display: flex; flex-direction: column; height: 100%; overflow: hidden; background: var(--bg-surface-container);">
@@ -226,10 +227,18 @@ async function loadHomeFeatured() {
                   <span style="font-size: 0.8rem; margin-top: 6px;">Smart Hardware</span>
                  </div>`
             }
-            <div class="tag-mono" style="position: absolute; top: 12px; left: 12px; background: var(--bg-surface); backdrop-filter: blur(12px); padding: 4px 10px; border-radius: var(--radius-full); box-shadow: var(--shadow-neu-raised-sm); border: 1px solid var(--border-subtle); color: var(--text-secondary); white-space: nowrap; max-width: 65%; overflow: hidden; text-overflow: ellipsis;">
-              ${p.category_name || 'Hardware'}
+            <!-- Top Overlay: Category & Difficulty Alignment -->
+            <div style="position: absolute; top: 10px; left: 10px; right: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; z-index: 2; pointer-events: none;">
+              <span class="tag-mono" style="background: var(--bg-surface); backdrop-filter: blur(12px); padding: 4px 10px; border-radius: var(--radius-full); box-shadow: var(--shadow-neu-raised-sm); border: 1px solid var(--border-subtle); color: var(--text-secondary); white-space: nowrap; max-width: 58%; overflow: hidden; text-overflow: ellipsis; font-size: 0.72rem; font-weight: 600;">
+                ${p.category_name || 'Hardware'}
+              </span>
+              <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                ${p.featured ? `<span style="background: var(--primary); color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; font-family: var(--font-mono); box-shadow: 0 0 10px var(--primary-glow);">FEATURED</span>` : ''}
+                <span class="hardware-chip difficulty-${difficulty}" style="background: var(--bg-surface); backdrop-filter: blur(12px); font-size: 0.72rem; padding: 3px 9px; border-radius: var(--radius-full); margin: 0; box-shadow: var(--shadow-neu-raised-sm); font-weight: 600;">
+                  ${difficulty.toUpperCase()}
+                </span>
+              </div>
             </div>
-            ${p.featured ? `<div style="position: absolute; top: 12px; right: 12px; background: var(--primary); color: #ffffff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono); box-shadow: 0 0 10px var(--primary-glow);">FEATURED</div>` : ''}
           </div>
 
           <div style="padding: 20px; display: flex; flex-direction: column; flex: 1; justify-content: space-between;">

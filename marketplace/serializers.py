@@ -88,9 +88,18 @@ class ProjectAttachmentSerializer(serializers.ModelSerializer):
         ]
 
     def get_file_url(self, obj):
-        if obj.file:
-            return obj.file.url
-        return ""
+        if not obj.file:
+            return ""
+        try:
+            url = obj.file.url
+            if url.startswith("http://") or url.startswith("https://"):
+                return url
+            request = self.context.get("request")
+            if request:
+                return request.build_absolute_uri(url)
+            return url
+        except Exception:
+            return ""
 
 
 class ProjectImageSerializer(serializers.ModelSerializer):
@@ -377,15 +386,15 @@ class ProjectSerializer(serializers.ModelSerializer):
             print(f"Error processing Tier data: {e}")
 
     def _process_attachment(self, project, attachment_file, title=None, file_type=None):
-        if not attachment_file:
+        if not attachment_file or not getattr(attachment_file, "name", None) or getattr(attachment_file, "size", 0) <= 0:
             return
         try:
-            # Determine file type from extension if not given
+            # Determine file type from extension
             filename = attachment_file.name.lower()
-            if not file_type or file_type == "other":
-                if filename.endswith(".zip") or filename.endswith(".rar") or filename.endswith(".7z"):
-                    file_type = "zip"
-                elif filename.endswith(".pdf"):
+            if filename.endswith(".zip") or filename.endswith(".rar") or filename.endswith(".7z") or filename.endswith(".tar.gz") or filename.endswith(".tar"):
+                file_type = "zip"
+            elif not file_type or file_type == "other":
+                if filename.endswith(".pdf"):
                     file_type = "pdf"
                 elif filename.endswith(".stl") or filename.endswith(".step") or filename.endswith(".stp"):
                     file_type = "stl"
@@ -407,13 +416,33 @@ class ProjectSerializer(serializers.ModelSerializer):
             else:
                 formatted_size = f"{size_bytes} B"
 
-            ProjectAttachment.objects.create(
-                project=project,
-                title=title or attachment_file.name,
-                file=attachment_file,
-                file_type=file_type,
-                file_size=formatted_size
-            )
+            try:
+                ProjectAttachment.objects.create(
+                    project=project,
+                    title=title or attachment_file.name,
+                    file=attachment_file,
+                    file_type=file_type,
+                    file_size=formatted_size
+                )
+            except Exception as upload_err:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Default storage failed for attachment, falling back to FileSystemStorage: {upload_err}")
+                from django.core.files.storage import FileSystemStorage
+                from django.conf import settings
+                from pathlib import Path
+                local_dir = Path(settings.MEDIA_ROOT) / "projects" / "attachments"
+                local_dir.mkdir(parents=True, exist_ok=True)
+                local_storage = FileSystemStorage(location=str(local_dir), base_url=f"{settings.MEDIA_URL}projects/attachments/")
+                saved_name = local_storage.save(attachment_file.name, attachment_file)
+                attachment = ProjectAttachment(
+                    project=project,
+                    title=title or attachment_file.name,
+                    file_type=file_type,
+                    file_size=formatted_size
+                )
+                attachment.file.name = f"projects/attachments/{saved_name}"
+                attachment.save()
         except Exception as e:
             print(f"Error processing attachment: {e}")
 
@@ -455,7 +484,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
         project = Project.objects.create(**validated_data)
 
-        if image:
+        if image and getattr(image, "size", 0) > 0:
             ProjectImage.objects.create(project=project, image=image)
 
         if video_url and str(video_url).strip():
@@ -464,7 +493,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         if model_url and str(model_url).strip():
             ProjectModel3D.objects.create(project=project, model_url=str(model_url).strip())
 
-        if attachment_file:
+        if attachment_file and getattr(attachment_file, "size", 0) > 0:
             self._process_attachment(project, attachment_file, attachment_title, attachment_type)
 
         if bom_data:
@@ -526,7 +555,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
 
-        if image:
+        if image and getattr(image, "size", 0) > 0:
             ProjectImage.objects.create(project=instance, image=image)
 
         if video_url is not None:
@@ -541,7 +570,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             else:
                 ProjectModel3D.objects.filter(project=instance).delete()
 
-        if attachment_file:
+        if attachment_file and getattr(attachment_file, "size", 0) > 0:
             self._process_attachment(instance, attachment_file, attachment_title, attachment_type)
 
         if bom_data is not None:

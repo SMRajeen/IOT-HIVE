@@ -157,6 +157,43 @@
         }
       }
 
+      // Load Existing Attachments
+      const existingContainer = document.getElementById('existing-attachments-container');
+      const existingList = document.getElementById('existing-attachments-list');
+      if (existingContainer && existingList) {
+        if (project.attachments && project.attachments.length > 0) {
+          existingContainer.style.display = 'block';
+          existingList.innerHTML = project.attachments.map(att => `
+            <div id="attachment-item-${att.id}" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg-surface-container); border: 1px solid var(--border-subtle); border-radius: 8px;">
+              <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                <span class="material-symbols-outlined" style="font-size: 22px; color: var(--primary);">folder_zip</span>
+                <div style="overflow: hidden;">
+                  <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                    ${auth.escapeHtml(att.title || 'Attached File')}
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 8px; align-items: center;">
+                    <span class="tag-mono" style="font-size: 0.65rem; padding: 1px 4px;">${(att.file_type || 'FILE').toUpperCase()}</span>
+                    ${att.file_size ? `<span>${auth.escapeHtml(att.file_size)}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                ${att.file_url ? `
+                  <a href="${api.resolveUrl(att.file_url)}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.75rem;" title="Download File">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
+                  </a>
+                ` : ''}
+                <button type="button" onclick="window.deleteExistingAttachment(${project.id}, ${att.id})" class="btn-icon" style="color: var(--status-error); width: 28px; height: 28px;" title="Delete Attachment">
+                  <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                </button>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          existingContainer.style.display = 'none';
+        }
+      }
+
       // Update submit button text
       const submitBtn = document.getElementById('create-project-submit-btn');
       if (submitBtn) {
@@ -166,6 +203,23 @@
       console.error('Error loading project for edit:', e);
     }
   }
+
+  window.deleteExistingAttachment = async function(projectId, attId) {
+    if (!confirm('Are you sure you want to remove this attachment from the project?')) return;
+    try {
+      await api.projects.deleteAttachment(projectId, attId);
+      const el = document.getElementById(`attachment-item-${attId}`);
+      if (el) el.remove();
+      const existingList = document.getElementById('existing-attachments-list');
+      if (existingList && existingList.children.length === 0) {
+        const existingContainer = document.getElementById('existing-attachments-container');
+        if (existingContainer) existingContainer.style.display = 'none';
+      }
+      if (window.showToast) showToast('Attachment deleted successfully.', 'info');
+    } catch (err) {
+      alert('Failed to delete attachment: ' + (err.message || err));
+    }
+  };
 
   window.handleCreateProject = async (e) => {
     e.preventDefault();
@@ -181,6 +235,16 @@
     const formData = new FormData(form);
     const selectedStatus = statusSelect ? statusSelect.value : 'published';
     formData.set('status', selectedStatus);
+
+    // Clean up empty file inputs so 0-byte dummy uploads are never transmitted
+    const attachmentFileInput = document.getElementById('project-attachment-file');
+    if (!attachmentFileInput || !attachmentFileInput.files || !attachmentFileInput.files.length) {
+      formData.delete('attachment_file');
+    }
+    const imageInput = form.querySelector('input[name="image"]');
+    if (!imageInput || !imageInput.files || !imageInput.files.length) {
+      formData.delete('image');
+    }
 
     // Collect Dynamic BOM items
     const bomItems = [];
@@ -371,6 +435,25 @@
     } else {
       // Add initial dynamic row if creating new
       window.addBOMRow();
+    }
+
+    // Setup attachment file name and size indicator
+    const attachmentInput = document.getElementById('project-attachment-file');
+    const fileIndicator = document.getElementById('selected-file-indicator');
+    const fileNameSpan = document.getElementById('selected-file-name');
+    if (attachmentInput && fileIndicator && fileNameSpan) {
+      attachmentInput.addEventListener('change', () => {
+        if (attachmentInput.files && attachmentInput.files[0]) {
+          const file = attachmentInput.files[0];
+          const sizeFormatted = file.size > 1024 * 1024 
+            ? (file.size / (1024 * 1024)).toFixed(1) + ' MB'
+            : (file.size / 1024).toFixed(0) + ' KB';
+          fileNameSpan.textContent = `${file.name} (${sizeFormatted})`;
+          fileIndicator.style.display = 'flex';
+        } else {
+          fileIndicator.style.display = 'none';
+        }
+      });
     }
 
     if (isFreeCheckbox) {

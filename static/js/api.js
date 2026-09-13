@@ -198,6 +198,9 @@ class ApiClient {
     delete: (id) => this.request(`projects/${id}/`, {
       method: 'DELETE'
     }),
+    deleteAttachment: (projectId, attachmentId) => this.request(`projects/${projectId}/attachments/${attachmentId}/`, {
+      method: 'DELETE'
+    }),
     myProjects: () => this.request('projects/my-projects/'),
     reviews: {
       list: (projectId) => this.request(`projects/${projectId}/reviews/`),

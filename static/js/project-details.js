@@ -61,7 +61,7 @@
     if (type.includes('pdf') || name.endsWith('.pdf')) return 'picture_as_pdf';
     if (type.includes('cad') || type.includes('stl') || name.endsWith('.stl') || name.endsWith('.step') || name.endsWith('.stp')) return 'view_in_ar';
     if (type.includes('firmware') || name.endsWith('.hex') || name.endsWith('.bin') || name.endsWith('.ino')) return 'memory';
-    if (type.includes('zip') || name.endsWith('.zip') || name.endsWith('.rar') || name.endsWith('.7z')) return 'folder_zip';
+    if (type.includes('zip') || type.includes('schematic') || type.includes('gerber') || name.endsWith('.zip') || name.endsWith('.rar') || name.endsWith('.7z') || name.endsWith('.tar.gz') || name.endsWith('.tar')) return 'folder_zip';
     return 'download';
   }
 
@@ -600,7 +600,7 @@
                       View PDF
                     </a>
                   ` : ''}
-                  <a href="${url}" download class="btn btn-primary btn-sm">
+                  <a href="${url}" download="${auth.escapeHtml(f.title || 'attachment')}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
                     <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
                     Download
                   </a>
@@ -1118,40 +1118,83 @@
     if (modal) modal.style.display = 'none';
   };
 
+  function tryHydrateFromScript() {
+    const el = document.getElementById('initial-project-data');
+    if (el && el.textContent) {
+      try {
+        const pre = JSON.parse(el.textContent);
+        if (pre && pre.id) {
+          currentProject = pre;
+          return true;
+        }
+      } catch (e) {
+        console.warn('Initial project pre-hydration error:', e);
+      }
+    }
+    return false;
+  }
+
   async function loadProjectDetails() {
     projectId = resolveProjectId();
-    try {
-      currentUser = await auth.getUser();
-    } catch (e) {
-      currentUser = null;
+
+    // Check pre-hydrated project immediately
+    const hasPreloaded = tryHydrateFromScript();
+    if (hasPreloaded) {
+      renderProject(currentProject);
     }
 
     try {
-      if (!projectId) throw new Error("No project specified.");
-      currentProject = await api.projects.get(projectId);
+      // Parallel fetch for user session and project data
+      const [user, project] = await Promise.all([
+        auth.getUser().catch(() => null),
+        hasPreloaded ? Promise.resolve(currentProject) : (projectId ? api.projects.get(projectId) : Promise.reject(new Error("No project specified.")))
+      ]);
+
+      currentUser = user;
+      currentProject = project || currentProject;
       if (currentUser && currentUser.id && ((currentProject.seller && currentProject.seller === currentUser.id) || (currentProject.seller_id && currentProject.seller_id === currentUser.id))) {
         isOwner = true;
       } else {
         isOwner = false;
       }
+
       renderProject(currentProject);
+
+      // In background, refresh fresh view counts & latest reviews without blocking
+      if (hasPreloaded && projectId) {
+        api.projects.get(projectId).then(fresh => {
+          if (fresh && fresh.id) {
+            currentProject = fresh;
+            if (currentUser && currentUser.id && ((currentProject.seller && currentProject.seller === currentUser.id) || (currentProject.seller_id && currentProject.seller_id === currentUser.id))) {
+              isOwner = true;
+            }
+            renderProject(currentProject);
+          }
+        }).catch(() => {});
+      }
     } catch (err) {
-      const container = document.getElementById('project-detail-content');
-      if (container) {
-        container.innerHTML = `
-          <div class="card-cyber" style="padding: 48px; text-align: center;">
-            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--status-warning);">error</span>
-            <h2 style="margin: 12px 0 8px;">Hardware Project Not Found</h2>
-            <p style="color: var(--text-muted); margin-bottom: 20px;">The requested hardware project may have been moved or removed.</p>
-            <a href="/marketplace/" class="btn btn-primary">Back to Hardware Directory</a>
-          </div>
-        `;
+      if (!currentProject) {
+        const container = document.getElementById('project-detail-content');
+        if (container) {
+          container.innerHTML = `
+            <div class="card-cyber" style="padding: 48px; text-align: center;">
+              <span class="material-symbols-outlined" style="font-size: 48px; color: var(--status-warning);">error</span>
+              <h2 style="margin: 12px 0 8px;">Hardware Project Not Found</h2>
+              <p style="color: var(--text-muted); margin-bottom: 20px;">The requested hardware project may have been moved or removed.</p>
+              <a href="/marketplace/" class="btn btn-primary">Back to Hardware Directory</a>
+            </div>
+          `;
+        }
       }
     }
   }
 
   function initProjectDetails() {
     if (document.getElementById('project-detail-content') || document.getElementById('project-detail-container') || document.querySelector('[data-page="project"]') || document.querySelector('[data-page="project-details"]')) {
+      const hasPreloaded = tryHydrateFromScript();
+      if (hasPreloaded) {
+        renderProject(currentProject);
+      }
       loadProjectDetails();
     }
   }

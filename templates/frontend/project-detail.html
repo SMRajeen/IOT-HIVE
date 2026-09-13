@@ -7,6 +7,9 @@
 {% block content %}
 <div class="app-container" style="padding-top: var(--space-8);">
   
+  <!-- Pre-hydrated Project Data for 0ms Instant First Paint -->
+  <script id="initial-project-data" type="application/json">{{ initial_project_json|safe|default:"null" }}</script>
+
   <!-- Dynamic Project Details Container -->
   <div id="project-detail-content" data-project-id="{{ project_id|default:'' }}">
     <div style="padding: 64px; text-align: center; color: var(--text-muted);">

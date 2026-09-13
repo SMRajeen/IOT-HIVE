@@ -98,27 +98,32 @@
                 <span style="font-size: 0.8rem; margin-top: 6px; font-family: var(--font-mono);">SMART HARDWARE</span>
                </div>`
           }
-          <div class="tag-mono" style="position: absolute; top: 10px; left: 10px; background: var(--bg-surface); backdrop-filter: blur(12px); padding: 4px 10px; border-radius: var(--radius-full); box-shadow: var(--shadow-neu-raised-sm); border: 1px solid var(--border-subtle); color: var(--text-secondary); white-space: nowrap; max-width: 65%; overflow: hidden; text-overflow: ellipsis;">
-            ${auth.escapeHtml(project.category_name || 'Hardware')}
+          <!-- Top Overlay: Category & Difficulty Alignment -->
+          <div style="position: absolute; top: 10px; left: 10px; right: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; z-index: 2; pointer-events: none;">
+            <span class="tag-mono" style="background: var(--bg-surface); backdrop-filter: blur(12px); padding: 4px 10px; border-radius: var(--radius-full); box-shadow: var(--shadow-neu-raised-sm); border: 1px solid var(--border-subtle); color: var(--text-secondary); white-space: nowrap; max-width: 58%; overflow: hidden; text-overflow: ellipsis; font-size: 0.72rem; font-weight: 600;">
+              ${auth.escapeHtml(project.category_name || 'Hardware')}
+            </span>
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+              ${project.featured ? `<span style="background: var(--primary); color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; font-family: var(--font-mono); box-shadow: 0 0 10px var(--primary-glow);">FEATURED</span>` : ''}
+              <span class="hardware-chip difficulty-${difficulty}" style="background: var(--bg-surface); backdrop-filter: blur(12px); font-size: 0.72rem; padding: 3px 9px; border-radius: var(--radius-full); margin: 0; box-shadow: var(--shadow-neu-raised-sm); font-weight: 600;">
+                ${difficulty.toUpperCase()}
+              </span>
+            </div>
           </div>
-          ${project.featured ? `<div style="position: absolute; top: 10px; right: 10px; background: var(--primary); color: #ffffff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono); box-shadow: 0 0 10px var(--primary-glow);">FEATURED</div>` : ''}
         </div>
 
         <div style="padding: 18px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
           <div style="flex: 1; display: flex; flex-direction: column;">
             <!-- Hardware Spec Badge Strip on Card -->
-            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; min-height: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 10px; min-height: 24px;">
               ${project.microcontroller ? `
-                <span class="hardware-chip" style="font-size: 0.72rem;">
+                <span class="hardware-chip" style="font-size: 0.72rem; max-width: ${bomCount > 0 ? '70%' : '100%'}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                   <span class="material-symbols-outlined" style="font-size: 12px;">developer_board</span>
                   ${auth.escapeHtml(mcu)}
                 </span>
-              ` : ''}
-              <span class="hardware-chip difficulty-${difficulty}" style="font-size: 0.72rem;">
-                ${difficulty.toUpperCase()}
-              </span>
+              ` : '<div></div>'}
               ${bomCount > 0 ? `
-                <span class="tag-mono text-xs" style="color: var(--text-muted); font-size: 0.72rem;">${bomCount} Parts</span>
+                <span class="tag-mono text-xs" style="color: var(--text-muted); font-size: 0.72rem; flex-shrink: 0;">${bomCount} Parts</span>
               ` : ''}
             </div>
 

@@ -260,8 +260,21 @@
           <!-- Primary Attachment File -->
           <div class="input-group">
             <label class="input-label">Primary Attachment (.zip, .pdf, .stl, .step, .hex, .bin)</label>
-            <input type="file" name="attachment_file" class="input-cyber" style="padding: 8px; background: var(--bg-surface-low);">
+            <input type="file" id="project-attachment-file" name="attachment_file" class="input-cyber" style="padding: 8px; background: var(--bg-surface-low);">
+            <div id="selected-file-indicator" style="display: none; margin-top: 6px; font-size: 0.8rem; color: var(--primary); align-items: center; gap: 6px;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">check_circle</span>
+              <span id="selected-file-name" style="font-family: var(--font-mono); font-weight: 600;"></span>
+            </div>
           </div>
+        </div>
+
+        <!-- Container for currently attached files in edit mode -->
+        <div id="existing-attachments-container" style="display: none; margin-bottom: 20px; padding: 16px; background: var(--bg-surface-low); border: 1px solid var(--border-subtle); border-radius: 10px;">
+          <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">folder_zip</span>
+            Currently Attached Blueprints &amp; Files:
+          </div>
+          <div id="existing-attachments-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
 
         <div class="form-row-2">
@@ -320,14 +333,14 @@
       <span class="material-symbols-outlined" style="font-size: 38px;">verified</span>
     </div>
 
-    <h2 id="success-modal-title" style="font-size: 1.55rem; margin: 0 0 8px 0; color: #fff;">Your Project Was Submitted Successfully!</h2>
-    <p id="success-modal-desc" style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6; margin: 0 0 24px 0;">
+    <h2 id="success-modal-title" style="font-size: 1.55rem; margin: 0 0 8px 0; color: var(--text-primary); font-weight: 700;">Your Project Was Submitted Successfully!</h2>
+    <p id="success-modal-desc" style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; margin: 0 0 24px 0;">
       Your hardware build has been successfully published to the IoT HIVE marketplace. Makers and buyers can now explore your schematics, firmware code, and order kits.
     </p>
 
     <!-- Mini project summary card -->
     <div id="success-project-card" style="padding: 16px; background: var(--bg-surface-low); border: 1px solid var(--border-subtle); border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; text-align: left;">
-      <div id="success-card-thumb" style="width: 54px; height: 54px; border-radius: 10px; background: #0b1120; border: 1px solid var(--border-subtle); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+      <div id="success-card-thumb" style="width: 54px; height: 54px; border-radius: 10px; background: var(--bg-surface-high); border: 1px solid var(--border-subtle); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
         <span class="material-symbols-outlined" style="font-size: 28px; color: var(--primary);">memory</span>
       </div>
       <div style="flex: 1; overflow: hidden;">
