@@ -68,3 +68,13 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+def _get_user_display_name(self):
+    if self.last_name and self.last_name.strip():
+        return self.last_name.strip()
+    if self.first_name and self.first_name.strip():
+        return self.first_name.strip()
+    return self.username
+
+User.add_to_class("display_name", property(_get_user_display_name))

@@ -229,7 +229,7 @@
               <span class="tag-mono" style="background: rgba(0,229,255,0.1); color: var(--primary); border: 1px solid rgba(0,229,255,0.3);">
                 ${auth.escapeHtml(project.category_name || 'Electronics')}
               </span>
-              ${avgRating ? `
+              ${avgRating && reviews.length > 0 ? `
                 <div style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem; font-family: var(--font-mono); color: #ffb700;">
                   <span class="material-symbols-outlined" style="font-size: 16px;">star</span>
                   <strong>${avgRating}</strong>

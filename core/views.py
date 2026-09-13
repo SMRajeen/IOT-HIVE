@@ -3,7 +3,7 @@ from marketplace.models import Category, Project
 
 from marketplace.serializers import ProjectSerializer
 from rest_framework.renderers import JSONRenderer
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, F
 
 def home_view(request):
     return render(request, "frontend/index.html")
@@ -32,6 +32,13 @@ def project_detail_view(request, pk=None):
             if project:
                 user = request.user
                 if project.status == "published" or (user.is_authenticated and (user == project.seller or user.is_staff or user.is_superuser)):
+                    # Track real unique views per session
+                    session_key = f"viewed_project_{project.pk}"
+                    if not request.session.get(session_key):
+                        Project.objects.filter(pk=project.pk).update(views=F("views") + 1)
+                        project.views += 1
+                        request.session[session_key] = True
+
                     serializer = ProjectSerializer(project, context={"request": request})
                     initial_project_json = JSONRenderer().render(serializer.data).decode("utf-8")
         except Exception as e:

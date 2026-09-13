@@ -130,7 +130,7 @@ async function loadAuthNav() {
       ? `<img src="${avatarSrc}" alt="${escapeHtml(user.username)}" class="user-nav-avatar-img">`
       : `<div class="user-nav-avatar-fallback"><span class="material-symbols-outlined" style="font-size: 15px;">person</span></div>`;
 
-    const displayName = user.first_name || user.username;
+    const displayName = user.display_name || user.last_name || user.username;
     const isAdmin = user.is_staff || user.is_superuser || user.role === 'admin';
     const role = (user.role || 'both').toLowerCase();
 

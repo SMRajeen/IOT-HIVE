@@ -186,8 +186,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        Project.objects.filter(pk=instance.pk).update(views=F("views") + 1)
-        instance.views += 1
+        session_key = f"viewed_project_{instance.pk}"
+        if not request.session.get(session_key):
+            Project.objects.filter(pk=instance.pk).update(views=F("views") + 1)
+            instance.views += 1
+            request.session[session_key] = True
         serializer = ProjectSerializer(instance, context={"request": request})
         return Response(serializer.data)
 
@@ -425,8 +428,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             pass
 
         try:
-            buyer_name = self.request.user.get_full_name() or self.request.user.username
-            seller_name = seller.get_full_name() or seller.username if seller else "Maker"
+            buyer_name = self.request.user.display_name
+            seller_name = seller.display_name if seller else "Maker"
             project_title = project.title if project else "Hardware Project"
             tier_name = tier.name if tier else "Digital Blueprint"
             send_order_notification(
@@ -685,7 +688,7 @@ def chat_conversations_view(request):
             sender=partner, recipient=user, is_read=False
         ).count()
 
-        partner_name = f"{partner.first_name} {partner.last_name}".strip() or partner.username
+        partner_name = partner.display_name
         partner_avatar = partner.profile.avatar.url if hasattr(partner, "profile") and partner.profile.avatar else ""
 
         threads.append({
@@ -958,8 +961,8 @@ def direct_card_charge_view(request):
         pass
 
     try:
-        buyer_name = user.get_full_name() or user.username
-        seller_name = (project.seller.get_full_name() or project.seller.username) if project.seller else "Maker"
+        buyer_name = user.display_name
+        seller_name = project.seller.display_name if project.seller else "Maker"
         seller_email = project.seller.email if project.seller else ""
         project_title = project.title
         tier_name = tier.name if tier else "Digital Blueprint"

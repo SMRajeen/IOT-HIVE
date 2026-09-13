@@ -172,7 +172,7 @@ def login_view(request):
     login(request, user)
     return Response(
         {
-            "message": f"Welcome back, {user.first_name or user.username}!",
+            "message": f"Welcome back, {user.display_name}!",
             "user": UserSerializer(user).data,
         }
     )

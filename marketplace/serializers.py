@@ -161,8 +161,7 @@ class ProjectReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "user", "is_verified_buyer", "created_at"]
 
     def get_user_name(self, obj):
-        name = f"{obj.user.first_name} {obj.user.last_name}".strip()
-        return name if name else obj.user.username
+        return obj.user.display_name
 
     def get_user_avatar(self, obj):
         if hasattr(obj.user, "profile") and obj.user.profile.avatar:
@@ -218,8 +217,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         ]
 
     def get_seller_name(self, obj):
-        name = f"{obj.seller.first_name} {obj.seller.last_name}".strip()
-        return name if name else obj.seller.username
+        return obj.seller.display_name
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -319,8 +317,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         ]
 
     def get_seller_name(self, obj):
-        name = f"{obj.seller.first_name} {obj.seller.last_name}".strip()
-        return name if name else obj.seller.username
+        return obj.seller.display_name
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -727,8 +724,9 @@ class BountyProposalSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "maker", "created_at", "updated_at"]
 
     def get_maker_name(self, obj):
-        name = f"{obj.maker.first_name} {obj.maker.last_name}".strip()
-        return name if name else obj.maker.username
+        if not obj.maker:
+            return ""
+        return obj.maker.display_name
 
     def get_maker_avatar(self, obj):
         if hasattr(obj.maker, "profile") and obj.maker.profile.avatar:
@@ -778,8 +776,9 @@ class HardwareBountySerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "slug", "client", "created_at", "updated_at"]
 
     def get_client_name(self, obj):
-        name = f"{obj.client.first_name} {obj.client.last_name}".strip()
-        return name if name else obj.client.username
+        if not obj.client:
+            return ""
+        return obj.client.display_name
 
     def get_created_formatted(self, obj):
         return obj.created_at.strftime("%b %d, %Y")
@@ -819,8 +818,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "sender", "created_at"]
 
     def get_sender_name(self, obj):
-        name = f"{obj.sender.first_name} {obj.sender.last_name}".strip()
-        return name if name else obj.sender.username
+        return obj.sender.display_name
 
     def get_sender_avatar(self, obj):
         if hasattr(obj.sender, "profile") and obj.sender.profile.avatar:

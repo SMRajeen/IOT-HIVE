@@ -85,8 +85,8 @@
     const mcu = project.microcontroller || 'MCU';
     const difficulty = project.difficulty || 'intermediate';
     const bomCount = (project.bom_items || []).length;
-    const rating = project.average_rating || 5.0;
     const reviewCount = project.review_count || 0;
+    const avgRating = project.average_rating ? Number(project.average_rating).toFixed(1) : null;
 
     return `
       <div class="card-cyber project-node-card" onclick="location.href='/project/${project.id}/'" style="cursor: pointer; display: flex; flex-direction: column; height: 100%; transition: transform 0.2s, border-color 0.2s;">
@@ -98,23 +98,27 @@
                 <span style="font-size: 0.8rem; margin-top: 6px; font-family: var(--font-mono);">SMART HARDWARE</span>
                </div>`
           }
-          <!-- Top Overlay: Category & Difficulty Alignment -->
-          <div style="position: absolute; top: 10px; left: 10px; right: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; z-index: 2; pointer-events: none;">
-            <span class="tag-mono" style="background: var(--bg-surface); backdrop-filter: blur(12px); padding: 4px 10px; border-radius: var(--radius-full); box-shadow: var(--shadow-neu-raised-sm); border: 1px solid var(--border-subtle); color: var(--text-secondary); white-space: nowrap; max-width: 58%; overflow: hidden; text-overflow: ellipsis; font-size: 0.72rem; font-weight: 600;">
-              ${auth.escapeHtml(project.category_name || 'Hardware')}
-            </span>
-            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-              ${project.featured ? `<span style="background: var(--primary); color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; font-family: var(--font-mono); box-shadow: 0 0 10px var(--primary-glow);">FEATURED</span>` : ''}
-              <span class="hardware-chip difficulty-${difficulty}" style="background: var(--bg-surface); backdrop-filter: blur(12px); font-size: 0.72rem; padding: 3px 9px; border-radius: var(--radius-full); margin: 0; box-shadow: var(--shadow-neu-raised-sm); font-weight: 600;">
-                ${difficulty.toUpperCase()}
-              </span>
+          ${project.featured ? `
+            <div style="position: absolute; top: 10px; right: 10px; background: var(--primary); color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono); box-shadow: 0 0 12px var(--primary-glow); z-index: 2;">
+              FEATURED
             </div>
-          </div>
+          ` : ''}
         </div>
 
         <div style="padding: 18px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
           <div style="flex: 1; display: flex; flex-direction: column;">
-            <!-- Hardware Spec Badge Strip on Card -->
+            
+            <!-- Row 1: Category & Difficulty Level - Perfectly Aligned Side-by-Side -->
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px;">
+              <span class="tag-mono" style="background: var(--bg-surface-high); border: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65%;">
+                ${auth.escapeHtml(project.category_name || 'Hardware')}
+              </span>
+              <span class="hardware-chip difficulty-${difficulty}" style="font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; margin: 0; flex-shrink: 0; font-weight: 600;">
+                ${difficulty.toUpperCase()}
+              </span>
+            </div>
+
+            <!-- Row 2: Microcontroller & BOM Parts Count -->
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 10px; min-height: 24px;">
               ${project.microcontroller ? `
                 <span class="hardware-chip" style="font-size: 0.72rem; max-width: ${bomCount > 0 ? '70%' : '100%'}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -127,21 +131,30 @@
               ` : ''}
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; min-height: 20px;">
+            <!-- Row 3: Creator & Real Rating (No Default 5 Star) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; min-height: 20px;">
               <div style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%;">By ${auth.escapeHtml(creator)}</div>
-              <div style="display: flex; align-items: center; gap: 3px; font-size: 0.78rem; font-family: var(--font-mono); color: #ffb700; flex-shrink: 0;">
-                <span class="material-symbols-outlined" style="font-size: 13px;">star</span>
-                <strong>${rating}</strong>
-                ${reviewCount > 0 ? `<span style="color: var(--text-muted);">(${reviewCount})</span>` : ''}
-              </div>
+              ${reviewCount > 0 && avgRating ? `
+                <div style="display: flex; align-items: center; gap: 3px; font-size: 0.78rem; font-family: var(--font-mono); color: #ffb700; flex-shrink: 0;">
+                  <span class="material-symbols-outlined" style="font-size: 13px;">star</span>
+                  <strong>${avgRating}</strong>
+                  <span style="color: var(--text-muted);">(${reviewCount})</span>
+                </div>
+              ` : `
+                <span style="color: var(--text-muted); font-size: 0.75rem; font-family: var(--font-mono);">No reviews</span>
+              `}
             </div>
 
+            <!-- Row 4: Title -->
             <h3 style="font-size: 1.08rem; margin-bottom: 8px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.8rem;">${auth.escapeHtml(project.title)}</h3>
+            
+            <!-- Row 5: Short Description -->
             <p style="color: var(--text-muted); font-size: 0.86rem; line-height: 1.45; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 2.5rem;">
               ${auth.escapeHtml(project.short_description || '')}
             </p>
           </div>
 
+          <!-- Row 6: Price & CTA -->
           <div class="flex items-center justify-between" style="border-top: 1px solid var(--border-subtle); padding-top: 14px; margin-top: auto; gap: 10px;">
             <div style="min-width: 0; flex: 1;">
               <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono); margin-bottom: 2px;">PRICE</div>

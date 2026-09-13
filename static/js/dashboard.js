@@ -741,9 +741,11 @@
 
       const isAdmin = currentUser.is_staff || currentUser.is_superuser || currentUser.role === 'admin';
 
+      const userDisplayName = currentUser.display_name || currentUser.last_name || currentUser.username;
+
       if (isAdmin) {
         activeOrdersTab = 'sales';
-        if (greeting) greeting.textContent = `Administrator Dashboard • ${currentUser.first_name || currentUser.username}`;
+        if (greeting) greeting.textContent = `Administrator Dashboard • ${userDisplayName}`;
         if (hudLabel) hudLabel.textContent = 'ADMIN & CREATOR HUB • SRI LANKA';
         if (subtitle) subtitle.textContent = 'Manage hardware blueprints, review system operations, track shipments, and view order receipts.';
         if (makerProBanner) makerProBanner.style.display = 'none';
@@ -761,7 +763,7 @@
         }
       } else if (role === 'buyer') {
         activeOrdersTab = 'purchases';
-        if (greeting) greeting.textContent = `Welcome to Buyer Hub, ${currentUser.first_name || currentUser.username}!`;
+        if (greeting) greeting.textContent = `Welcome to Buyer Hub, ${userDisplayName}!`;
         if (hudLabel) hudLabel.textContent = 'BUYER HUB • SRI LANKA';
         if (subtitle) subtitle.textContent = 'Track your placed hardware orders, courier deliveries, and manage custom bounty requests.';
         if (ordersTitle) ordersTitle.innerHTML = '<span class="material-symbols-outlined text-primary">local_shipping</span> My Hardware Orders &amp; Tracking';
@@ -781,7 +783,7 @@
         }
       } else if (role === 'seller') {
         activeOrdersTab = 'sales';
-        if (greeting) greeting.textContent = `Creator Studio • ${currentUser.first_name || currentUser.username}`;
+        if (greeting) greeting.textContent = `Creator Studio • ${userDisplayName}`;
         if (hudLabel) hudLabel.textContent = 'CREATOR STUDIO • SRI LANKA';
         if (subtitle) subtitle.textContent = 'Manage hardware blueprints, track views, process Sri Lanka shipments, and view order receipts.';
         if (makerProBanner) makerProBanner.style.display = 'block';
@@ -795,7 +797,7 @@
         }
       } else {
         // Both (Buyer & Seller)
-        if (greeting) greeting.textContent = `Welcome, ${currentUser.first_name || currentUser.username}!`;
+        if (greeting) greeting.textContent = `Welcome, ${userDisplayName}!`;
         if (hudLabel) hudLabel.textContent = 'CREATOR & BUYER HUB • SRI LANKA';
         if (subtitle) subtitle.textContent = 'Manage your published hardware, track sales revenue, process shipments, and view purchased devices.';
         if (makerProBanner) makerProBanner.style.display = 'block';

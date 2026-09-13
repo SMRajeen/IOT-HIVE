@@ -122,7 +122,7 @@
                   <span class="material-symbols-outlined" style="font-size: 15px;">person</span>
                 </div>
               {% endif %}
-              <span class="user-nav-name">{{ user.first_name|default:user.username }}</span>
+              <span class="user-nav-name">{{ user.display_name }}</span>
             </a>
             <button onclick="handleLogout()" class="btn-auth-logout" title="Sign Out">
               <span class="material-symbols-outlined" style="font-size: 15px;">logout</span>

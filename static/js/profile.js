@@ -34,7 +34,7 @@
       }
 
       // Populate hero card
-      const name = `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.username;
+      const name = currentUser.display_name || currentUser.last_name || currentUser.username;
       document.getElementById('profile-name').textContent = name;
       document.getElementById('profile-handle').textContent = `@${currentUser.username}`;
       document.getElementById('profile-location').textContent = currentUser.location || 'Sri Lanka';

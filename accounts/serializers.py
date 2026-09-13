@@ -5,6 +5,7 @@ from .models import UserProfile
 
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
+    display_name = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
     bio = serializers.SerializerMethodField()
     location = serializers.SerializerMethodField()
@@ -22,6 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "username",
+            "display_name",
             "first_name",
             "last_name",
             "email",
@@ -37,6 +39,9 @@ class UserSerializer(serializers.ModelSerializer):
             "is_staff",
             "is_superuser",
         ]
+
+    def get_display_name(self, obj):
+        return obj.display_name
 
     def get_profile(self, obj):
         return UserProfile.objects.filter(user=obj).first()
@@ -86,6 +91,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
+    display_name = serializers.SerializerMethodField()
     email = serializers.EmailField(source="user.email", read_only=True)
     first_name = serializers.CharField(source="user.first_name", required=False)
     last_name = serializers.CharField(source="user.last_name", required=False)
@@ -94,6 +100,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = [
             "username",
+            "display_name",
             "email",
             "first_name",
             "last_name",
@@ -107,3 +114,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "notify_sms_bounties",
             "notify_sms_chat",
         ]
+
+    def get_display_name(self, obj):
+        return obj.user.display_name
