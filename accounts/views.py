@@ -1,4 +1,5 @@
 import json
+import os
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
@@ -569,7 +570,6 @@ def email_diagnostic(request):
     if target_email:
         try:
             from email.mime.image import MIMEImage
-            import os
             subject = "IoT HIVE - SMTP Live Diagnostic Test"
             body = f"Direct SMTP diagnostic test from IoT HIVE.\nSender: {settings.EMAIL_HOST_USER}\nTarget: {target_email}"
             from_email = getattr(settings, "DEFAULT_FROM_EMAIL", f"IoT HIVE <{settings.EMAIL_HOST_USER}>")
