@@ -503,3 +503,65 @@ def social_login(request):
         }
     )
 
+
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+def email_diagnostic(request):
+    """
+    Diagnostic endpoint to test and verify email dispatch on production/Render.
+    Protected by admin authorization or debug secret parameter.
+    """
+    secret = request.GET.get("secret") or request.data.get("secret")
+    if not (request.user.is_staff or request.user.is_superuser or secret == "iothive_debug_2026"):
+        return Response({"detail": "Unauthorized. Pass ?secret=iothive_debug_2026 or authenticate as staff."}, status=status.HTTP_403_FORBIDDEN)
+
+    from django.conf import settings
+    from django.core.mail import get_connection, EmailMultiAlternatives
+
+    target_email = request.GET.get("email") or request.data.get("email") or getattr(settings, "EMAIL_HOST_USER", "")
+
+    diag = {
+        "email_backend": getattr(settings, "EMAIL_BACKEND", ""),
+        "email_host": getattr(settings, "EMAIL_HOST", ""),
+        "email_port": getattr(settings, "EMAIL_PORT", ""),
+        "email_use_tls": getattr(settings, "EMAIL_USE_TLS", ""),
+        "email_host_user": getattr(settings, "EMAIL_HOST_USER", ""),
+        "has_password": bool(getattr(settings, "EMAIL_HOST_PASSWORD", "")),
+        "password_length": len(getattr(settings, "EMAIL_HOST_PASSWORD", "") or ""),
+        "default_from_email": getattr(settings, "DEFAULT_FROM_EMAIL", ""),
+        "target_email": target_email,
+    }
+
+    # Test 1: SMTP socket connection
+    try:
+        conn = get_connection()
+        conn.open()
+        diag["smtp_connection"] = "SUCCESS: Connected to SMTP host"
+        conn.close()
+    except Exception as e:
+        import traceback
+        diag["smtp_connection"] = f"FAILED: {type(e).__name__} - {str(e)}"
+        diag["traceback"] = traceback.format_exc()
+        return Response(diag, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # Test 2: Direct test message send
+    if target_email:
+        try:
+            from email.mime.image import MIMEImage
+            import os
+            subject = "IoT HIVE - SMTP Live Diagnostic Test"
+            body = f"Direct SMTP diagnostic test from IoT HIVE.\nSender: {settings.EMAIL_HOST_USER}\nTarget: {target_email}"
+            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", f"IoT HIVE <{settings.EMAIL_HOST_USER}>")
+            msg = EmailMultiAlternatives(subject=subject, body=body, from_email=from_email, to=[target_email])
+            msg.encoding = "utf-8"
+            msg.attach_alternative("<html><body style='font-family:sans-serif; background:#0f172a; color:#f1f5f9; padding:20px;'><h2 style='color:#00e5ff;'>IoT HIVE Diagnostic Verification</h2><p>SMTP is active and delivering correctly!</p></body></html>", "text/html")
+            sent_count = msg.send(fail_silently=False)
+            diag["smtp_send"] = f"SUCCESS: Dispatched {sent_count} email message(s) to {target_email}"
+        except Exception as e:
+            import traceback
+            diag["smtp_send"] = f"FAILED: {type(e).__name__} - {str(e)}"
+            diag["traceback"] = traceback.format_exc()
+            return Response(diag, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    return Response(diag, status=status.HTTP_200_OK)
+

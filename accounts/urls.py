@@ -10,6 +10,7 @@ from .views import (
      password_reset_confirm,
      delete_account,
      social_login,
+     email_diagnostic,
 )
 
 urlpatterns = [
@@ -23,5 +24,6 @@ urlpatterns = [
      path("social-login/", social_login, name="social-login"),
      path("password-reset/", password_reset_request, name="password-reset-request"),
      path("password-reset-confirm/", password_reset_confirm, name="password-reset-confirm"),
+     path("email-diagnostic/", email_diagnostic, name="email-diagnostic"),
 ]
 

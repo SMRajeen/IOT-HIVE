@@ -248,9 +248,13 @@ https://iot-hive.onrender.com/
             logger.info("Welcome email sent successfully to %s (logo_attached=%s)", recipient_email, attached_logo)
             print(f"\n==================== [IoT HIVE WELCOME EMAIL DISPATCHED] ====================\nTo: {recipient_email}\nSubject: Welcome to IoT HIVE, {display_name}!\nRecipient: {full_name} (@{user.username})\n=============================================================================\n")
         except Exception as e:
-            logger.error("Failed to send welcome email to %s: %s", recipient_email, e)
-            print(f"\n==================== [IoT HIVE WELCOME EMAIL ERROR] ====================\nTo: {recipient_email}\nError: {e}\n========================================================================\n")
+            import traceback
+            tb = traceback.format_exc()
+            logger.error("Failed to send welcome email to %s: %s\n%s", recipient_email, e, tb)
+            print(f"\n==================== [IoT HIVE WELCOME EMAIL ERROR] ====================\nTo: {recipient_email}\nError: {e}\n{tb}========================================================================\n")
 
     thread = threading.Thread(target=_worker, daemon=True)
     thread.start()
+    # Allow up to 3.5s for SMTP delivery so WSGI/Gunicorn workers don't terminate the daemon thread
+    thread.join(timeout=3.5)
     return True
