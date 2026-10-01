@@ -1,27 +1,113 @@
 """
 IoT HIVE - Account Email Utilities
-Handles automated branded email notifications (welcome emails, onboarding, etc.)
-with embedded high-resolution logos and cyber-themed styling.
+Handles automated branded email notifications (welcome emails, password resets, onboarding)
+via Resend HTTPS REST API (Port 443 - 100% reliable on cloud platforms like Render)
+with graceful fallback to Django SMTP / Console backend.
 """
 
+import json
 import logging
 import os
 import threading
+import urllib.error
+import urllib.request
 from email.mime.image import MIMEImage
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, send_mail
 
 logger = logging.getLogger(__name__)
+
+
+def send_resend_email(recipient_email, subject, html_content, plain_text, from_email=None):
+    """
+    Sends an email using Resend's HTTPS REST API over standard Port 443.
+    This completely bypasses cloud firewall SMTP port blocks (Render, AWS, etc.).
+    """
+    api_key = os.getenv("RESEND_API_KEY", "").strip()
+    if not api_key:
+        return False, "RESEND_API_KEY not configured in environment"
+
+    sender = from_email or os.getenv("RESEND_FROM_EMAIL", "IoT HIVE <onboarding@resend.dev>").strip()
+
+    payload = {
+        "from": sender,
+        "to": [recipient_email],
+        "subject": subject,
+        "html": html_content,
+        "text": plain_text,
+    }
+
+    req = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "IoTHive-App/1.0",
+        },
+        method="POST"
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=12) as response:
+            res_body = response.read().decode("utf-8")
+            data = json.loads(res_body) if res_body else {}
+            return True, data
+    except urllib.error.HTTPError as e:
+        err_msg = e.read().decode("utf-8")
+        return False, f"Resend HTTP {e.code}: {err_msg}"
+    except Exception as e:
+        return False, str(e)
+
+
+def send_system_email(recipient_email, subject, plain_text, html_content=None, from_email=None):
+    """
+    High-level email dispatch helper:
+    1. If RESEND_API_KEY is present: Sends via Resend HTTPS API (Port 443).
+    2. Otherwise: Falls back to Django SMTP / Console.
+    """
+    resend_key = os.getenv("RESEND_API_KEY", "").strip()
+    if resend_key:
+        sender = from_email or os.getenv("RESEND_FROM_EMAIL", "IoT HIVE <onboarding@resend.dev>").strip()
+        success, result = send_resend_email(
+            recipient_email=recipient_email,
+            subject=subject,
+            html_content=html_content or f"<pre>{plain_text}</pre>",
+            plain_text=plain_text,
+            from_email=sender,
+        )
+        if success:
+            logger.info("System email sent via Resend HTTPS to %s: %s", recipient_email, result)
+            return True, result
+        else:
+            logger.warning("Resend failed: %s. Falling back to Django SMTP.", result)
+
+    # Fallback to Django core mail
+    try:
+        from_email_addr = from_email or getattr(settings, "DEFAULT_FROM_EMAIL", f"IoT HIVE <{getattr(settings, 'EMAIL_HOST_USER', 'iothive221@gmail.com')}>")
+        send_mail(
+            subject=subject,
+            message=plain_text,
+            html_message=html_content,
+            from_email=from_email_addr,
+            recipient_list=[recipient_email],
+            fail_silently=False,
+        )
+        return True, "Delivered via Django SMTP"
+    except Exception as e:
+        logger.error("Django SMTP failed for %s: %s", recipient_email, e)
+        return False, str(e)
 
 
 def send_welcome_email(user, role="both", site_url=None):
     """
     Dispatches a branded welcome email to newly registered users in a background thread.
     Features:
-    - Embedded IoT HIVE logo (via Content-ID for instant display in mail clients)
-    - Personalized user name and account details
-    - Actionable links to sign in and explore the platform
+    - Embedded IoT HIVE logo and live HTTPS hosted asset
+    - Personalized greeting with user's name and credentials card
+    - Actionable quick links to sign in and explore the platform
+    - Prioritizes Resend HTTPS REST API (Port 443) on Render, falls back to SMTP
     """
     if not user or not user.email:
         return False
@@ -45,6 +131,7 @@ def send_welcome_email(user, role="both", site_url=None):
     marketplace_url = f"{base_url}/marketplace/"
     bounties_url = f"{base_url}/bounties/"
     dashboard_url = f"{base_url}/dashboard/"
+    logo_url = f"{base_url}/static/images/email-logo.png"
 
     subject = f"Welcome to IoT HIVE, {display_name}! 🚀"
 
@@ -76,7 +163,7 @@ The IoT HIVE Team
 https://iot-hive.onrender.com/
 """
 
-    # Rich Cyber-Themed HTML email
+    # Rich Cyber-Themed HTML email with both live HTTPS logo and CID fallback
     html_content = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -97,7 +184,7 @@ https://iot-hive.onrender.com/
               <table border="0" cellspacing="0" cellpadding="0" align="center">
                 <tr>
                   <td align="center">
-                    <img src="cid:iothive_logo" width="60" height="60" alt="IoT HIVE Logo" style="display: block; width: 60px; height: 60px; border-radius: 12px; border: 1px solid rgba(0, 229, 255, 0.4); margin-bottom: 12px; box-shadow: 0 4px 20px rgba(0, 229, 255, 0.35);">
+                    <img src="{logo_url}" width="60" height="60" alt="IoT HIVE Logo" style="display: block; width: 60px; height: 60px; border-radius: 12px; border: 1px solid rgba(0, 229, 255, 0.4); margin-bottom: 12px; box-shadow: 0 4px 20px rgba(0, 229, 255, 0.35);">
                     <div style="font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
                       IoT <span style="color: #00e5ff;">HIVE</span>
                     </div>
@@ -210,6 +297,26 @@ https://iot-hive.onrender.com/
 """
 
     def _worker():
+        # Priority 1: Resend HTTPS API (Port 443 - not blocked by Render)
+        resend_key = os.getenv("RESEND_API_KEY", "").strip()
+        if resend_key:
+            from_email = os.getenv("RESEND_FROM_EMAIL", "IoT HIVE <onboarding@resend.dev>").strip()
+            success, result = send_resend_email(
+                recipient_email=recipient_email,
+                subject=subject,
+                html_content=html_content,
+                plain_text=plain_text,
+                from_email=from_email,
+            )
+            if success:
+                logger.info("Welcome email sent successfully via Resend HTTPS API to %s: %s", recipient_email, result)
+                print(f"\n==================== [IoT HIVE WELCOME EMAIL DISPATCHED (RESEND HTTPS)] ====================\nTo: {recipient_email}\nSubject: Welcome to IoT HIVE, {display_name}!\nRecipient: {full_name} (@{user.username})\nResult: {result}\n===========================================================================================\n")
+                return
+            else:
+                logger.error("Resend API delivery failed for %s: %s. Attempting fallback to SMTP.", recipient_email, result)
+                print(f"\n[IoT HIVE WELCOME EMAIL] Resend API error: {result}. Attempting SMTP fallback...\n")
+
+        # Priority 2: Standard Django SMTP (for local dev or servers where port 587 is unblocked)
         try:
             from_email = getattr(
                 settings,
@@ -225,7 +332,7 @@ https://iot-hive.onrender.com/
             msg.encoding = "utf-8"
             msg.attach_alternative(html_content, "text/html")
 
-            # Attach the brand logo as an inline CID image if available
+            # Attach brand logo as inline CID image if available
             logo_paths = [
                 settings.BASE_DIR / "static" / "images" / "email-logo.png",
                 settings.BASE_DIR / "static" / "images" / "favicon.png",
@@ -245,8 +352,8 @@ https://iot-hive.onrender.com/
                         logger.warning("Could not attach inline logo image: %s", logo_err)
 
             msg.send(fail_silently=False)
-            logger.info("Welcome email sent successfully to %s (logo_attached=%s)", recipient_email, attached_logo)
-            print(f"\n==================== [IoT HIVE WELCOME EMAIL DISPATCHED] ====================\nTo: {recipient_email}\nSubject: Welcome to IoT HIVE, {display_name}!\nRecipient: {full_name} (@{user.username})\n=============================================================================\n")
+            logger.info("Welcome email sent successfully via SMTP to %s (logo_attached=%s)", recipient_email, attached_logo)
+            print(f"\n==================== [IoT HIVE WELCOME EMAIL DISPATCHED (SMTP)] ====================\nTo: {recipient_email}\nSubject: Welcome to IoT HIVE, {display_name}!\nRecipient: {full_name} (@{user.username})\n=============================================================================\n")
         except Exception as e:
             import traceback
             tb = traceback.format_exc()
@@ -255,6 +362,5 @@ https://iot-hive.onrender.com/
 
     thread = threading.Thread(target=_worker, daemon=True)
     thread.start()
-    # Allow up to 3.5s for SMTP delivery so WSGI/Gunicorn workers don't terminate the daemon thread
     thread.join(timeout=3.5)
     return True

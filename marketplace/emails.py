@@ -13,23 +13,26 @@ logger = logging.getLogger(__name__)
 
 
 def _async_send_mail(subject, message, recipient_list):
-    """Worker function to send mail in a background daemon thread to prevent request blocking."""
+    """Worker function to send mail via Resend HTTPS (or SMTP fallback) in background thread."""
     def _worker():
         try:
+            from accounts.emails import send_system_email
             from_email = getattr(settings, "DEFAULT_FROM_EMAIL", f"IoT HIVE <{getattr(settings, 'EMAIL_HOST_USER', 'iothive221@gmail.com')}>")
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=from_email,
-                recipient_list=recipient_list,
-                fail_silently=False,
-            )
+            for recipient in recipient_list:
+                send_system_email(
+                    recipient_email=recipient,
+                    subject=subject,
+                    plain_text=message,
+                    html_content=f"<div style='font-family:sans-serif; background:#0f172a; color:#f1f5f9; padding:20px; border-radius:10px;'><h3 style='color:#00e5ff;'>IoT HIVE Notification</h3><pre style='white-space:pre-wrap; font-family:sans-serif; line-height:1.6;'>{message}</pre></div>",
+                    from_email=from_email,
+                )
             logger.info("Successfully sent email to %s with subject '%s'", recipient_list, subject)
         except Exception as e:
             logger.error("Failed to send email to %s: %s", recipient_list, e)
 
     thread = threading.Thread(target=_worker, daemon=True)
     thread.start()
+    thread.join(timeout=3.5)
 
 
 def send_inquiry_notification(recipient_email, recipient_name, sender_name, project_title, message_text):

@@ -265,15 +265,14 @@ def password_reset_request(request):
 </html>
 """
         try:
-            from django.core.mail import send_mail
+            from .emails import send_system_email
             from django.conf import settings
-            send_mail(
+            send_system_email(
+                recipient_email=user.email,
                 subject=subject,
-                message=message_body,
-                html_message=html_message,
+                plain_text=message_body,
+                html_content=html_message,
                 from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "IoT HIVE <iothive221@gmail.com>"),
-                recipient_list=[user.email],
-                fail_silently=False,
             )
             print(f"\n==================== [IoT HIVE PASSWORD RESET EMAIL] ====================\nTo: {user.email}\nSubject: {subject}\n\n{message_body}\n==========================================================================\n")
         except Exception as e:
@@ -530,9 +529,32 @@ def email_diagnostic(request):
         "password_length": len(getattr(settings, "EMAIL_HOST_PASSWORD", "") or ""),
         "default_from_email": getattr(settings, "DEFAULT_FROM_EMAIL", ""),
         "target_email": target_email,
+        "resend_api_key_configured": bool(os.getenv("RESEND_API_KEY", "").strip()),
+        "resend_from_email": os.getenv("RESEND_FROM_EMAIL", "IoT HIVE <onboarding@resend.dev>").strip(),
     }
 
-    # Test 1: SMTP socket connection
+    # Priority 1: If RESEND_API_KEY is configured, test Resend HTTPS API (Port 443)
+    resend_key = os.getenv("RESEND_API_KEY", "").strip()
+    if resend_key:
+        from .emails import send_resend_email
+        success, res = send_resend_email(
+            recipient_email=target_email,
+            subject="IoT HIVE - Live Email Delivery Verification",
+            html_content="<div style='background:#0f172a; color:#fff; padding:24px; border-radius:12px; font-family:sans-serif;'><h2 style='color:#00e5ff;'>IoT HIVE</h2><p>Resend HTTPS Email Delivery is ACTIVE &amp; WORKING on Render!</p></div>",
+            plain_text="IoT HIVE: Resend HTTPS Email Delivery is ACTIVE & WORKING on Render!",
+            from_email=diag["resend_from_email"],
+        )
+        if success:
+            diag["provider"] = "resend_https_port_443"
+            diag["delivery_result"] = f"SUCCESS: Dispatched via Resend HTTPS API: {res}"
+            return Response(diag, status=status.HTTP_200_OK)
+        else:
+            diag["provider"] = "resend_https_port_443"
+            diag["delivery_result"] = f"FAILED: {res}"
+            return Response(diag, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # Priority 2: SMTP socket connection and send test (for local dev or unblocked servers)
+    diag["provider"] = "django_smtp"
     try:
         conn = get_connection()
         conn.open()
@@ -544,7 +566,6 @@ def email_diagnostic(request):
         diag["traceback"] = traceback.format_exc()
         return Response(diag, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # Test 2: Direct test message send
     if target_email:
         try:
             from email.mime.image import MIMEImage
@@ -556,10 +577,10 @@ def email_diagnostic(request):
             msg.encoding = "utf-8"
             msg.attach_alternative("<html><body style='font-family:sans-serif; background:#0f172a; color:#f1f5f9; padding:20px;'><h2 style='color:#00e5ff;'>IoT HIVE Diagnostic Verification</h2><p>SMTP is active and delivering correctly!</p></body></html>", "text/html")
             sent_count = msg.send(fail_silently=False)
-            diag["smtp_send"] = f"SUCCESS: Dispatched {sent_count} email message(s) to {target_email}"
+            diag["delivery_result"] = f"SUCCESS: Dispatched {sent_count} email message(s) via SMTP to {target_email}"
         except Exception as e:
             import traceback
-            diag["smtp_send"] = f"FAILED: {type(e).__name__} - {str(e)}"
+            diag["delivery_result"] = f"FAILED: {type(e).__name__} - {str(e)}"
             diag["traceback"] = traceback.format_exc()
             return Response(diag, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
