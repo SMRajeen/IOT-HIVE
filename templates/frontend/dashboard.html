@@ -27,7 +27,7 @@
         </p>
       </div>
       
-      <div class="flex items-center gap-3" id="dashboard-top-actions" style="{% if not user.is_authenticated %}display: none;{% else %}display: flex;{% endif %}">
+      <div class="flex items-center gap-3" id="dashboard-top-actions"{% if not user.is_authenticated %} style="display: none;"{% endif %}>
         <a href="/create-project/" class="btn btn-primary btn-sm">
           <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
           Post New Project

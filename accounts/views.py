@@ -125,6 +125,14 @@ def register(request):
         role=role,
     )
 
+    # Dispatch branded welcome email with IoT HIVE logo and user credentials
+    try:
+        from .emails import send_welcome_email
+        site_url = request.build_absolute_uri('/')
+        send_welcome_email(user, role=role, site_url=site_url)
+    except Exception as email_err:
+        pass
+
     return Response(
         {
             "message": "Your account has been created successfully! Please sign in with your credentials.",
@@ -480,6 +488,11 @@ def social_login(request):
         user.set_unusable_password()
         user.save()
         UserProfile.objects.create(user=user, role="both")
+        try:
+            from .emails import send_welcome_email
+            send_welcome_email(user, role="both", site_url=request.build_absolute_uri('/'))
+        except Exception:
+            pass
 
     login(request, user)
 
