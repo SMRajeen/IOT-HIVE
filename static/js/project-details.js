@@ -205,6 +205,57 @@
     }).join('');
   }
 
+  function renderSidebarAction(project) {
+    if (isOwner) {
+      return `
+        <div class="tag-mono" style="text-align: center; padding: 10px; background: var(--bg-surface-high); border-radius: 6px; color: var(--primary);">
+          You are the creator of this project
+        </div>
+      `;
+    }
+
+    const isAdmin = currentUser && (currentUser.is_staff || currentUser.is_superuser);
+    if (isAdmin) {
+      return `
+        <div class="tag-mono" style="text-align: center; padding: 10px; background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 6px; color: var(--primary); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">admin_panel_settings</span>
+          Administrator Access Active
+        </div>
+        <button type="button" class="btn btn-secondary btn-lg" onclick="window.switchTab('files')" style="width: 100%; justify-content: center; margin-bottom: 10px;">
+          <span class="material-symbols-outlined">download</span>
+          <span>Access Downloads</span>
+        </button>
+      `;
+    }
+
+    if (project.has_purchased) {
+      return `
+        <div class="tag-mono" style="text-align: center; padding: 10px; background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 6px; color: #00ff88; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">verified</span>
+          You Own This Blueprint
+        </div>
+        <button type="button" class="btn btn-secondary btn-lg" onclick="window.switchTab('files')" style="width: 100%; justify-content: center; margin-bottom: 10px;">
+          <span class="material-symbols-outlined">download</span>
+          <span>Access Downloads</span>
+        </button>
+      `;
+    }
+
+    const activeTier = getActiveTier(project);
+    const isFree = Boolean(project.is_free || (activeTier && activeTier.price == 0));
+
+    return `
+      <button type="button" class="btn btn-primary btn-lg" onclick="window.handleTierCheckout()" style="width: 100%; justify-content: center; margin-bottom: 10px;">
+        <span class="material-symbols-outlined">payments</span>
+        <span id="sidebar-buy-btn-label">${isFree ? 'Download Blueprint' : 'Order Hardware / Buy'}</span>
+      </button>
+      <div style="text-align: center; font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <span class="material-symbols-outlined" style="font-size: 14px; color: var(--status-success);">verified_user</span>
+        PayHere &bull; Visa / Mastercard &bull; Sri Lanka Delivery
+      </div>
+    `;
+  }
+
   function renderProject(project) {
     const container = document.getElementById('project-detail-content');
     if (!container) return;
@@ -407,38 +458,7 @@
                 <span id="sidebar-price-display" class="font-mono font-bold" style="font-size: 1.45rem; color: var(--primary);">${priceDisplay}</span>
               </div>
 
-              ${isOwner ? `
-                <div class="tag-mono" style="text-align: center; padding: 10px; background: var(--bg-surface-high); border-radius: 6px; color: var(--primary);">
-                  You are the creator of this project
-                </div>
-              ` : (isAdmin ? `
-                <div class="tag-mono" style="text-align: center; padding: 10px; background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 6px; color: var(--primary); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
-                  <span class="material-symbols-outlined" style="font-size: 16px;">admin_panel_settings</span>
-                  Administrator Access Active
-                </div>
-                <button type="button" class="btn btn-secondary btn-lg" onclick="window.switchTab('files')" style="width: 100%; justify-content: center; margin-bottom: 10px;">
-                  <span class="material-symbols-outlined">download</span>
-                  <span>Access Downloads</span>
-                </button>
-              ` : (project.has_purchased ? `
-                <div class="tag-mono" style="text-align: center; padding: 10px; background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 6px; color: #00ff88; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
-                  <span class="material-symbols-outlined" style="font-size: 16px;">verified</span>
-                  You Own This Blueprint
-                </div>
-                <button type="button" class="btn btn-secondary btn-lg" onclick="window.switchTab('files')" style="width: 100%; justify-content: center; margin-bottom: 10px;">
-                  <span class="material-symbols-outlined">download</span>
-                  <span>Access Downloads</span>
-                </button>
-              ` : `
-                <button type="button" class="btn btn-primary btn-lg" onclick="window.handleTierCheckout()" style="width: 100%; justify-content: center; margin-bottom: 10px;">
-                  <span class="material-symbols-outlined">payments</span>
-                  <span id="sidebar-buy-btn-label">${isFree ? 'Download Blueprint' : 'Order Hardware / Buy'}</span>
-                </button>
-                <div style="text-align: center; font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px;">
-                  <span class="material-symbols-outlined" style="font-size: 14px; color: var(--status-success);">verified_user</span>
-                  PayHere &bull; Visa / Mastercard &bull; Sri Lanka Delivery
-                </div>
-              `)}
+              ${renderSidebarAction(project)}
             </div>
           </div>
 
