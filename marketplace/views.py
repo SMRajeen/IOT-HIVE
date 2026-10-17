@@ -108,6 +108,19 @@ class ProjectViewSet(viewsets.ModelViewSet):
             if obj.seller != request.user and not (request.user.is_staff or request.user.is_superuser):
                 raise exceptions.PermissionDenied("You do not have permission to modify this project.")
 
+    def get_object(self):
+        lookup = self.kwargs.get(self.lookup_field)
+        queryset = self.filter_queryset(self.get_queryset())
+        if lookup:
+            if str(lookup).isdigit():
+                obj = queryset.filter(id=int(lookup)).first()
+            else:
+                obj = queryset.filter(slug=lookup).first()
+            if obj:
+                self.check_object_permissions(self.request, obj)
+                return obj
+        return super().get_object()
+
     def get_queryset(self):
         user = self.request.user
         if self.action == "list":

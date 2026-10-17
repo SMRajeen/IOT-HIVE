@@ -50,17 +50,23 @@
   function resolveProjectId() {
     const container = document.getElementById('project-detail-content');
     const dataId = container?.dataset?.projectId;
-    if (dataId && !isNaN(dataId) && Number(dataId) > 0) return dataId;
+    if (dataId && dataId.trim() !== '' && dataId !== 'None' && dataId !== 'null') {
+      return dataId.trim();
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
-    const queryId = urlParams.get('id') || urlParams.get('project_id');
-    if (queryId && !isNaN(queryId) && Number(queryId) > 0) return queryId;
+    const queryId = urlParams.get('id') || urlParams.get('project_id') || urlParams.get('slug');
+    if (queryId && queryId.trim() !== '') {
+      return queryId.trim();
+    }
 
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     const lastPart = pathParts[pathParts.length - 1];
-    if (lastPart && !isNaN(lastPart) && Number(lastPart) > 0) return lastPart;
+    if (lastPart && lastPart.toLowerCase() !== 'project' && lastPart.toLowerCase() !== 'marketplace') {
+      return lastPart;
+    }
 
-    return lastPart || '';
+    return '';
   }
 
   let projectId = resolveProjectId();
@@ -101,9 +107,10 @@
     return stars;
   }
 
-  function getActiveTier() {
-    if (!currentProject) return null;
-    const tiers = currentProject.tiers || [];
+  function getActiveTier(proj) {
+    const target = proj || currentProject;
+    if (!target) return null;
+    const tiers = target.tiers || [];
     if (tiers.length > 0 && tiers[selectedTierIndex]) {
       return tiers[selectedTierIndex];
     }
@@ -111,27 +118,29 @@
       id: null,
       tier_type: 'digital',
       name: 'Digital Blueprint & Firmware',
-      price: currentProject.price || 0,
+      price: target.price || 0,
       currency: 'LKR',
       description: 'Instant digital access to KiCad schematics, Gerber PCB files, BOM, and firmware code.',
       requires_shipping: false
     };
   }
 
-  function renderTierOptions() {
-    const tiers = (currentProject.tiers && currentProject.tiers.length > 0) ? currentProject.tiers : [
+  function renderTierOptions(proj) {
+    const target = proj || currentProject;
+    if (!target) return '';
+    const tiers = (target.tiers && target.tiers.length > 0) ? target.tiers : [
       {
         id: null,
         tier_type: 'digital',
         name: 'Digital Blueprint & Firmware',
-        price: currentProject.price || 0,
+        price: target.price || 0,
         currency: 'LKR',
         description: 'Instant digital access to schematics, Gerbers, BOM, and firmware code.',
         requires_shipping: false
       }
     ];
 
-    const isProjectOwner = checkIsOwner(currentProject, currentUser);
+    const isProjectOwner = checkIsOwner(target, currentUser);
 
     return tiers.map((tier, idx) => {
       const isSelected = idx === selectedTierIndex;
@@ -200,6 +209,13 @@
     const container = document.getElementById('project-detail-content');
     if (!container) return;
 
+    if (!project || typeof project !== 'object') {
+      console.warn('[IoT Hive] renderProject called with invalid project data:', project);
+      return;
+    }
+
+    currentProject = project;
+
     isOwner = checkIsOwner(project, currentUser);
     const isAdmin = currentUser && (currentUser.is_staff || currentUser.is_superuser);
     const canManage = isOwner || isAdmin;
@@ -207,8 +223,16 @@
 
     const img = project.images?.[0]?.image ? api.resolveUrl(project.images[0].image) : '';
     const creator = project.seller_name || project.seller_username || 'Maker';
-    const activeTier = getActiveTier();
-    const isFree = project.is_free || (activeTier && activeTier.price == 0);
+    const activeTier = getActiveTier(project) || {
+      id: null,
+      tier_type: 'digital',
+      name: 'Digital Blueprint & Firmware',
+      price: project.price || 0,
+      currency: 'LKR',
+      description: 'Instant digital access to KiCad schematics, Gerber PCB files, BOM, and firmware code.',
+      requires_shipping: false
+    };
+    const isFree = Boolean(project.is_free || (activeTier && activeTier.price == 0));
     const priceDisplay = isFree ? 'Free / Open-Source' : formatLKR(activeTier.price);
 
     const mcu = project.microcontroller || 'Universal MCU';
@@ -1290,14 +1314,17 @@
   function tryHydrateFromScript() {
     const el = document.getElementById('initial-project-data');
     if (el && el.textContent) {
-      try {
-        const pre = JSON.parse(el.textContent);
-        if (pre && pre.id) {
-          currentProject = pre;
-          return true;
+      const text = el.textContent.trim();
+      if (text && text !== 'null' && text !== 'None') {
+        try {
+          const pre = JSON.parse(text);
+          if (pre && pre.id) {
+            currentProject = pre;
+            return true;
+          }
+        } catch (e) {
+          console.warn('Initial project pre-hydration error:', e);
         }
-      } catch (e) {
-        console.warn('Initial project pre-hydration error:', e);
       }
     }
     return false;
@@ -1308,7 +1335,7 @@
 
     // Check pre-hydrated project immediately
     const hasPreloaded = tryHydrateFromScript();
-    if (hasPreloaded) {
+    if (hasPreloaded && currentProject) {
       renderProject(currentProject);
     }
 
@@ -1331,9 +1358,14 @@
         }
       }
 
-      isOwner = checkIsOwner(currentProject, currentUser);
-      renderProject(currentProject);
+      if (currentProject) {
+        isOwner = checkIsOwner(currentProject, currentUser);
+        renderProject(currentProject);
+      } else {
+        throw new Error("Project not found or no project ID specified.");
+      }
     } catch (err) {
+      console.error('[IoT Hive] Error in loadProjectDetails:', err);
       if (!currentProject) {
         const container = document.getElementById('project-detail-content');
         if (container) {

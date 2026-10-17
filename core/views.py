@@ -16,10 +16,15 @@ def categories_view(request):
 
 def project_detail_view(request, pk=None):
     initial_project_json = "null"
+    if not pk:
+        pk = request.GET.get("id") or request.GET.get("project_id") or request.GET.get("slug")
     if pk:
         try:
+            from django.db.models import Q
+            lookup = int(pk) if str(pk).isdigit() else pk
+            lookup_q = Q(pk=lookup) if isinstance(lookup, int) else Q(slug=lookup)
             project = (
-                Project.objects.filter(pk=pk)
+                Project.objects.filter(lookup_q)
                 .select_related("seller", "seller__profile", "category", "video", "model_3d")
                 .prefetch_related("tiers", "bom_items", "attachments", "images", "reviews__user", "reviews__user__profile")
                 .annotate(
@@ -45,7 +50,7 @@ def project_detail_view(request, pk=None):
             initial_project_json = "null"
 
     return render(request, "frontend/project-detail.html", {
-        "project_id": pk,
+        "project_id": pk or "",
         "initial_project_json": initial_project_json
     })
 
