@@ -526,7 +526,8 @@
       const code = project.source_code || '';
       const lang = project.source_code_language || 'cpp';
       const hasPurchased = !!project.has_purchased;
-      const isCodeLocked = !project.is_free && !hasPurchased;
+      const isOwnerOrAdmin = isOwner || (currentUser && (currentUser.is_staff || currentUser.is_superuser));
+      const isCodeLocked = !project.is_free && !hasPurchased && !isOwnerOrAdmin && (project.is_unlocked === false || project.is_code_locked);
       const fullLines = project.full_code_line_count || (code ? code.split('\n').length : 0);
 
       return `
@@ -610,7 +611,8 @@
     if (activeTab === 'files') {
       const files = project.attachments || [];
       const hasPurchased = !!project.has_purchased;
-      const isLocked = !project.is_free && !hasPurchased;
+      const isOwnerOrAdmin = isOwner || (currentUser && (currentUser.is_staff || currentUser.is_superuser));
+      const isLocked = !project.is_free && !hasPurchased && !isOwnerOrAdmin && (project.is_unlocked === false);
 
       return `
         <div class="card-cyber" style="padding: 28px; background: var(--bg-surface-container); border-radius: var(--radius-xl);">
@@ -622,13 +624,13 @@
             Direct download archives including KiCad schematics, Gerber PCB files, 3D printable STLs, and compiled firmware binaries.
           </p>
 
-          ${hasPurchased ? `
+          ${(hasPurchased || isOwnerOrAdmin) ? `
             <div class="card-cyber" style="border: 1px solid rgba(0, 255, 136, 0.4); background: rgba(0, 255, 136, 0.05); padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
               <span class="material-symbols-outlined" style="color: #00ff88; font-size: 24px;">verified</span>
               <div>
-                <strong style="color: #00ff88; font-size: 0.92rem;">Tier 1 Digital License Active</strong>
+                <strong style="color: #00ff88; font-size: 0.92rem;">${isOwner ? 'Creator Full Access' : (isOwnerOrAdmin ? 'Admin Full Access' : 'Tier 1 Digital License Active')}</strong>
                 <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">
-                  You have full commercial/maker access to download all blueprint archives, Gerber files, and firmware revisions for this project.
+                  ${isOwnerOrAdmin ? 'As the project creator / admin, you have unrestricted access to all digital blueprints and firmware files.' : 'You have full commercial/maker access to download all blueprint archives, Gerber files, and firmware revisions for this project.'}
                 </p>
               </div>
             </div>
@@ -658,7 +660,7 @@
               <p style="margin-top: 8px;">No file attachments uploaded for this project yet.</p>
             </div>
           ` : files.map(f => {
-            const fileLocked = isLocked || !!f.is_locked || !f.file_url;
+            const fileLocked = isLocked || (!isOwnerOrAdmin && (!!f.is_locked || !f.file_url));
             const url = (!fileLocked && f.file_url) ? api.resolveUrl(f.file_url) : null;
             const icon = getAttachmentIcon(f.file_type, f.file_name || f.title);
             const isPdf = (f.file_type || '').toLowerCase().includes('pdf') || (f.file_name || '').toLowerCase().endsWith('.pdf');

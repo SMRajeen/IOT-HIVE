@@ -348,13 +348,19 @@ class ProjectSerializer(serializers.ModelSerializer):
             request = self.context.get("request")
             if request and hasattr(request, "user") and request.user.is_authenticated:
                 user = request.user
-                has_purchased = Order.objects.filter(
-                    buyer=user,
-                    project=instance,
-                    status__in=["paid", "shipped", "delivered"]
-                ).exists()
-                if has_purchased:
+                is_admin_or_publisher = bool(
+                    user == instance.seller or user.is_staff or user.is_superuser
+                )
+                if is_admin_or_publisher:
                     has_access = True
+                else:
+                    has_purchased = Order.objects.filter(
+                        buyer=user,
+                        project=instance,
+                        status__in=["paid", "shipped", "delivered"]
+                    ).exists()
+                    if has_purchased:
+                        has_access = True
 
         data["is_unlocked"] = has_access
         data["has_purchased"] = has_purchased
