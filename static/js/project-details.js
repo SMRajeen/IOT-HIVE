@@ -525,7 +525,8 @@
     if (activeTab === 'code') {
       const code = project.source_code || '';
       const lang = project.source_code_language || 'cpp';
-      const isCodeLocked = !!project.is_code_locked;
+      const hasPurchased = !!project.has_purchased;
+      const isCodeLocked = !project.is_free && !hasPurchased;
       const fullLines = project.full_code_line_count || (code ? code.split('\n').length : 0);
 
       return `
@@ -608,8 +609,8 @@
 
     if (activeTab === 'files') {
       const files = project.attachments || [];
-      const isLocked = (project.is_unlocked === false);
       const hasPurchased = !!project.has_purchased;
+      const isLocked = !project.is_free && !hasPurchased;
 
       return `
         <div class="card-cyber" style="padding: 28px; background: var(--bg-surface-container); border-radius: var(--radius-xl);">
@@ -657,8 +658,8 @@
               <p style="margin-top: 8px;">No file attachments uploaded for this project yet.</p>
             </div>
           ` : files.map(f => {
-            const fileLocked = isLocked || f.is_locked;
-            const url = (!fileLocked && (f.file_url || f.file)) ? api.resolveUrl(f.file_url || f.file) : null;
+            const fileLocked = isLocked || !!f.is_locked || !f.file_url;
+            const url = (!fileLocked && f.file_url) ? api.resolveUrl(f.file_url) : null;
             const icon = getAttachmentIcon(f.file_type, f.file_name || f.title);
             const isPdf = (f.file_type || '').toLowerCase().includes('pdf') || (f.file_name || '').toLowerCase().endsWith('.pdf');
             return `
@@ -677,7 +678,7 @@
                   </div>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                  ${fileLocked ? `
+                  ${fileLocked || !url ? `
                     <button onclick="window.unlockTier1()" class="btn btn-secondary btn-sm" style="border-color: rgba(255, 183, 0, 0.4); color: #ffb700;">
                       <span class="material-symbols-outlined" style="font-size: 16px;">lock</span>
                       Locked (Tier 1)
