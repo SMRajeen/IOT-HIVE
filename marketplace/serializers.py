@@ -336,6 +336,63 @@ class ProjectSerializer(serializers.ModelSerializer):
                     "created_at": instance.created_at.isoformat() if instance.created_at else None,
                 }
             ]
+
+        # Determine user access for digital assets (Tier 1 protection)
+        has_access = False
+        is_free = bool(instance.is_free or (instance.price is not None and instance.price <= 0))
+        has_purchased = False
+
+        if is_free:
+            has_access = True
+        else:
+            request = self.context.get("request")
+            if request and hasattr(request, "user") and request.user.is_authenticated:
+                user = request.user
+                if user == instance.seller or user.is_staff or user.is_superuser:
+                    has_access = True
+                else:
+                    has_purchased = Order.objects.filter(
+                        buyer=user,
+                        project=instance,
+                        status__in=["paid", "shipped", "delivered"]
+                    ).exists()
+                    if has_purchased:
+                        has_access = True
+
+        data["is_unlocked"] = has_access
+        data["has_purchased"] = has_purchased
+
+        # Mask attachments and code if locked
+        if not has_access:
+            if data.get("attachments"):
+                sanitized_attachments = []
+                for att in data["attachments"]:
+                    att_copy = dict(att)
+                    att_copy["file"] = None
+                    att_copy["file_url"] = None
+                    att_copy["is_locked"] = True
+                    sanitized_attachments.append(att_copy)
+                data["attachments"] = sanitized_attachments
+
+            raw_code = instance.source_code or ""
+            code_lines = raw_code.splitlines()
+            data["full_code_line_count"] = len(code_lines)
+            data["is_code_locked"] = True
+            if len(code_lines) > 15:
+                teaser_code = "\n".join(code_lines[:15]) + f"\n\n// 🔒 [FIRMWARE LOCKED] +{len(code_lines) - 15} more lines hidden.\n// Purchase Tier 1 (Digital Blueprint) to unlock complete compile-ready firmware."
+                data["source_code"] = teaser_code
+            elif not raw_code:
+                data["source_code"] = ""
+            else:
+                data["source_code"] = raw_code + "\n\n// 🔒 [FIRMWARE LOCKED] Purchase Tier 1 to unlock full license & support."
+        else:
+            data["is_code_locked"] = False
+            raw_code = instance.source_code or ""
+            data["full_code_line_count"] = len(raw_code.splitlines()) if raw_code else 0
+            if data.get("attachments"):
+                for att in data["attachments"]:
+                    att["is_locked"] = False
+
         return data
 
     def _process_bom(self, project, bom_input):

@@ -156,9 +156,13 @@
             ${auth.escapeHtml(tier.description || '')}
           </p>
           <div style="display: flex; align-items: center; gap: 6px;">
-            <span class="hardware-chip" style="font-size: 0.68rem; padding: 2px 7px; ${isSelected ? 'background: rgba(0, 229, 255, 0.18); color: #38bdf8; border: 1px solid rgba(0, 229, 255, 0.4);' : ''}">${badge}</span>
+            ${(currentProject && currentProject.has_purchased && !isPhysical) ? `
+              <span class="hardware-chip" style="font-size: 0.68rem; padding: 2px 7px; background: rgba(0, 255, 136, 0.2); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.5);">PURCHASED &bull; UNLOCKED</span>
+            ` : `
+              <span class="hardware-chip" style="font-size: 0.68rem; padding: 2px 7px; ${isSelected ? 'background: rgba(0, 229, 255, 0.18); color: #38bdf8; border: 1px solid rgba(0, 229, 255, 0.4);' : ''}">${badge}</span>
+            `}
             <span class="text-xs" style="color: ${isSelected ? '#cbd5e1' : 'var(--text-muted)'}; font-size: 0.72rem;">
-              ${isPhysical ? '&bull; Doorstep courier delivery' : '&bull; Instant Unlock'}
+              ${(currentProject && currentProject.has_purchased && !isPhysical) ? '&bull; All assets unlocked' : (isPhysical ? '&bull; Doorstep courier delivery' : '&bull; Instant Unlock')}
             </span>
           </div>
         </div>
@@ -353,6 +357,15 @@
                 <div class="tag-mono" style="text-align: center; padding: 10px; background: var(--bg-surface-high); border-radius: 6px; color: var(--primary);">
                   You are the creator of this project
                 </div>
+              ` : (project.has_purchased ? `
+                <div class="tag-mono" style="text-align: center; padding: 10px; background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 6px; color: #00ff88; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">verified</span>
+                  You Own This Blueprint
+                </div>
+                <button type="button" class="btn btn-secondary btn-lg" onclick="window.switchTab('files')" style="width: 100%; justify-content: center; margin-bottom: 10px;">
+                  <span class="material-symbols-outlined">download</span>
+                  <span>Access Downloads</span>
+                </button>
               ` : `
                 <button type="button" class="btn btn-primary btn-lg" onclick="window.handleTierCheckout()" style="width: 100%; justify-content: center; margin-bottom: 10px;">
                   <span class="material-symbols-outlined">payments</span>
@@ -362,7 +375,7 @@
                   <span class="material-symbols-outlined" style="font-size: 14px; color: var(--status-success);">verified_user</span>
                   PayHere &bull; Visa / Mastercard &bull; Sri Lanka Delivery
                 </div>
-              `}
+              `)}
             </div>
           </div>
 
@@ -512,21 +525,46 @@
     if (activeTab === 'code') {
       const code = project.source_code || '';
       const lang = project.source_code_language || 'cpp';
+      const isCodeLocked = !!project.is_code_locked;
+      const fullLines = project.full_code_line_count || (code ? code.split('\n').length : 0);
 
       return `
         <div class="card-cyber" style="padding: 28px; background: var(--bg-surface-container); border-radius: var(--radius-xl);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
             <h3 style="font-size: 1.2rem; margin: 0; display: flex; align-items: center; gap: 8px; color: var(--primary);">
               <span class="material-symbols-outlined">terminal</span>
               Embedded Firmware &amp; Source Code
             </h3>
-            ${code ? `
+            ${code && !isCodeLocked ? `
               <button id="copy-code-btn" onclick="window.copySourceCode()" class="btn btn-secondary btn-sm">
                 <span class="material-symbols-outlined" style="font-size: 16px;">content_copy</span>
                 Copy Code
               </button>
-            ` : ''}
+            ` : (isCodeLocked ? `
+              <button onclick="window.unlockTier1()" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #00e5ff, #0088ff); border: none;">
+                <span class="material-symbols-outlined" style="font-size: 16px;">lock_open</span>
+                Unlock Full Code
+              </button>
+            ` : '')}
           </div>
+
+          ${isCodeLocked ? `
+            <div class="card-cyber" style="border: 1px solid rgba(255, 183, 0, 0.4); background: rgba(255, 183, 0, 0.05); padding: 14px 18px; border-radius: 10px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="material-symbols-outlined" style="color: #ffb700; font-size: 24px;">lock</span>
+                <div>
+                  <strong style="color: #ffb700; font-size: 0.92rem;">FIRMWARE PREVIEW &bull; ${fullLines} Lines Total</strong>
+                  <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">
+                    Previewing initialization headers. Complete compile-ready firmware is protected under Tier 1 Digital Blueprint.
+                  </p>
+                </div>
+              </div>
+              <button onclick="window.unlockTier1()" class="btn btn-secondary btn-sm" style="border-color: #ffb700; color: #ffb700;">
+                <span class="material-symbols-outlined" style="font-size: 16px;">shopping_bag</span>
+                Unlock (Tier 1)
+              </button>
+            </div>
+          ` : ''}
 
           ${!code ? `
             <div style="padding: 36px; text-align: center; color: var(--text-muted);">
@@ -534,7 +572,7 @@
               <p style="margin-top: 8px;">No firmware source code attached directly to this project page.</p>
             </div>
           ` : `
-            <div class="code-viewer-container">
+            <div class="code-viewer-container" style="position: relative;">
               <div class="code-viewer-header">
                 <div style="display: flex; align-items: center;">
                   <div class="code-terminal-controls">
@@ -548,10 +586,20 @@
                   </span>
                 </div>
                 <span class="code-viewer-lines">
-                  ${code.split('\n').length} lines
+                  ${isCodeLocked ? `Previewing ~15 of ${fullLines} lines` : `${code.split('\n').length} lines`}
                 </span>
               </div>
-              <pre class="code-viewer-pre"><code class="language-${lang}">${auth.escapeHtml(code)}</code></pre>
+              <div style="position: relative; overflow: hidden;">
+                <pre class="code-viewer-pre" style="${isCodeLocked ? 'max-height: 280px; overflow: hidden; margin-bottom: 0;' : ''}"><code class="language-${lang}">${auth.escapeHtml(code)}</code></pre>
+                ${isCodeLocked ? `
+                  <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 140px; background: linear-gradient(to bottom, rgba(7, 12, 24, 0) 0%, rgba(7, 12, 24, 0.96) 80%); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 20px; backdrop-filter: blur(1.5px);">
+                    <button onclick="window.unlockTier1()" class="btn btn-primary btn-sm" style="box-shadow: 0 4px 20px rgba(0, 229, 255, 0.4);">
+                      <span class="material-symbols-outlined" style="font-size: 16px;">lock_open</span>
+                      Unlock Remaining ${Math.max(0, fullLines - 15)} Lines of Code
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
             </div>
           `}
         </div>
@@ -560,6 +608,9 @@
 
     if (activeTab === 'files') {
       const files = project.attachments || [];
+      const isLocked = (project.is_unlocked === false);
+      const hasPurchased = !!project.has_purchased;
+
       return `
         <div class="card-cyber" style="padding: 28px; background: var(--bg-surface-container); border-radius: var(--radius-xl);">
           <h3 style="font-size: 1.2rem; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; color: var(--primary);">
@@ -570,40 +621,81 @@
             Direct download archives including KiCad schematics, Gerber PCB files, 3D printable STLs, and compiled firmware binaries.
           </p>
 
+          ${hasPurchased ? `
+            <div class="card-cyber" style="border: 1px solid rgba(0, 255, 136, 0.4); background: rgba(0, 255, 136, 0.05); padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+              <span class="material-symbols-outlined" style="color: #00ff88; font-size: 24px;">verified</span>
+              <div>
+                <strong style="color: #00ff88; font-size: 0.92rem;">Tier 1 Digital License Active</strong>
+                <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">
+                  You have full commercial/maker access to download all blueprint archives, Gerber files, and firmware revisions for this project.
+                </p>
+              </div>
+            </div>
+          ` : (isLocked ? `
+            <div class="card-cyber" style="border: 1px solid rgba(0, 229, 255, 0.35); background: rgba(0, 229, 255, 0.04); padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 42px; height: 42px; border-radius: 8px; background: rgba(0, 229, 255, 0.12); border: 1px solid rgba(0, 229, 255, 0.3); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                  <span class="material-symbols-outlined" style="font-size: 24px;">lock</span>
+                </div>
+                <div>
+                  <strong style="color: var(--text-primary); font-size: 0.95rem;">Hardware Blueprints &amp; CAD Files Locked</strong>
+                  <p style="margin: 2px 0 0; font-size: 0.82rem; color: var(--text-muted);">
+                    Get the <strong>Tier 1 Digital Blueprint</strong> to unlock instant downloads for all Gerber PCB zips, KiCad schematics, and 3D printable STLs.
+                  </p>
+                </div>
+              </div>
+              <button onclick="window.unlockTier1()" class="btn btn-primary btn-sm" style="white-space: nowrap;">
+                <span class="material-symbols-outlined" style="font-size: 16px;">lock_open</span>
+                Unlock All Files (${project.price == 0 ? 'Free' : formatLKR(project.price)})
+              </button>
+            </div>
+          ` : '')}
+
           ${files.length === 0 ? `
             <div style="padding: 36px; text-align: center; color: var(--text-muted);">
               <span class="material-symbols-outlined" style="font-size: 40px;">folder_off</span>
               <p style="margin-top: 8px;">No file attachments uploaded for this project yet.</p>
             </div>
           ` : files.map(f => {
-            const url = api.resolveUrl(f.file_url || f.file);
+            const fileLocked = isLocked || f.is_locked;
+            const url = (!fileLocked && (f.file_url || f.file)) ? api.resolveUrl(f.file_url || f.file) : null;
             const icon = getAttachmentIcon(f.file_type, f.file_name || f.title);
             const isPdf = (f.file_type || '').toLowerCase().includes('pdf') || (f.file_name || '').toLowerCase().endsWith('.pdf');
             return `
               <div class="attachment-card" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: var(--bg-surface-low); border: 1px solid var(--border-subtle); border-radius: 10px; margin-bottom: 10px;">
                 <div style="display: flex; align-items: center; gap: 14px;">
-                  <div class="attachment-icon-box" style="width: 42px; height: 42px; border-radius: 8px; background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.3); display: flex; align-items: center; justify-content: center; color: var(--primary);">
-                    <span class="material-symbols-outlined">${icon}</span>
+                  <div class="attachment-icon-box" style="width: 42px; height: 42px; border-radius: 8px; background: ${fileLocked ? 'rgba(255, 183, 0, 0.1)' : 'rgba(0, 229, 255, 0.1)'}; border: 1px solid ${fileLocked ? 'rgba(255, 183, 0, 0.3)' : 'rgba(0, 229, 255, 0.3)'}; display: flex; align-items: center; justify-content: center; color: ${fileLocked ? '#ffb700' : 'var(--primary)'};">
+                    <span class="material-symbols-outlined">${fileLocked ? 'lock' : icon}</span>
                   </div>
                   <div>
                     <strong style="font-size: 0.95rem; color: var(--text-primary);">${auth.escapeHtml(f.title || f.file_name || 'Hardware Asset')}</strong>
                     <div style="display: flex; gap: 8px; font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; align-items: center;">
                       <span class="tag-mono" style="font-size: 0.7rem; padding: 1px 6px;">${(f.file_type || 'RAW').toUpperCase()}</span>
                       ${f.file_size ? `<span>${auth.escapeHtml(f.file_size)}</span>` : ''}
+                      ${fileLocked ? '<span style="color: #ffb700; font-size: 0.72rem;">&bull; Tier 1 Required</span>' : '<span style="color: #00ff88; font-size: 0.72rem;">&bull; Ready to Download</span>'}
                     </div>
                   </div>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                  ${isPdf ? `
-                    <a href="${url}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
-                      <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
-                      View PDF
-                    </a>
-                  ` : ''}
-                  <a href="${url}" download="${auth.escapeHtml(f.title || 'attachment')}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
-                    Download
-                  </a>
+                  ${fileLocked ? `
+                    <button onclick="window.unlockTier1()" class="btn btn-secondary btn-sm" style="border-color: rgba(255, 183, 0, 0.4); color: #ffb700;">
+                      <span class="material-symbols-outlined" style="font-size: 16px;">lock</span>
+                      Locked (Tier 1)
+                    </button>
+                  ` : `
+                    ${isPdf && url ? `
+                      <a href="${url}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+                        View PDF
+                      </a>
+                    ` : ''}
+                    ${url ? `
+                      <a href="${url}" download="${auth.escapeHtml(f.title || 'attachment')}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
+                        Download
+                      </a>
+                    ` : ''}
+                  `}
                 </div>
               </div>
             `;
@@ -897,6 +989,25 @@
     }
   };
 
+  window.unlockTier1 = () => {
+    // Select Tier 0 (Digital Blueprint)
+    window.selectHardwareTier(0);
+    // Smooth scroll to tier options card
+    const tierCard = document.querySelector('.tier-option-card');
+    if (tierCard) {
+      tierCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      tierCard.style.outline = '2px solid #00e5ff';
+      tierCard.style.boxShadow = '0 0 24px rgba(0, 229, 255, 0.4)';
+      setTimeout(() => {
+        tierCard.style.outline = '';
+        tierCard.style.boxShadow = '';
+      }, 1600);
+    }
+    if (window.showToast) {
+      showToast('Select Tier 1 (Digital Blueprint) to unlock full hardware blueprints.', 'info');
+    }
+  };
+
   window.handleTierCheckout = () => {
     if (!currentUser) {
       if (window.showToast) showToast('Please log in or create an account to proceed with checkout.', 'info');
@@ -926,13 +1037,29 @@
         requiresShipping: tier.requires_shipping,
         maker: currentProject.seller_username
       }, (order) => {
-        window.switchTab('files');
+        if (window.showToast) showToast('Payment successful! Blueprints and firmware unlocked.', 'success');
+        if (api && api.projects && api.projects.get) {
+          api.projects.get(projectId).then(updated => {
+            currentProject = updated;
+            renderProject(currentProject);
+            window.switchTab('files');
+          }).catch(() => {
+            window.switchTab('files');
+          });
+        } else {
+          window.switchTab('files');
+        }
       });
     }
   };
 
   window.copySourceCode = () => {
     if (!currentProject || !currentProject.source_code) return;
+    if (currentProject.is_code_locked) {
+      if (window.showToast) showToast('Full firmware is locked. Purchase Tier 1 to copy compile-ready code.', 'info');
+      window.unlockTier1();
+      return;
+    }
     navigator.clipboard.writeText(currentProject.source_code).then(() => {
       const btn = document.getElementById('copy-code-btn');
       if (btn) {
