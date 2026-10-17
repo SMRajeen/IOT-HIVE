@@ -21,6 +21,32 @@
   let isOwner = false;
   let activeTab = 'overview';
   let selectedTierIndex = 0;
+
+  function checkIsOwner(proj, user) {
+    if (!proj) return false;
+    if (proj.is_owner === true) return true;
+    if (!user) return false;
+    
+    // Check ID match (handles both number and string, e.g. "53" vs 53)
+    const sellerId = proj.seller?.id || proj.seller_id || proj.seller;
+    if (sellerId && user.id && String(sellerId) === String(user.id)) return true;
+    
+    // Check Username match (case-insensitive)
+    const sUser = proj.seller_username || (typeof proj.seller === 'string' ? proj.seller : proj.seller?.username);
+    if (sUser && user.username && String(sUser).toLowerCase() === String(user.username).toLowerCase()) return true;
+    
+    return false;
+  }
+
+  function isProjectUnlocked(proj, user) {
+    if (!proj) return false;
+    if (proj.is_free) return true;
+    if (proj.is_owner === true || checkIsOwner(proj, user)) return true;
+    if (user && (user.is_staff || user.is_superuser)) return true;
+    if (proj.has_purchased === true) return true;
+    if (proj.is_unlocked === true) return true;
+    return false;
+  }
   function resolveProjectId() {
     const container = document.getElementById('project-detail-content');
     const dataId = container?.dataset?.projectId;
@@ -105,7 +131,7 @@
       }
     ];
 
-    const isOwner = !!(currentUser && currentUser.id && ((currentProject.seller && currentProject.seller === currentUser.id) || (currentProject.seller_id && currentProject.seller_id === currentUser.id)));
+    const isProjectOwner = checkIsOwner(currentProject, currentUser);
 
     return tiers.map((tier, idx) => {
       const isSelected = idx === selectedTierIndex;
@@ -113,7 +139,7 @@
       const icon = tier.tier_type === 'assembled' ? 'precision_manufacturing' : (tier.tier_type === 'kit' ? 'inventory_2' : 'terminal');
       const badge = tier.tier_type === 'assembled' ? 'ASSEMBLED UNIT' : (tier.tier_type === 'kit' ? 'DIY PARTS KIT' : 'DIGITAL BLUEPRINT');
 
-      if (isOwner) {
+      if (isProjectOwner) {
         return `
           <div class="card-cyber" 
                style="padding: 14px 16px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-surface-low);">
@@ -174,6 +200,11 @@
     const container = document.getElementById('project-detail-content');
     if (!container) return;
 
+    isOwner = checkIsOwner(project, currentUser);
+    const isAdmin = currentUser && (currentUser.is_staff || currentUser.is_superuser);
+    const canManage = isOwner || isAdmin;
+    const isUnlocked = isProjectUnlocked(project, currentUser);
+
     const img = project.images?.[0]?.image ? api.resolveUrl(project.images[0].image) : '';
     const creator = project.seller_name || project.seller_username || 'Maker';
     const activeTier = getActiveTier();
@@ -186,7 +217,6 @@
     const buildTime = project.estimated_build_time || '1-2 Hours';
     const reviews = project.reviews || [];
     const avgRating = project.average_rating ? Number(project.average_rating).toFixed(1) : null;
-    const canManage = isOwner || (currentUser && (currentUser.is_staff || currentUser.is_superuser));
 
     container.innerHTML = `
       <!-- Breadcrumb & Header Bar -->
@@ -357,6 +387,15 @@
                 <div class="tag-mono" style="text-align: center; padding: 10px; background: var(--bg-surface-high); border-radius: 6px; color: var(--primary);">
                   You are the creator of this project
                 </div>
+              ` : (isAdmin ? `
+                <div class="tag-mono" style="text-align: center; padding: 10px; background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 6px; color: var(--primary); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">admin_panel_settings</span>
+                  Administrator Access Active
+                </div>
+                <button type="button" class="btn btn-secondary btn-lg" onclick="window.switchTab('files')" style="width: 100%; justify-content: center; margin-bottom: 10px;">
+                  <span class="material-symbols-outlined">download</span>
+                  <span>Access Downloads</span>
+                </button>
               ` : (project.has_purchased ? `
                 <div class="tag-mono" style="text-align: center; padding: 10px; background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 6px; color: #00ff88; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
                   <span class="material-symbols-outlined" style="font-size: 16px;">verified</span>
@@ -525,9 +564,9 @@
     if (activeTab === 'code') {
       const code = project.source_code || '';
       const lang = project.source_code_language || 'cpp';
-      const hasPurchased = !!project.has_purchased;
-      const isOwnerOrAdmin = isOwner || (currentUser && (currentUser.is_staff || currentUser.is_superuser));
-      const isCodeLocked = !project.is_free && !hasPurchased && !isOwnerOrAdmin && (project.is_unlocked === false || project.is_code_locked);
+      const isOwnerOrAdmin = isOwner || checkIsOwner(project, currentUser) || (currentUser && (currentUser.is_staff || currentUser.is_superuser));
+      const unlocked = isProjectUnlocked(project, currentUser);
+      const isCodeLocked = !unlocked && (project.is_code_locked || !project.is_free);
       const fullLines = project.full_code_line_count || (code ? code.split('\n').length : 0);
 
       return `
@@ -610,9 +649,9 @@
 
     if (activeTab === 'files') {
       const files = project.attachments || [];
-      const hasPurchased = !!project.has_purchased;
-      const isOwnerOrAdmin = isOwner || (currentUser && (currentUser.is_staff || currentUser.is_superuser));
-      const isLocked = !project.is_free && !hasPurchased && !isOwnerOrAdmin && (project.is_unlocked === false);
+      const isOwnerOrAdmin = isOwner || checkIsOwner(project, currentUser) || (currentUser && (currentUser.is_staff || currentUser.is_superuser));
+      const unlocked = isProjectUnlocked(project, currentUser);
+      const isLocked = !unlocked;
 
       return `
         <div class="card-cyber" style="padding: 28px; background: var(--bg-surface-container); border-radius: var(--radius-xl);">
@@ -624,7 +663,7 @@
             Direct download archives including KiCad schematics, Gerber PCB files, 3D printable STLs, and compiled firmware binaries.
           </p>
 
-          ${(hasPurchased || isOwnerOrAdmin) ? `
+          ${(unlocked && (project.has_purchased || isOwnerOrAdmin)) ? `
             <div class="card-cyber" style="border: 1px solid rgba(0, 255, 136, 0.4); background: rgba(0, 255, 136, 0.05); padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
               <span class="material-symbols-outlined" style="color: #00ff88; font-size: 24px;">verified</span>
               <div>
@@ -660,7 +699,7 @@
               <p style="margin-top: 8px;">No file attachments uploaded for this project yet.</p>
             </div>
           ` : files.map(f => {
-            const fileLocked = isLocked || (!isOwnerOrAdmin && (!!f.is_locked || !f.file_url));
+            const fileLocked = !unlocked || (f.is_locked && !isOwnerOrAdmin);
             const url = (!fileLocked && f.file_url) ? api.resolveUrl(f.file_url) : null;
             const icon = getAttachmentIcon(f.file_type, f.file_name || f.title);
             const isPdf = (f.file_type || '').toLowerCase().includes('pdf') || (f.file_name || '').toLowerCase().endsWith('.pdf');
@@ -1274,34 +1313,26 @@
     }
 
     try {
-      // Parallel fetch for user session and project data
-      const [user, project] = await Promise.all([
-        auth.getUser().catch(() => null),
-        hasPreloaded ? Promise.resolve(currentProject) : (projectId ? api.projects.get(projectId) : Promise.reject(new Error("No project specified.")))
-      ]);
-
+      // 1. Fetch current authenticated user session
+      const user = await auth.getUser().catch(() => null);
       currentUser = user;
-      currentProject = project || currentProject;
-      if (currentUser && currentUser.id && ((currentProject.seller && currentProject.seller === currentUser.id) || (currentProject.seller_id && currentProject.seller_id === currentUser.id))) {
-        isOwner = true;
-      } else {
-        isOwner = false;
-      }
 
-      renderProject(currentProject);
-
-      // In background, refresh fresh view counts & latest reviews without blocking
-      if (hasPreloaded && projectId) {
-        api.projects.get(projectId).then(fresh => {
+      // 2. Fetch fresh project details from API with credentials
+      // This guarantees authenticated creators/admins/buyers receive unmasked download links and full code
+      if (projectId) {
+        try {
+          const fresh = await api.projects.get(projectId);
           if (fresh && fresh.id) {
             currentProject = fresh;
-            if (currentUser && currentUser.id && ((currentProject.seller && currentProject.seller === currentUser.id) || (currentProject.seller_id && currentProject.seller_id === currentUser.id))) {
-              isOwner = true;
-            }
-            renderProject(currentProject);
           }
-        }).catch(() => {});
+        } catch (fetchErr) {
+          console.warn('[IoT Hive] Project API fetch note:', fetchErr);
+          if (!currentProject) throw fetchErr;
+        }
       }
+
+      isOwner = checkIsOwner(currentProject, currentUser);
+      renderProject(currentProject);
     } catch (err) {
       if (!currentProject) {
         const container = document.getElementById('project-detail-content');

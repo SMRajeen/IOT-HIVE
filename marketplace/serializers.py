@@ -341,27 +341,36 @@ class ProjectSerializer(serializers.ModelSerializer):
         has_access = False
         is_free = bool(instance.is_free or (instance.price is not None and instance.price <= 0))
         has_purchased = False
+        is_owner = False
+        is_admin = False
+
+        request = self.context.get("request")
+        if request and hasattr(request, "user") and request.user.is_authenticated:
+            user = request.user
+            is_owner = bool(
+                (hasattr(instance, "seller_id") and instance.seller_id == user.id)
+                or (hasattr(instance, "seller") and instance.seller == user)
+                or (hasattr(instance.seller, "username") and instance.seller.username.lower() == user.username.lower())
+            )
+            is_admin = bool(user.is_staff or user.is_superuser)
+            if is_owner or is_admin:
+                has_access = True
+            else:
+                has_purchased = Order.objects.filter(
+                    buyer=user,
+                    project=instance,
+                    status__in=["paid", "shipped", "delivered"]
+                ).exists()
+                if has_purchased:
+                    has_access = True
 
         if is_free:
             has_access = True
-        else:
-            request = self.context.get("request")
-            if request and hasattr(request, "user") and request.user.is_authenticated:
-                user = request.user
-                is_admin_or_publisher = bool(
-                    user == instance.seller or user.is_staff or user.is_superuser
-                )
-                if is_admin_or_publisher:
-                    has_access = True
-                else:
-                    has_purchased = Order.objects.filter(
-                        buyer=user,
-                        project=instance,
-                        status__in=["paid", "shipped", "delivered"]
-                    ).exists()
-                    if has_purchased:
-                        has_access = True
 
+        data["seller_id"] = instance.seller_id if hasattr(instance, "seller_id") else (instance.seller.id if instance.seller else None)
+        data["seller_username"] = instance.seller.username if instance.seller else ""
+        data["is_owner"] = is_owner
+        data["is_admin"] = is_admin
         data["is_unlocked"] = has_access
         data["has_purchased"] = has_purchased
 
